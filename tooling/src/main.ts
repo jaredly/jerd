@@ -337,7 +337,11 @@ const unionTransformer = (
                     type,
                 );
                 if (transformer) {
-                    cases.push(`default: { ${transformer} }`);
+                    cases.push(`default: {
+                        let changed${level + 1} = false;
+                        ${transformer}
+                        ${newName} = ${newName}$${level}node;
+                    }`);
                 }
             } else if (types[type.typeName.name]) {
                 processType(types[type.typeName.name], false);
