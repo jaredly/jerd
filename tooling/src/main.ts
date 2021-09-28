@@ -169,8 +169,14 @@ const makeIndividualTransformer = (
         }
         // if (visitorTypes.includes(type.typeName.name)) {
         // console.log(type.typeName.name, level);
-        if (needTransformers[type.typeName.name] !== false) {
-            needTransformers[type.typeName.name] = true;
+        if (transformerStatus[type.typeName.name] === undefined) {
+            transformers[type.typeName.name] = makeTransformer(
+                type.typeName.name,
+            );
+            // transformerStatus[type.typeName.name] = true;
+        }
+        if (transformerStatus[type.typeName.name] === null) {
+            return null;
         }
         return `
                 const ${newName} = transform${type.typeName.name}(${vbl}, visitor, ctx);
@@ -348,16 +354,15 @@ const unionTransformer = (
                 type,
             );
             const name = tname[0];
-            if (!transformer) {
-                cases.push(`case '${name}': break;`);
+            if (transformer) {
+                cases.push(`case '${name}': {
+                    const ${specified} = ${vbl};
+                    let changed${level + 1} = false;
+                    ${transformer}
+                    ${newName} = ${newName}$${level}node;
+                    break;
+                }`);
             }
-            cases.push(`case '${name}': {
-                const ${specified} = ${vbl};
-                let changed${level + 1} = false;
-                ${transformer}
-                ${newName} = ${newName}$${level}node;
-                break;
-            }`);
         }
     };
     processType(type, true);
@@ -381,7 +386,7 @@ const unionTransformer = (
     //         }`;
     // });
     if (!cases.length) {
-        return `const ${newName} = ${vbl};`;
+        return null; // `const ${newName} = ${vbl};`;
     }
     return `
         let ${newName} = ${vbl};
@@ -394,10 +399,12 @@ const unionTransformer = (
 
 const makeTransformer = (name: string) => {
     console.log(name);
-    needTransformers[name] = false;
+    transformerStatus[name] = false;
     const defn = types[name];
     if (!defn) {
-        throw new Error(`Not a type ${name}`);
+        transformerStatus[name] = null;
+        return `// not a type ${name}`;
+        // throw new Error(`Not a type ${name}`);
     }
     const transformer = makeIndividualTransformer(
         `node`,
@@ -405,6 +412,10 @@ const makeTransformer = (name: string) => {
         0,
         defn,
     );
+    if (transformer == null && !visitorTypes.includes(name)) {
+        transformerStatus[name] = null;
+        return `// no transformer for ${name}`;
+    }
     return `const transform${name} = <Ctx>(node: ${name}, visitor: Visitor<Ctx>, ctx: Ctx): ${name} => {
         if (!node) {
             throw new Error('No ${name} provided');
@@ -429,7 +440,8 @@ const makeTransformer = (name: string) => {
         `
                 : ''
         }
-        ${transformer}
+        let changed0 = false;
+        ${transformer ? transformer : 'const updatedNode = node;'}
         ${
             visitorTypes.includes(name)
                 ? `
@@ -442,33 +454,34 @@ const makeTransformer = (name: string) => {
         }
         return node;
         `
-                : 'return updatedNode'
+                : 'return updatedNode;'
         }
     }`;
 };
 
-const needTransformers: { [key: string]: boolean } = {};
+const transformerStatus: { [key: string]: boolean | null } = {};
 
-const transformers: Array<string> = visitorTypes.map(makeTransformer);
-let tick = true;
-while (tick) {
-    tick = false;
-    Object.keys(needTransformers).forEach((k) => {
-        if (needTransformers[k] === true) {
-            if (types[k] == null) {
-                console.log(`Missing ${k}`);
-                needTransformers[k] = false;
-                return;
-            }
-            tick = true;
-            transformers.push(makeTransformer(k));
-        }
-    });
-}
+const transformers: { [key: string]: string } = {};
+visitorTypes.forEach((name) => (transformers[name] = makeTransformer(name)));
+// let tick = true;
+// while (tick) {
+//     tick = false;
+//     Object.keys(transformerStatus).forEach((k) => {
+//         if (transformerStatus[k] === true) {
+//             if (types[k] == null) {
+//                 console.log(`Missing ${k}`);
+//                 transformerStatus[k] = null;
+//                 return;
+//             }
+//             tick = true;
+//             transformers[k] = (makeTransformer(k));
+//         }
+//     });
+// }
 
-const prelude = `import {${Object.keys(needTransformers).join(
+const prelude = `import {${Object.keys(transformerStatus).join(
     ', ',
-)}, Symbol} from './types';
+)}} from './types';
 
 export type Visitor<Ctx> = {
     ${visitorTypes
@@ -481,4 +494,10 @@ export type Visitor<Ctx> = {
 }
 `;
 
-fs.writeFileSync(outFile, prelude + transformers.join('\n\n'));
+fs.writeFileSync(
+    outFile,
+    prelude +
+        Object.keys(transformers)
+            .map((k) => transformers[k])
+            .join('\n\n'),
+);
