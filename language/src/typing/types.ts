@@ -1094,7 +1094,7 @@ export type TypeReference = {
     decorators?: Decorators;
     // effectVbls: Array<EffectRef>;
 };
-export type TypeRef = UserTypeReference | TypeReference | TypeVar; // will also support vbls at some point I guess
+export type TypeRef = TypeReference | TypeVar; // will also support vbls at some point I guess
 
 export type TypeVar = {
     type: 'var';
