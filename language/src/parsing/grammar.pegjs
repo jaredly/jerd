@@ -1,3 +1,10 @@
+{
+    let allComments: Array<[IFileRange, string]> = [];
+    let idx = 0;
+    function myLocation() {
+        return {...location(), idx: idx++}
+    }
+}
 
 File = _ tops:Toplevels? _ finalLineComment? {
     return tops || []

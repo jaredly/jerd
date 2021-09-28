@@ -5,8 +5,11 @@
 - um, profit? yeah I actually can't remember where I was going with this one. I mean doing this makes it easier to think about a recovering parser, I think, but that's not what I'm doing just yet.
 - let's start from scratch with the type checker, so as to be maximally recovery-oriented? I think.
 
-- [ ] autogenerate the `transform` impl from the typescript types for the AST.
+- [x] autogenerate the `transform` impl from the typescript types for the AST.
   As config, provide the tyeps that you want to transform (Term, Type, Let, ToplevelT, Location, Pattern)
+- [ ] have the parser-generator add indices already folks. it should be super easy
+- [ ] let's keep track of comments
+- [ ] start rewriting the parser->typed tree stuff? probably using a visitor pattern, or something ... hmm .... knowing what I now know, I could probably do a better job of setting up the `env` and stuff. Also, `global` env is read-only, and `local` env is as well, but you add to it when passing it down. Right?
 
 
 # Editor basic decency

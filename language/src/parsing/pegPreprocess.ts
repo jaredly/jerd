@@ -56,6 +56,7 @@ const processExpression = (
     ctx:
         | { type: 'top'; ruleName: string }
         | { type: 'inner'; vbl: t.Expression },
+    first = false,
 ): [t.TSType, null | t.Expression] => {
     if (ctx.type === 'top' && ctx.ruleName.match(/^_/)) {
         return [t.tsTypeReference(t.identifier('string')), null];
@@ -65,7 +66,7 @@ const processExpression = (
             return [t.tsTypeReference(t.identifier('string')), null];
         }
         case 'named': {
-            return processExpression(expr.expression, ctx);
+            return processExpression(expr.expression, ctx, first);
         }
         case 'text':
             return [t.tsTypeReference(t.identifier('string')), null];
@@ -73,7 +74,7 @@ const processExpression = (
             if (ctx.type === 'inner') {
                 throw new Error(`inner action`);
             }
-            return processExpression(expr.expression, ctx);
+            return processExpression(expr.expression, ctx, first);
         }
         case 'rule_ref': {
             return [t.tsTypeReference(t.identifier(expr.name)), null];
@@ -215,6 +216,32 @@ const processExpression = (
                                 t.tsTypeReference(t.identifier('IFileRange')),
                             ),
                         ),
+                        ...(first
+                            ? [
+                                  t.tsPropertySignature(
+                                      t.identifier('comments'),
+                                      t.tsTypeAnnotation(
+                                          t.tsTypeReference(
+                                              t.identifier('Array'),
+                                              t.tsTypeParameterInstantiation([
+                                                  t.tsTupleType([
+                                                      t.tsTypeReference(
+                                                          t.identifier(
+                                                              'Location',
+                                                          ),
+                                                      ),
+                                                      t.tsTypeReference(
+                                                          t.identifier(
+                                                              'string',
+                                                          ),
+                                                      ),
+                                                  ]),
+                                              ]),
+                                          ),
+                                      ),
+                                  ),
+                              ]
+                            : []),
                     ].concat(
                         attributes.map(([name, type, _]) => {
                             return t.tsPropertySignature(
@@ -232,8 +259,16 @@ const processExpression = (
                         ),
                         t.objectProperty(
                             t.identifier('location'),
-                            t.callExpression(t.identifier('location'), []),
+                            t.callExpression(t.identifier('myLocation'), []),
                         ),
+                        ...(first
+                            ? [
+                                  t.objectProperty(
+                                      t.identifier('comments'),
+                                      t.identifier('allComments'),
+                                  ),
+                              ]
+                            : []),
                     ].concat(
                         attributes.map(([name, _, expr]) => {
                             return t.objectProperty(
@@ -258,12 +293,16 @@ const raw = fs.readFileSync('./src/parsing/grammar.pegjs', 'utf8');
 const ast = peggy.parser.parse(raw);
 
 const alls: Array<[peggy.ast.Rule, t.TSType, t.Expression | null]> = [];
-ast.rules.forEach((rule) => {
+ast.rules.forEach((rule, i) => {
     try {
-        const [type, expr] = processExpression(rule.expression, {
-            type: 'top',
-            ruleName: rule.name,
-        });
+        const [type, expr] = processExpression(
+            rule.expression,
+            {
+                type: 'top',
+                ruleName: rule.name,
+            },
+            i === 0,
+        );
         // console.log(`- - - ${rule.name}`);
         // console.log(
         //     raw.slice(
@@ -302,6 +341,10 @@ const getBasic = (
 
 const typesFile: Array<string> = [];
 const grammarFile: Array<string> = [];
+
+if (ast.initializer) {
+    grammarFile.push('{\n' + ast.initializer.code + '\n}');
+}
 alls.map(([rule, type, expr]) => {
     typesFile.push(
         generate(
@@ -319,6 +362,8 @@ alls.map(([rule, type, expr]) => {
         )}` +
             (expr
                 ? generate(t.blockStatement([t.returnStatement(expr)])).code
+                : rule.name === 'comment'
+                ? '{ allComments.push([location(), text()]); }'
                 : ''),
     );
 });
