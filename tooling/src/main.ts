@@ -1,3 +1,7 @@
+// FUTURE WORK
+// - recognize that `is`, `location`, and `decorators` are common to all `Term`s,
+//   and so they can be done at the top level of `transformTerm`, instead of in every branch.
+
 import * as t from '@babel/types';
 import babel from '@babel/core';
 import fs from 'fs';
@@ -305,7 +309,7 @@ const unionTransformer = (
     type: t.TSUnionType,
 ) => {
     const allTypes: Array<[string, t.TSTypeLiteral]> = [];
-    console.log('---> getting');
+    // console.log('---> getting');
     const cases: Array<string> = [];
     const processType = (type: t.TSType, last: boolean) => {
         if (type.type === 'TSUnionType') {
@@ -374,7 +378,7 @@ const unionTransformer = (
     };
     processType(type, true);
     // getAllUnionTypeMembers(allTypes, type, {});
-    console.log('<--- got');
+    // console.log('<--- got');
     // const individualCases = allTypes.map(([name, defn]) => {
     //     const transformer = objectTransformer(
     //         vbl,
@@ -405,7 +409,7 @@ const unionTransformer = (
 // TODO: Let | Term should break out to --- switch let, and then just delegate to 'Term'
 
 const makeTransformer = (name: string) => {
-    console.log(name);
+    // console.log(name);
     transformerStatus[name] = false;
     const defn = types[name];
     if (!defn) {
