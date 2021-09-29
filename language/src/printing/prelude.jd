@@ -613,3 +613,65 @@ decorator display(id: string);
 //     ...Tuple3<A, B, C>,
 //     v3: D,
 // }
+
+/********** Docs folks *********/
+
+// ooh we're going to want mutually recursive goodness.
+// which I haven't dealt with yet.
+// Ok, looks like I can get by with only self-recursive.
+
+/*
+Things I want to do:
+- have a "validate and reconcile" pass,
+  where we ensure that the tree is in a valid state.
+  the client can then hash the returned tree, and if it's
+  different, it knows that the previous tree was invalid,
+  and some things had to be reconciled.
+
+
+
+enum TextStyle {
+    Bold, Italic, Underlined,
+    Colored {color: string},
+    Highlighted {color: string},
+    Linked {href: string},
+}
+
+enum ImageFit { Cover, Contain }
+
+enum ImageSize {
+    Natural,
+    Dimensions { width: int, height: int, fit: ImageFit = ImageFit:Cover },
+}
+
+enum GroupType {
+    List,
+    NumberedList {initial: int = 0},
+    Paragraphs,
+    Simple,
+    Callout,
+    Title {level: int = 0},
+    Details,
+}
+
+enum Doc {
+    Group {
+        items: Array<Doc>,
+        type: GroupType = GroupType:Simple,
+        style: Array<TextStyle> = [],
+    },
+    Empty,
+    Table { rows: Array<Array<Doc>>, hasHeader: bool = true },
+    Blockquote { attribution: Doc, contents: Doc },
+    Image { src: string, caption: Doc, size: ImageSize = ImageSize:Natural },
+    Text { contents: string, style: Array<TextStyle> = [] },
+    Tooltip { contents: Doc, wrapped: Doc },
+    // type is a hash of the displayer
+    // iff the given term is another doc, ...
+    // what's the "display" type going to be? just like
+    // "builtin:doc" or something? probably.
+    Display { term: Id, type: string, showSource: bool = false },
+    Term { id: Id, inline: bool = false, showType: bool = false },
+    Type { id: It, inline: bool = false },
+};
+*/

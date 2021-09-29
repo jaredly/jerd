@@ -21,7 +21,7 @@ DecoratedToplevel = decorators:(Decorator _)* top:Toplevel {
         type: 'Decorated',
         decorators: decorators.map((d: any) => d[0]),
         wrapped: top,
-        location: location()
+        location: myLocation()
     } : top
 }
 
@@ -37,7 +37,7 @@ Statement = Define / Expression
 // Also for some builtin magics
 
 Decorator = "@" id:Identifier typeVbls:TypeVblsApply?  args:("(" _ CommaDecoratorArg? _ ")")? {
-    return {type: 'Decorator', id, typeVbls: typeVbls || [], args: args ? (args[2] || []) : [], location: location()}
+    return {type: 'Decorator', id, typeVbls: typeVbls || [], args: args ? (args[2] || []) : [], location: myLocation()}
 }
 DecoratorArg = DecType / DecPat / DecExpr
 LabeledDecoratorArg = (IdentifierWithoutHash ":" __)? arg:DecoratorArg { return arg }
@@ -45,9 +45,9 @@ CommaDecoratorArg = first:LabeledDecoratorArg rest:(_ "," _ LabeledDecoratorArg)
     return [first].concat(rest.map((r: any) => r[3]))
 }
 
-DecType = ":" __ type:Type {return {type: 'Type', contents: type, location: location()}}
-DecPat = "?" __ pattern:Pattern {return {type: 'Pattern', pattern, location: location()}}
-DecExpr = expr:Expression {return {type: 'Expr', expr, location: location()}}
+DecType = ":" __ type:Type {return {type: 'Type', contents: type, location: myLocation()}}
+DecPat = "?" __ pattern:Pattern {return {type: 'Pattern', pattern, location: myLocation()}}
+DecExpr = expr:Expression {return {type: 'Expr', expr, location: myLocation()}}
 
 
 
@@ -57,11 +57,11 @@ DecExpr = expr:Expression {return {type: 'Expr', expr, location: location()}}
 // Toplevels
 
 Define = "const" __ rec:("rec" __)? id:Identifier ann:(_ ":" _ Type)? _ "=" _ expr:Expression {return {
-    type: 'define', rec: !!rec, id, expr, ann: ann ? ann[3] : null, location: location()}}
+    type: 'define', rec: !!rec, id, expr, ann: ann ? ann[3] : null, location: myLocation()}}
 
 Effect = "effect" __ id:Identifier _ "{" _ constrs:(EfConstr _ "," _)+ "}" {return {
     type: 'effect',
-    location: location(),
+    location: myLocation(),
     id, constrs: constrs.map((c: any) => c[0])}}
 
 EfConstr = id:Identifier _ ":" _ type:LambdaType {return {id, type}}
@@ -73,7 +73,7 @@ EnumDef = "enum" __ id:Identifier _ typeVbls:TypeVbls? _ "{" _ items:EnumItems _
         id,
         typeVbls: typeVbls || [],
         items,
-        location: location(),
+        location: myLocation(),
     }
 }
 EnumItems = first:EnumItem rest:(_ "," _ EnumItem)* ","? {
@@ -84,17 +84,17 @@ EnumExternal = ref:TypeRef {
     return {type: 'External', ref}
 }
 EnumSpread = "..." ref:TypeRef {
-    return {type: 'Spread', ref, location: location()}
+    return {type: 'Spread', ref, location: myLocation()}
 }
 // TODO: maybe allow type variable here? Not sure
 EnumInternal = id:Identifier decl:RecordDecl {
-    return {type: 'Internal', id, decl, location: location()}
+    return {type: 'Internal', id, decl, location: myLocation()}
 }
 
 StructDef = "type" __ id:Identifier typeVbls:TypeVbls? __ "=" __ decl:RecordDecl {
-    return {type: 'StructDef', id, decl, typeVbls: typeVbls || [], location: location()}}
+    return {type: 'StructDef', id, decl, typeVbls: typeVbls || [], location: myLocation()}}
 
-RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items: items || [], location: location()}}
+RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items: items || [], location: myLocation()}}
 // TODO: spreads much come first, then rows
 RecordItemCommas = first:RecordLine rest:(_ "," _ RecordLine)* ","? {return [first, ...rest.map((r: any) => r[3])]}
 RecordLine = RecordSpread / RecordItem
@@ -122,7 +122,7 @@ DecoratorDef = "decorator " id:Identifier
         typeVbls,
         args: args ? args[2] || [] : null,
         targetType: targetType ? targetType[1] : null,
-        location: location(),
+        location: myLocation(),
     }
 }
 
@@ -131,7 +131,7 @@ DecDefArgs = first:DecDefArg rest:(_ "," _ DecDefArg)* _ ","? {
 }
 
 DecDefArg = id:IdentifierWithoutHash _ ":" _ type:Type {
-    return {id, type, location: location()}
+    return {id, type, location: myLocation()}
 }
 
 
@@ -140,24 +140,24 @@ DecDefArg = id:IdentifierWithoutHash _ ":" _ type:Type {
 // Binop
 Expression = first:WithUnary rest:BinOpRight* {
     if (rest.length) {
-        return {type: 'ops', first, rest, location: location()}
+        return {type: 'ops', first, rest, location: myLocation()}
     } else {
         return first
     }
 }
 BinOpRight = __ op:binopWithHash __ right:WithUnary {
-    return {op, right, location: location()}
+    return {op, right, location: myLocation()}
 }
 WithUnary = op:UnaryOp? inner:WithSuffix {
     if (op != null) {
-        return {type: 'Unary', op, inner, location: location()}
+        return {type: 'Unary', op, inner, location: myLocation()}
     }
     return inner
 }
 UnaryOp = "-" / "!"
 // Apply / Attribute access
 WithSuffix = decorators:(Decorator __)* sub:Apsub suffixes:Suffix* {
-	const main = suffixes.length ? {type: 'WithSuffix', target: sub, suffixes, location: location()} : sub
+	const main = suffixes.length ? {type: 'WithSuffix', target: sub, suffixes, location: myLocation()} : sub
     if (decorators.length) {
         return {type: 'Decorated', wrapped: main, decorators: decorators.map((d: any) => d[0])}
     } else {
@@ -167,12 +167,12 @@ WithSuffix = decorators:(Decorator __)* sub:Apsub suffixes:Suffix* {
 
 Suffix = ApplySuffix / AttributeSuffix / IndexSuffix / AsSuffix
 
-AsSuffix = __ "as" hash:IdHash? __ t:TypeRef {return {type: 'As', t, location: location(), hash}}
+AsSuffix = __ "as" hash:IdHash? __ t:TypeRef {return {type: 'As', t, location: myLocation(), hash}}
 IndexSuffix = "[" slices:Slices "]" {
     return {
         type: 'Index',
         slices,
-        location: location()
+        location: myLocation()
     }
 }
 Slices = first:Slice rest:(_ "," _ Slice)* {
@@ -180,7 +180,7 @@ Slices = first:Slice rest:(_ "," _ Slice)* {
 }
 Slice = FullSlice / Expression
 FullSlice = left:(Expression __)? ":" right:(__ Expression)? {
-    return {type: 'Slice', left: left ? left[0] : null, right: right ? right[1] : null, location: location()}
+    return {type: 'Slice', left: left ? left[0] : null, right: right ? right[1] : null, location: myLocation()}
 }
 
 LabeledCommaExpr = label:(IdText ":" __)? first:Expression rest:(_ "," _ (IdText ":" __)? Expression)* _ ","? {
@@ -193,17 +193,17 @@ ApplySuffix = typevbls:TypeVblsApply? effectVbls:EffectVblsApply? "(" _ args:Lab
         typevbls: typevbls || [],
         effectVbls,
         args: args || [],
-        location: location(),
+        location: myLocation(),
     }
 }
-AttributeSuffix = "." id:MaybeQuotedIdentifier {return {type: 'Attribute', id, location: location()}}
+AttributeSuffix = "." id:MaybeQuotedIdentifier {return {type: 'Attribute', id, location: myLocation()}}
 
 Apsub = LiteralWithTemplateString / Lambda / Block / Handle / Raise / Trace / If / Switch / EnumLiteral / RecordLiteral / ArrayLiteral / TupleLiteral / Identifier
 
 // TODO
 // / TraitCall
 // TraitCall = "." id:Identifier apply:ApplySuffix {
-//     return {type: 'TraitCall', id, apply, location: location()}
+//     return {type: 'TraitCall', id, apply, location: myLocation()}
 // }
 
 EnumLiteral = id:Identifier typeVbls:TypeVblsApply? ":" expr:Expression {
@@ -212,30 +212,30 @@ EnumLiteral = id:Identifier typeVbls:TypeVblsApply? ":" expr:Expression {
         id,
         typeVbls: typeVbls || [],
         expr,
-        location: location(),
+        location: myLocation(),
     }
 }
 
 RecordLiteral = id:Identifier typeVbls:TypeVblsApply? effectVbls:EffectVblsApply? "{" _ rows:RecordLiteralRows? _ "}" {
-    return {type: 'Record', id, rows: rows || [], location: location(), typeVbls: typeVbls || [], effectVbls}
+    return {type: 'Record', id, rows: rows || [], location: myLocation(), typeVbls: typeVbls || [], effectVbls}
 }
 RecordLiteralRows = first:RecordLiteralRow rest:("," _ RecordLiteralRow _)* ","? {return [first, ...rest.map((r: any) => r[2])]}
 RecordLiteralSpread = "..." value:Expression {return {type: 'Spread', value}}
 RecordLiteralRow = RecordLiteralItem / RecordLiteralSpread
 RecordLiteralItem = id:MaybeQuotedIdentifier _ ":" _ value:Expression {return {type: 'Row', id, value}}
 
-ArrayLiteral = ann:("<" _ Type _ ","? ">")? "[" _ items:ArrayItems? _ "]" {return {type: 'Array', items: items || [], location: location(), ann: ann ? ann[2] : null}}
+ArrayLiteral = ann:("<" _ Type _ ","? ">")? "[" _ items:ArrayItems? _ "]" {return {type: 'Array', items: items || [], location: myLocation(), ann: ann ? ann[2] : null}}
 ArrayItems = first:ArrayItem rest:(_ "," _ ArrayItem)* ","? {
     return [first, ...rest.map((r: any) => r[3])]
 }
 ArrayItem = ArraySpread / Expression
-ArraySpread = "..." value:Expression {return {type: 'ArraySpread', value, location: location() }}
+ArraySpread = "..." value:Expression {return {type: 'ArraySpread', value, location: myLocation() }}
 
 TupleLiteral = "(" _ items:TupleItems _ ")" {
     if (items.length === 1) {
         return items[0]
     }
-    return {type: 'Tuple', location: location(), items}
+    return {type: 'Tuple', location: myLocation(), items}
 }
 TupleItems = first:Expression rest:(_ "," _ Expression)* _ ","? {
     return [first, ...rest.map((r: any) => r[3])]
@@ -249,55 +249,55 @@ Statements = one:Statement rest:(_ ";" _ Statement)* ";"? {
     return [one, ...rest.map((r: any) => r[3])]
 }
 Block = "{" _ items:Statements? _ "}" {
-    return {type: 'block', items: items || [], location: location()}
+    return {type: 'block', items: items || [], location: myLocation()}
 }
 
 If = "if" __ cond:Expression _ yes:Block no:(_ "else" _ (Block / IfElse))? {
-    return {type: 'If', cond, yes, no: no ? no[3] : null, location: location()}
+    return {type: 'If', cond, yes, no: no ? no[3] : null, location: myLocation()}
 }
 
 IfElse = v:If {
-    return {type: 'block', items: [v], location: location()}
+    return {type: 'block', items: [v], location: myLocation()}
 }
 
 
 Switch = "switch" __ expr:Expression __ "{" _
     cases:SwitchCases
 _ "}" {
-    return {type: 'Switch', expr, cases, location: location()}
+    return {type: 'Switch', expr, cases, location: myLocation()}
 }
 
 SwitchCases = first:SwitchCase rest:(_ "," _ SwitchCase)* ","? {
     return [first, ...rest.map((r: any) => r[3])]
 }
 SwitchCase = pattern:Pattern __ "=>" __ body:Expression {
-    return {pattern, body, location: location()}
+    return {pattern, body, location: myLocation()}
 }
 
 Pattern = inner:PatternInner as_:(__ "as" __ Identifier)? {
     if (as_ != null) {
-        return {type: 'Alias', name: as_[3], inner, location: location()}
+        return {type: 'Alias', name: as_[3], inner, location: myLocation()}
     }
     return inner
 }
 PatternInner = ArrayPattern / RecordPattern / TuplePattern / LiteralWithString / Identifier
-ArrayPattern = "[" _ items:ArrayPatternItems? _ "]" {return {type: 'Array', location: location(), items: items || []}}
+ArrayPattern = "[" _ items:ArrayPatternItems? _ "]" {return {type: 'Array', location: myLocation(), items: items || []}}
 
 ArrayPatternItems = first:ArrayPatternItem rest:(_ "," _ ArrayPatternItem)* ","? {
     return [first, ...rest.map((r: any) => r[3])]
 }
 ArrayPatternItem = ArrayPatternSpread / Pattern
-ArrayPatternSpread = "..." pattern:Pattern? {return {type: 'Spread', inner: pattern, location: location()}}
+ArrayPatternSpread = "..." pattern:Pattern? {return {type: 'Spread', inner: pattern, location: myLocation()}}
 
 RecordPattern = id:Identifier _ "{" _ items:RecordPatternCommas _ "}" {
-    return {type: 'Record', id, items, location: location()}
+    return {type: 'Record', id, items, location: myLocation()}
 }
 RecordPatternCommas = first:RecordPatternItem rest:(_ "," _ RecordPatternItem)* ","? {return [first, ...rest.map((r: any) => r[3])]}
 RecordPatternItem = id:Identifier pattern:(_ ":" _ Pattern)? {
-    return {id, pattern: pattern ? pattern[3] : null, location: location()}}
+    return {id, pattern: pattern ? pattern[3] : null, location: myLocation()}}
 
 TuplePattern = "(" _ items:TuplePatternItems _ ")" {
-    return {type: 'Tuple', location: location(), items}
+    return {type: 'Tuple', location: myLocation(), items}
 }
 TuplePatternItems = first:Pattern rest:(_ "," _ Pattern)+ (_ ",")? {
     return [first, ...rest.map((r: any) => r[3])]
@@ -305,11 +305,11 @@ TuplePatternItems = first:Pattern rest:(_ "," _ Pattern)+ (_ ",")? {
 
 // How do patterns look?
 
-Trace = "trace!(" _ args:CommaExpr _ ")" {return {type: 'Trace', args, location: location()}}
+Trace = "trace!(" _ args:CommaExpr _ ")" {return {type: 'Trace', args, location: myLocation()}}
 
 // == Effects ==
 
-Raise = "raise!" _ "(" _ name:Identifier "." constr:Identifier _ "(" _ args:CommaExpr? _ ")" _ ","? _ ")" {return {type: 'raise', name, constr, args: args || [], location: location()}}
+Raise = "raise!" _ "(" _ name:Identifier "." constr:Identifier _ "(" _ args:CommaExpr? _ ")" _ ","? _ ")" {return {type: 'raise', name, constr, args: args || [], location: myLocation()}}
 
 Handle = "handle!" _ target:Expression _ "{" _
     cases:(Case _)+ _
@@ -319,11 +319,11 @@ Handle = "handle!" _ target:Expression _ "{" _
     target,
     cases: cases.map((c: any) => c[0]),
     pure: {arg: pureId, body: pureBody},
-    location: location(),
+    location: myLocation(),
     }}
 
 Case = name:Identifier "." constr:Identifier _ "(" _ "(" _ args:CommaPat? _ ")" _ "=>" _ k:Identifier _ ")" _ "=>" _ body:Expression _ "," {
-	return {type: 'case', name, constr, args: args || [], k, body, location: location()}
+	return {type: 'case', name, constr, args: args || [], k, body, location: myLocation()}
 }
 Pat = Identifier
 CommaPat = first:Pat rest:(_ "," _ Pat)* {return [first, ...rest.map((r: any) => r[3])]}
@@ -349,10 +349,10 @@ Lambda = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:Args? _ ")" _ rettype
     args: args || [],
     rettype: rettype ? rettype[2] : null,
     body,
-    location: location(),
+    location: myLocation(),
 }}
 Args = first:Arg rest:(_ "," _ Arg)* _ ","? {return [first, ...rest.map((r: any) => r[3])]}
-Arg = id:Identifier _ type:(":" _ Type)? {return {id, type: type ? type[2] : null, location: location()}}
+Arg = id:Identifier _ type:(":" _ Type)? {return {id, type: type ? type[2] : null, location: myLocation()}}
 
 TypeVbls = "<" _ first:TypeVbl rest:(_ "," _ TypeVbl)* _ ","? _ ">" {
     return [first, ...rest.map((r: any) => r[3])]
@@ -369,7 +369,7 @@ EffectVbls_ = first:Identifier rest:(_ "," _ Identifier)* _ ","? {
 }
 
 binopWithHash = op:binop hash:OpHash? {
-    return {text: op, hash, location: location()}
+    return {text: op, hash, location: myLocation()}
 }
 binop = $(!"//" [+*^/<>=|&-]+)
 // binop = "++" / "+" / "-" / "*" / "/" / "^" / "|" / "<=" / ">=" / "=="  / "<" / ">" 
@@ -390,14 +390,14 @@ Binop = Expression
 
 Type = LambdaType / TypeRef / TupleType
 TypeRef = id:Identifier effectVbls:EffectVblsApply? typeVbls:TypeVblsApply? {
-    return {type: 'TypeRef', id, effectVbls, typeVbls, location: location()}
+    return {type: 'TypeRef', id, effectVbls, typeVbls, location: myLocation()}
 }
 CommaType = first:Type rest:(_ "," _ Type)* ","? {return [first, ...rest.map((r: any) => r[3])]}
 TypeVblsApply = "<" _ inner:CommaType _ ">" {return inner}
 EffectVblsApply = "{" _ inner:CommaEffects? _ "}" {return inner || []}
 
 TypeWithOptionalName = id:(IdentifierWithoutHash _ ":" _)? type:Type {
-    return {type, id: id ? id[0] : null, location: location()}
+    return {type, id: id ? id[0] : null, location: myLocation()}
 }
 CommaTypeWithNames = first:TypeWithOptionalName rest:(_ "," _ TypeWithOptionalName)* ","? {
     return [first, ...rest.map((r: any) => r[3])]
@@ -408,7 +408,7 @@ LambdaType = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:CommaTypeWithName
     type: 'lambda',
     args: args || [],
     typevbls: typevbls || [],
-    location: location(),
+    location: myLocation(),
     effvbls: effvbls || [],
     effects: effects ? effects[2] || [] : [] , res} }
 CommaEffects =
@@ -419,7 +419,7 @@ TupleType = "(" first:Type rest:(_ "," _ Type)+ ")" {
     return {
         type: 'tuple',
         items: types,
-        location: location()
+        location: myLocation()
     }
 }
 
@@ -437,11 +437,11 @@ Literal = Boolean / Float / Int
 LiteralWithString = Literal / String 
 LiteralWithTemplateString = Literal / TemplateString 
 
-Boolean = v:("true" / "false") ![0-9a-zA-Z_] {return {type: 'boolean', location: location(), value: v === "true"}}
+Boolean = v:("true" / "false") ![0-9a-zA-Z_] {return {type: 'boolean', location: myLocation(), value: v === "true"}}
 Float "float"
-    = _ contents:$("-"? [0-9]+ "." [0-9]+) {return {type: 'float', value: parseFloat(text()), location: location()}}
+    = _ contents:$("-"? [0-9]+ "." [0-9]+) {return {type: 'float', value: parseFloat(text()), location: myLocation()}}
 Int "int"
-	= _ contents:$("-"? [0-9]+) { return {type: 'int', value: parseInt(text(), 10), location: location()}; }
+	= _ contents:$("-"? [0-9]+) { return {type: 'int', value: parseInt(text(), 10), location: myLocation()}; }
 
 TemplateString = "\"" contents:StringContents* "\"" {
     const parts: Array<string | any> = [];
@@ -457,12 +457,12 @@ TemplateString = "\"" contents:StringContents* "\"" {
         parts.push(item)
     })
     if (!parts.length) {
-        return {type: 'string', text: '', location: location()}
+        return {type: 'string', text: '', location: myLocation()}
     }
     if (parts.length === 1 && typeof parts[0] === 'string') {
-        return {type: 'string', text: parts[0], location: location()}
+        return {type: 'string', text: parts[0], location: myLocation()}
     }
-    return {type: 'template-string', contents: parts, location: location() }
+    return {type: 'template-string', contents: parts, location: myLocation() }
 }
 
 // how do we parse this?
@@ -470,19 +470,19 @@ TemplateString = "\"" contents:StringContents* "\"" {
 StringContents = TemplatePart / stringChar
 
 TemplatePart = "$" hash:OpHash? "{" _ inner:Expression _ "}" {
-    return {hash, inner, location: location()}
+    return {hash, inner, location: myLocation()}
 }
 
-String = "\"" contents:($(stringChar*)) "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: location()}}
+String = "\"" contents:($(stringChar*)) "\"" {return {type: 'string', text: JSON.parse(text().replace('\n', '\\n')), location: myLocation()}}
 stringChar = $( escapedChar / [^"\\])
 escapedChar = "\\" .
 
 IdentifierWithoutHash = text:IdText {
-    return {type: "id", text, location: location(), }}
+    return {type: "id", text, location: myLocation(), }}
 Identifier = text:IdText hash:IdHash? {
-    return {type: "id", text, location: location(), hash}}
+    return {type: "id", text, location: myLocation(), hash}}
 MaybeQuotedIdentifier = text:IdTextOrString hash:IdHash? {
-    return {type: "id", text: text.type === 'string' ? text.text : text, location: location(), hash}}
+    return {type: "id", text: text.type === 'string' ? text.text : text, location: myLocation(), hash}}
 IdText = $(!"enum" [0-9a-zA-Z_]+)
 IdTextOrString = IdText / String
 IdHash = $SymHash / $OpHash / $BuiltinHash
