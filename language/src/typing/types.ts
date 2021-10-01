@@ -99,6 +99,8 @@ export type MetaData = {
     createdMs: number;
 };
 
+export type TypeMapping = { [idName: string]: TypeDef };
+
 export type GlobalEnv = {
     rng: () => number;
     names: { [humanName: string]: Array<Id> };
@@ -114,7 +116,7 @@ export type GlobalEnv = {
     builtinTypes: { [key: string]: number };
 
     typeNames: { [humanName: string]: Array<Id> };
-    types: { [idName: string]: TypeDef };
+    types: TypeMapping;
 
     // These are two ways of saying the same thing
     recordGroups: { [key: string]: Array<string> };
@@ -546,16 +548,13 @@ export type Var = {
 };
 
 export const getAllSubTypes = (
-    env: GlobalEnv,
+    types: TypeMapping,
     extend: Array<Id>,
 ): Array<Id> => {
     return ([] as Array<Id>).concat(
         ...extend.map((id) =>
             [id].concat(
-                getAllSubTypes(
-                    env,
-                    (env.types[idName(id)] as RecordDef).extends,
-                ),
+                getAllSubTypes(types, (types[idName(id)] as RecordDef).extends),
             ),
         ),
     );
@@ -732,7 +731,14 @@ export type Ambiguous = {
     decorators?: Decorators;
 };
 
-export type ErrorTerm = Ambiguous | TypeError | NotFound;
+export type TermHole = {
+    type: 'Hole';
+    is: Type;
+    location: Location;
+    decorators?: Decorators;
+};
+
+export type ErrorTerm = Ambiguous | TypeError | NotFound | TermHole;
 
 // some-term
 // : some-type

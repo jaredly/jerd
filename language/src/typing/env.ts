@@ -1467,14 +1467,12 @@ const plainRecord = (env: GlobalEnv, id: Id, location: Location): Term => {
 export const hasSubType = (env: Env, type: Type, id: Id) => {
     if (type.type === 'var') {
         const found = env.local.typeVbls[type.sym.unique];
-        // console.log(type.sym.unique, type, env.local.typeVbls);
-        // if (found.ty)
         for (let sid of found.subTypes) {
             if (idsEqual(id, sid)) {
                 return true;
             }
             const t = env.global.types[idName(sid)] as RecordDef;
-            const allSubTypes = getAllSubTypes(env.global, t.extends);
+            const allSubTypes = getAllSubTypes(env.global.types, t.extends);
             if (allSubTypes.find((x) => idsEqual(id, x)) != null) {
                 return true;
             }
@@ -1487,6 +1485,6 @@ export const hasSubType = (env: Env, type: Type, id: Id) => {
         return true;
     }
     const t = env.global.types[idName(type.ref.id)] as RecordDef;
-    const allSubTypes = getAllSubTypes(env.global, t.extends);
+    const allSubTypes = getAllSubTypes(env.global.types, t.extends);
     return allSubTypes.find((x) => idsEqual(id, x)) != null;
 };

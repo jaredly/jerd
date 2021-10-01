@@ -10,10 +10,11 @@ import {
     WithUnary,
     Location,
 } from '../parsing/parser-new';
+import { hashObject, idFromName } from '../typing/env';
 import { getOpLevel, organizeDeep } from '../typing/terms/ops';
 import * as typed from '../typing/types';
-import { Type } from '../typing/types';
-import { reGroupOps } from './ops';
+import { Term, Type } from '../typing/types';
+import { reGroupOps, typeGroup } from './ops';
 
 type ConstructorNames = {
     names: { [key: string]: Array<{ id: typed.Id; idx: number }> };
@@ -117,21 +118,33 @@ export const typeWithUnary = (
     ctx: Context,
     unary: WithUnary,
     expected: Array<Type>,
-) => {};
+): Term => {
+    // if (unary.)
+};
 
 // So, how does this go.
-export const typeBinOp = (ctx: Context, expr: BinOp) => {
+export const typeBinOp = (
+    ctx: Context,
+    expr: BinOp,
+    expected: Array<Type>,
+): Term => {
     const grouped = reGroupOps(expr);
     if (grouped.type === 'WithUnary') {
-        return typeWithUnary(ctx, grouped, []);
+        return typeWithUnary(ctx, grouped, expected);
     }
-    return typeBinOps(ctx, expr);
+    return typeGroup(ctx, grouped, expected);
 };
 
 export const typeToplevel = (ctx: Context, top: Toplevel): typed.ToplevelT => {
     switch (top.type) {
         case 'ToplevelExpression': {
-            return typeBinOp(ctx, top.expr);
+            const term = typeBinOp(ctx, top.expr, []);
+            return {
+                type: 'Expression',
+                id: idFromName(hashObject(term)),
+                location: top.location,
+                term,
+            };
         }
         // case 'DecoratorDef':
         // 	const defn = typeDecoratorDef(ctx, top.id, top.args, top.targetType)

@@ -181,7 +181,6 @@ const isLevel = (op: string, level: Array<string>) =>
 
 export type GroupedOp = {
     type: 'GroupedOp';
-    location: Location;
     left: WithUnary | GroupedOp;
     items: Array<BinOpGroup>;
 };
@@ -219,7 +218,6 @@ const reGroupOps1Level = (
                     type: 'GroupedOp',
                     left,
                     items,
-                    location: rops[0].location,
                 },
                 rops: rops.slice(i),
                 location,
@@ -421,7 +419,7 @@ export const typePair = (
     right: WithUnary | GroupedOp,
     location: Location,
     expectedTypes: Array<t.Type>,
-) => {
+): null | t.Term => {
     let target: null | t.Attribute = null;
     // Things to consider:
     // - if the op has a hash, we just believe it, ... right?
@@ -491,15 +489,61 @@ export const typePair = (
             .filter(Boolean) as Array<[t.Type, t.Type]>;
 
         const lefts = options.map((opts) => opts[0]);
-        const rights = options.map((opts) => opts[1]);
 
         const larg = typeUnaryOrGroup(ctx, left, lefts);
+        if (larg == null) {
+            // TODO: put a hole here
+            throw new Error('n');
+        }
 
-        // if (potentials.length === 1) {
-        //     // We can evaluate with expected types
-        //     // target = resolveAttribute
-        // }
+        const rights = options
+            .filter((opt) => t.typesEqual(opt[0], larg.is))
+            .map((opts) => opts[1]);
+
+        const rarg = typeUnaryOrGroup(ctx, right, rights);
+
+        if (rarg == null) {
+            throw new Error('fill with hole');
+        }
+
+        const op = selectOp(ctx, potentials, larg.is, rarg.is);
+        if (!op) {
+            throw new Error(`pick the first one, and fill with TypeError`);
+        }
+
+        return {
+            type: 'apply',
+            args: [larg, rarg],
+        };
     }
+};
+
+export const selectOp = (
+    ctx: Context,
+    potentials: Array<{ idx: number; id: t.Id }>,
+    left: t.Type | null,
+    right: t.Type | null,
+) => {
+    for (let { idx, id } of potentials) {
+        const decl = ctx.library.types.defns[idName(id)];
+        if (decl.type !== 'Record' || idx >= decl.items.length) {
+            return;
+        }
+        const row = decl.items[idx];
+        // TODO: allow rest args?
+        if (row.type !== 'lambda' || row.args.length !== 2) {
+            return;
+        }
+        // ummmm so ... hm ...
+        if (
+            !left ||
+            (t.typesEqual(left, row.args[0]) && !right) ||
+            t.typesEqual(right, row.args[1])
+        ) {
+            return { idx, id };
+        }
+    }
+    return null;
 };
 
 export const typeUnaryOrGroup = (
@@ -519,23 +563,25 @@ export const typeGroup = (
     ctx: Context,
     group: GroupedOp,
     expectedTypes: Array<t.Type>,
-) => {
+): null | t.Term => {
     if (group.items.length === 1) {
         return typePair(
             ctx,
             group.items[0].op,
             group.left,
             group.items[0].right,
-            group.location,
+            group.items[0].location,
             expectedTypes,
         );
     }
-    // let left = group.items[0];
-    // for (let i=1; i<group.items.length; i++) {
-    // 	left = typePair(ctx, group.op, group.items[i], expectedTypes)
-    // }
+    let left = group.left;
+    group.items.forEach((item) => {
+        left = { type: 'GroupedOp', left, items: [item] };
+    });
+    return typeGroup(ctx, left as GroupedOp, expectedTypes);
 };
 
-export const typeBinOps = (ctx: Context, binop: BinOp) => {
-    const groups = reGroupOps(binop);
-};
+// export const typeBinOps = (ctx: Context, binop: BinOp) => {
+//     const groups = reGroupOps(binop);
+// 	// if (groups.type === 'WithUnary')
+// };

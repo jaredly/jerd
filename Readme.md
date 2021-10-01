@@ -33,7 +33,7 @@ Web/editor (in the `web` directory)
 - [x] sum & product types (rich enums & structs/records)
 - [x] "row polymophism"-ish. subtyping on both enums and structs
 - [x] generics
-- [ ] well type-checked interface with typescript
+- [x] well type-checked interface with typescript
 - [ ] "partial" types for WIP development
     - if you have a type error, you can still compile, but your function
       will now require the "type error" effect, which isn't something you can
@@ -43,6 +43,8 @@ Web/editor (in the `web` directory)
       had a structured editor.
 - [ ] affine types for safe mutability
     - I might actually not do this... following roc's lead seems like the more reasonable approach.
+    - yeah, I don't think people are ready to think in linear types,
+
 
 
 
