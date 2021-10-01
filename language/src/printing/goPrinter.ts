@@ -18,7 +18,6 @@ import {
     hashObject,
     idFromName,
     idName,
-    ToplevelT,
     typeToplevelT,
 } from '../typing/env';
 import { LocatedError } from '../typing/errors';
@@ -34,6 +33,7 @@ import {
     // getAllSubTypes,
     Id,
     idsEqual,
+    ToplevelT,
     nullLocation,
     RecordDef as TermRecordDef,
     Reference,
@@ -270,7 +270,7 @@ export const recordToGo = (
     irOpts: IOutputOptions,
     id: Id,
 ) => {
-    const subTypes = getAllSubTypes(env.global, constr.extends);
+    const subTypes = getAllSubTypes(env.global.types, constr.extends);
 
     return pp.items([
         atom('type '),

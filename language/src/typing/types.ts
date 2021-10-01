@@ -1237,6 +1237,8 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
         case 'self':
         case 'ref':
         case 'var':
+        case 'NotFound':
+        case 'Hole':
             return [];
         case 'handle':
             // ok we also need to talk about ... the function we're calling
@@ -1404,6 +1406,8 @@ export const walkTerm = (
         case 'self':
         case 'ref':
         case 'var':
+        case 'NotFound':
+        case 'Hole':
             return;
         case 'TemplateString':
             term.pairs.forEach((item) => walkTerm(item.contents, handle));

@@ -127,6 +127,8 @@ import {
 } from './resolve';
 import { idName } from '../typing/env';
 import { Type } from '../typing/types';
+import { var_ } from '../typing/preset';
+import { subtTypeVars } from '../typing/typeExpr';
 
 const opsEqual = (one: binopWithHash, two: binopWithHash) =>
     one.op === two.op && one.hash === two.hash;
@@ -412,6 +414,14 @@ export const getAllSubTypes = (
     );
 };
 
+export type Option = {
+    left: t.Type;
+    right: t.Type;
+    term: t.Term;
+    // THIS is for the `apply` type arguments.
+    typeArgs: Array<t.Type>;
+};
+
 export const typePair = (
     ctx: Context,
     op: binopWithHash,
@@ -420,13 +430,27 @@ export const typePair = (
     location: Location,
     expectedTypes: Array<t.Type>,
 ): null | t.Term => {
-    let target: null | t.Attribute = null;
+    const options: Array<Option> = [];
+
+    // let target: null | t.Attribute = null;
     // Things to consider:
     // - if the op has a hash, we just believe it, ... right?
     //   we could of course not believe it, if we wanted
     //   but we can handle that later
     if (op.hash != null) {
-        target = resolveOpHash(ctx, op.hash, op.location, location);
+        const target = resolveOpHash(ctx, op.hash, op.location, location);
+        if (
+            target != null &&
+            target.is.type === 'lambda' &&
+            target.is.args.length === 2
+        ) {
+            options.push({
+                left: target.is.args[0],
+                right: target.is.args[1],
+                term: target,
+                typeArgs: [],
+            });
+        }
         // TODO: show some warnings or something
         // HERE we resolve ... stuff.
         // Should I allow hashes to reference local whatsits?
@@ -447,7 +471,7 @@ export const typePair = (
         // attribute from it, to be our binop.
     }
 
-    if (target == null) {
+    if (options.length === 0) {
         const potentials = ctx.library.types.constructors.names[op.op];
         if (!potentials) {
             ctx.warnings.push({
@@ -472,79 +496,161 @@ export const typePair = (
         // OH yeah even more, there might be multiple attributes,
         // and multiple implementors for each.
 
-        const options = potentials
-            .map(({ idx, id }): undefined | [t.Type, t.Type] => {
-                const decl = ctx.library.types.defns[idName(id)];
-                if (decl.type !== 'Record' || idx >= decl.items.length) {
-                    return;
+        potentials.forEach(({ idx, id }):
+            | undefined
+            | { left: t.Type; right: t.Type; term: t.Term } => {
+            const decl = ctx.library.types.defns[idName(id)];
+            if (decl.type !== 'Record' || idx >= decl.items.length) {
+                return;
+            }
+            const row = decl.items[idx];
+            // TODO: allow rest args?
+            if (row.type !== 'lambda' || row.args.length !== 2) {
+                return;
+            }
+            // const terms: Array<t.Term> = []
+            ctx.bindings.values.forEach(({ sym, type }) => {
+                // reffff hmm hmmmmm hm hmmm
+                // or a var that has the right subtype
+                if (type.type === 'ref' && type.ref.type === 'user') {
+                    const decl = ctx.library.types.defns[idName(type.ref.id)];
+                    if (decl.type === 'Record') {
+                        if (decl.typeVbls.length) {
+                            if (t.idsEqual(type.ref.id, id)) {
+                                const applied = applyTypeVariablesToRecord(
+                                    ctx,
+                                    decl,
+                                    type.typeVbls,
+                                    location,
+                                    idName(type.ref.id),
+                                );
+                                if (applied == null) {
+                                    return;
+                                }
+                                const row = applied.items[idx];
+                                if (row.type !== 'lambda') {
+                                    return;
+                                }
+                                options.push({
+                                    left: row.args[0],
+                                    right: row.args[1],
+                                    term: {
+                                        type: 'Attribute',
+                                        idx,
+                                        ref: { type: 'user', id },
+                                        idLocation: location, // STOPSHIP
+                                        inferred: false,
+                                        is: row.res,
+                                        location,
+                                        refTypeVbls: type.typeVbls,
+                                        target: var_(sym, type, location),
+                                    },
+                                    typeArgs: [],
+                                });
+                            } else {
+                                // Can't handle type variables
+                                return;
+                            }
+                        }
+                        const subs = getAllSubTypes(ctx.library, decl.extends);
+                        if (subs.find((s) => t.idsEqual(s, id))) {
+                            // options.push(var_(sym, type, op.location))
+                            options.push({
+                                left: row.args[0],
+                                right: row.args[1],
+                                // term: var_(sym, type, op.location),
+                                term: {
+                                    type: 'Attribute',
+                                    idx,
+                                    ref: { type: 'user', id },
+                                    idLocation: location, // STOPSHIP
+                                    inferred: false,
+                                    is: row.res,
+                                    location,
+                                    refTypeVbls: [],
+                                    target: var_(sym, type, location),
+                                },
+                                typeArgs: [],
+                            });
+                        }
+                    }
+                } else if (type.type === 'var') {
+                    const b = ctx.bindings.types.find(
+                        (b) => b.sym.unique === type.sym.unique,
+                    );
+                    if (b && b.subTypes.find((s) => t.idsEqual(s, id))) {
+                        options.push({
+                            left: row.args[0],
+                            right: row.args[1],
+                            // term: var_(sym, type, op.location),
+                            term: {
+                                type: 'Attribute',
+                                idx,
+                                ref: { type: 'user', id },
+                                idLocation: location, // STOPSHIP
+                                inferred: false,
+                                is: row.res,
+                                location,
+                                refTypeVbls: [],
+                                target: var_(sym, type, location),
+                            },
+                            typeArgs: [],
+                        });
+                    }
                 }
-                const row = decl.items[idx];
-                // TODO: allow rest args?
-                if (row.type !== 'lambda' || row.args.length !== 2) {
-                    return;
-                }
-                // ummmm so ... hm ...
-                return [row.args[0], row.args[1]];
-            })
-            .filter(Boolean) as Array<[t.Type, t.Type]>;
+            });
+        });
 
-        const lefts = options.map((opts) => opts[0]);
+        const lefts = options.map((opts) => opts.left);
 
         const larg = typeUnaryOrGroup(ctx, left, lefts);
-        if (larg == null) {
-            // TODO: put a hole here
-            throw new Error('n');
-        }
+        // if (larg == null) {
+        //     // TODO: put a hole here
+        //     throw new Error('n');
+        // }
 
         const rights = options
-            .filter((opt) => t.typesEqual(opt[0], larg.is))
-            .map((opts) => opts[1]);
+            .filter((opt) => (larg ? t.typesEqual(opt.left, larg.is) : true))
+            .map((opts) => opts.right);
 
         const rarg = typeUnaryOrGroup(ctx, right, rights);
 
-        if (rarg == null) {
-            throw new Error('fill with hole');
-        }
+        // if (rarg == null) {
+        //     throw new Error('fill with hole');
+        // }
 
-        const op = selectOp(ctx, potentials, larg.is, rarg.is);
-        if (!op) {
+        // const op2 = selectOp(ctx, options, larg.is, rarg.is);
+        const op2 = options.find(
+            (opt) =>
+                (!larg || t.typesEqual(larg.is, opt.left)) &&
+                (!rarg || t.typesEqual(rarg.is, opt.right)),
+        );
+        if (!op2) {
             throw new Error(`pick the first one, and fill with TypeError`);
         }
 
         return {
             type: 'apply',
-            args: [larg, rarg],
+            args: [
+                larg || hole(op2.left, location),
+                rarg || hole(op2.right, location),
+            ],
+            location,
+            target: op2.term,
+            effectVbls: [],
+            is: (op2.term.is as t.LambdaType).res,
+            typeVbls: op2.typeArgs,
         };
     }
-};
 
-export const selectOp = (
-    ctx: Context,
-    potentials: Array<{ idx: number; id: t.Id }>,
-    left: t.Type | null,
-    right: t.Type | null,
-) => {
-    for (let { idx, id } of potentials) {
-        const decl = ctx.library.types.defns[idName(id)];
-        if (decl.type !== 'Record' || idx >= decl.items.length) {
-            return;
-        }
-        const row = decl.items[idx];
-        // TODO: allow rest args?
-        if (row.type !== 'lambda' || row.args.length !== 2) {
-            return;
-        }
-        // ummmm so ... hm ...
-        if (
-            !left ||
-            (t.typesEqual(left, row.args[0]) && !right) ||
-            t.typesEqual(right, row.args[1])
-        ) {
-            return { idx, id };
-        }
-    }
     return null;
 };
+
+const hole = (type: t.Type, location: Location): t.TermHole => ({
+    type: 'Hole',
+    is: type,
+    location,
+});
 
 export const typeUnaryOrGroup = (
     ctx: Context,
@@ -585,3 +691,87 @@ export const typeGroup = (
 //     const groups = reGroupOps(binop);
 // 	// if (groups.type === 'WithUnary')
 // };
+
+export const applyTypeVariablesToRecord = (
+    ctx: Context,
+    type: t.RecordDef,
+    vbls: Array<Type>,
+    location: Location | null,
+    selfHash: string,
+): t.RecordDef | null => {
+    if (type.typeVbls.length !== vbls.length) {
+        return null;
+    }
+    const mapping = createTypeVblMapping(ctx, type.typeVbls, vbls, location!);
+    if (mapping == null) {
+        return null;
+    }
+    return {
+        ...type,
+        typeVbls: [],
+        items: type.items.map((t) => subtTypeVars(t, mapping, selfHash)),
+    };
+};
+
+export const createTypeVblMapping = (
+    ctx: Context,
+    typeVbls: Array<t.TypeVblDecl>,
+    vbls: Array<Type>,
+    location: Location,
+): { [unique: number]: Type } | null => {
+    // console.log('create mapping', vbls);
+    const mapping: { [unique: number]: Type } = {};
+    if (vbls.length !== typeVbls.length) {
+        // console.log('the ones', typeVbls);
+        return null;
+    }
+
+    vbls.forEach((typ, i) => {
+        const subs = typeVbls[i].subTypes;
+        // console.log(i, typ, subs);
+        for (let sub of subs) {
+            if (!hasSubType(ctx, typ, sub)) {
+                throw new Error(`Expected a subtype of ${idName(sub)}`);
+            }
+        }
+        mapping[typeVbls[i].unique] = typ;
+    });
+
+    return mapping;
+};
+
+export const hasSubType = (ctx: Context, type: Type, id: t.Id) => {
+    if (type.type === 'var') {
+        const found = ctx.bindings.types.find(
+            (b) => b.sym.unique === type.sym.unique,
+        );
+        if (!found) {
+            return false;
+        }
+        for (let sid of found.subTypes) {
+            if (t.idsEqual(id, sid)) {
+                return true;
+            }
+            const decl = ctx.library.types.defns[idName(sid)];
+            if (decl.type !== 'Record') {
+                return false;
+            }
+            const allSubTypes = getAllSubTypes(ctx.library, decl.extends);
+            if (allSubTypes.find((x) => t.idsEqual(id, x)) != null) {
+                return true;
+            }
+        }
+    }
+    if (type.type !== 'ref' || type.ref.type === 'builtin') {
+        return false;
+    }
+    if (t.idsEqual(type.ref.id, id)) {
+        return true;
+    }
+    const decl = ctx.library.types.defns[idName(type.ref.id)];
+    if (decl.type === 'Enum') {
+        return false;
+    }
+    const allSubTypes = getAllSubTypes(ctx.library, decl.extends);
+    return allSubTypes.find((x) => t.idsEqual(id, x)) != null;
+};

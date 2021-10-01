@@ -120,6 +120,7 @@ export const typeWithUnary = (
     expected: Array<Type>,
 ): Term => {
     // if (unary.)
+    throw new Error('nope');
 };
 
 // So, how does this go.
@@ -127,7 +128,7 @@ export const typeBinOp = (
     ctx: Context,
     expr: BinOp,
     expected: Array<Type>,
-): Term => {
+): null | Term => {
     const grouped = reGroupOps(expr);
     if (grouped.type === 'WithUnary') {
         return typeWithUnary(ctx, grouped, expected);
@@ -135,10 +136,16 @@ export const typeBinOp = (
     return typeGroup(ctx, grouped, expected);
 };
 
-export const typeToplevel = (ctx: Context, top: Toplevel): typed.ToplevelT => {
+export const typeToplevel = (
+    ctx: Context,
+    top: Toplevel,
+): null | typed.ToplevelT => {
     switch (top.type) {
         case 'ToplevelExpression': {
             const term = typeBinOp(ctx, top.expr, []);
+            if (!term) {
+                return null;
+            }
             return {
                 type: 'Expression',
                 id: idFromName(hashObject(term)),

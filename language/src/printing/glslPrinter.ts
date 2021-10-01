@@ -17,7 +17,6 @@ import {
     addRecord,
     idFromName,
     idName,
-    ToplevelT,
     typeToplevelT,
 } from '../typing/env';
 import { LocatedError, TypeError } from '../typing/errors';
@@ -36,6 +35,7 @@ import {
     RecordDef as TermRecordDef,
     Reference,
     selfEnv,
+    ToplevelT,
     Symbol,
     Term,
     Type,
@@ -1658,7 +1658,7 @@ export const getAllRecordAttributes = (
     id: Id,
     constr: RecordDef,
 ): Array<RecordAttribute> => {
-    const subTypes = getAllSubTypes(env.global, constr.extends);
+    const subTypes = getAllSubTypes(env.global.types, constr.extends);
     return [
         ...constr.items.map((item, i) => ({ id, item, i })),
         ...([] as Array<RecordAttribute>).concat(
@@ -1682,7 +1682,7 @@ export const recordToGLSL = (
     irOpts: IOutputOptions,
     id: Id,
 ) => {
-    const subTypes = getAllSubTypes(env.global, constr.extends);
+    const subTypes = getAllSubTypes(env.global.types, constr.extends);
 
     return pp.items([
         atom('struct '),

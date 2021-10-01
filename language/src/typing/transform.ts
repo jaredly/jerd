@@ -1,6 +1,6 @@
 // Ok folks
 
-import { ToplevelT } from './env';
+// import { ToplevelT } from './env';
 import { bool, pureFunction, void_ } from './preset';
 import { applyEffectVariables, showLocation } from './typeExpr';
 import {
@@ -17,6 +17,7 @@ import {
     Term,
     Type,
     Var,
+    ToplevelT,
 } from './types';
 
 export type Visitor<Ctx> = {
@@ -373,6 +374,8 @@ export const transformWithCtx = <Ctx>(
         case 'self':
         case 'ref':
         case 'var':
+        case 'Hole':
+        case 'NotFound':
             return term;
         default:
             let _x: never = term;
@@ -509,6 +512,8 @@ export const walkTerm = (
         case 'TemplateString':
             term.pairs.forEach((item) => walkTerm(item.contents, handle));
             return;
+        case 'NotFound':
+        case 'Hole':
         case 'string':
         case 'int':
         case 'float':

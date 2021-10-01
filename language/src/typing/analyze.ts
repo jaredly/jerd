@@ -1,6 +1,6 @@
 import { TypeDefs } from '../printing/ir/optimize/optimize';
 import { defaultVisitor } from '../printing/ir/transform';
-import { idFromName, idName, refName, ToplevelT } from './env';
+import { idFromName, idName, refName } from './env';
 import { void_ } from './preset';
 import {
     transform,
@@ -15,6 +15,7 @@ import {
     Id,
     nullLocation,
     Reference,
+    ToplevelT,
     Term,
     Type,
     UserReference,
@@ -779,6 +780,8 @@ export const termDependencies = (term: Term): Array<Reference> => {
         case 'boolean':
         case 'self':
         case 'TemplateString':
+        case 'Hole':
+        case 'NotFound':
             return [];
         default:
             let _x: never = term;

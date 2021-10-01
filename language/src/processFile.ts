@@ -15,8 +15,7 @@ import {
 import { removeTypescriptTypes } from './printing/typeScriptOptimize';
 import typeExpr, { showLocation } from './typing/typeExpr';
 import typeType, { newTypeVbl } from './typing/typeType';
-import { Env, Term } from './typing/types';
-import { ToplevelT } from './typing/env';
+import { Env, Term, ToplevelT } from './typing/types';
 import { typeFile } from './typing/typeFile';
 
 import { presetEnv } from './typing/preset';

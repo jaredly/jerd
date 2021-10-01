@@ -72,22 +72,24 @@ export const explicitSpreads = (ctx: Context, expr: Expr): Expr => {
                 const recordDef = env.global.types[
                     idName(base.ref.id)
                 ] as RecordDef;
-                getAllSubTypes(env.global, recordDef.extends).forEach((sub) => {
-                    const sn = idName(sub);
-                    expr.subTypes[sn].rows.forEach((row, i) => {
-                        if (!row) {
-                            subTypes[sn].rows[i] = attribute(
-                                env,
-                                opts,
-                                v,
-                                { type: 'user', id: sub },
-                                [],
-                                i,
-                                expr.loc,
-                            );
-                        }
-                    });
-                });
+                getAllSubTypes(env.global.types, recordDef.extends).forEach(
+                    (sub) => {
+                        const sn = idName(sub);
+                        expr.subTypes[sn].rows.forEach((row, i) => {
+                            if (!row) {
+                                subTypes[sn].rows[i] = attribute(
+                                    env,
+                                    opts,
+                                    v,
+                                    { type: 'user', id: sub },
+                                    [],
+                                    i,
+                                    expr.loc,
+                                );
+                            }
+                        });
+                    },
+                );
             }
 
             Object.keys(subTypes).forEach((t) => {
@@ -123,7 +125,7 @@ export const explicitSpreads = (ctx: Context, expr: Expr): Expr => {
                         ),
                     };
                     const recordDef = env.global.types[t] as RecordDef;
-                    getAllSubTypes(env.global, recordDef.extends).forEach(
+                    getAllSubTypes(env.global.types, recordDef.extends).forEach(
                         (sub) => {
                             const sn = idName(sub);
                             expr.subTypes[sn].rows.forEach((row, i) => {

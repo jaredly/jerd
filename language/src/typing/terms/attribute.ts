@@ -83,7 +83,7 @@ export const typeAttribute = (
         if (idx !== -1) {
             ref = target.is.ref;
         } else {
-            const subTypes = getAllSubTypes(env.global, defn.extends);
+            const subTypes = getAllSubTypes(env.global.types, defn.extends);
             for (let id of subTypes) {
                 idx = env.global.recordGroups[idName(id)].indexOf(
                     suffix.id.text,
@@ -186,7 +186,7 @@ function resolveAttributeFromHash(
             if (defn.type === 'Enum') {
                 throw new Error(`can't attribute an enum just yet folks`);
             }
-            const sub = getAllSubTypes(env.global, defn.extends);
+            const sub = getAllSubTypes(env.global.types, defn.extends);
             // TODO: need to check subtypes / spreads n stuffs
             // this is wrong
             if (
@@ -219,7 +219,7 @@ function resolveAttributeFromHash(
         }
     } else if (target.is.type === 'var') {
         const vbl = env.local.typeVbls[target.is.sym.unique];
-        const allSubTypes = getAllSubTypes(env.global, vbl.subTypes);
+        const allSubTypes = getAllSubTypes(env.global.types, vbl.subTypes);
         if (!allSubTypes.find((id) => idsEqual(id, ref.id))) {
             // console.log(
             //     `No subtypes for type variable`,

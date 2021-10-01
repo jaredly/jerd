@@ -263,7 +263,7 @@ const typePattern = (
                 id.hash,
             );
 
-            subTypeIds = getAllSubTypes(env.global, t.extends);
+            subTypeIds = getAllSubTypes(env.global.types, t.extends);
 
             env.global.recordGroups[idName(id)].forEach(
                 (name, i) => (names[name] = { i, id: null }),

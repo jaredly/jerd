@@ -691,7 +691,7 @@ export const typeRecordDefn = (
         // TODO: only allow ffi to spread into ffi, etc.
         .map((r) => {
             const t = resolveType(typeInnerWithSelf, r.constr)[0];
-            const subTypes = getAllSubTypes(env.global, [t]);
+            const subTypes = getAllSubTypes(env.global.types, [t]);
             if (r.defaults && r.defaults.length) {
                 r.defaults.forEach(({ id, value }) => {
                     // TODO: recognize hashes
@@ -1384,7 +1384,7 @@ const hasRequiredItems = (env: GlobalEnv, defn: RecordDef): boolean => {
     if (!defn.extends.length) {
         return false;
     }
-    const allSubTypes = getAllSubTypes(env, defn.extends);
+    const allSubTypes = getAllSubTypes(env.types, defn.extends);
     const together = allDefaults(env, defn, allSubTypes);
     return allSubTypes.some((id) =>
         env.types[idName(id)].items.some(
@@ -1400,7 +1400,7 @@ export const allDefaults = (
 ) => {
     const together = { ...defn.defaults };
     if (!allSubTypes) {
-        allSubTypes = getAllSubTypes(env, defn.extends);
+        allSubTypes = getAllSubTypes(env.types, defn.extends);
     }
     allSubTypes.forEach((id) => {
         const t = env.types[idName(id)] as RecordDef;
@@ -1435,7 +1435,7 @@ const plainRecord = (env: GlobalEnv, id: Id, location: Location): Term => {
             rows: Array<Term | null>;
         };
     } = {};
-    getAllSubTypes(env, t.extends).forEach((id) => {
+    getAllSubTypes(env.types, t.extends).forEach((id) => {
         const t = env.types[idName(id)] as RecordDef;
         subTypes[idName(id)] = {
             spread: null,

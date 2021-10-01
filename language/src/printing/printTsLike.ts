@@ -6,7 +6,7 @@
 // So that's probably some information I'll have to hang onto somehow.
 
 import { Location } from '../parsing/parser';
-import { idName, refName, ToplevelT } from '../typing/env';
+import { idName, refName } from '../typing/env';
 import { getOpLevel } from '../typing/terms/ops';
 import {
     Case,
@@ -25,6 +25,7 @@ import {
     EffectDef,
     Pattern,
     cloneGlobalEnv,
+    ToplevelT,
     selfEnv,
     Apply,
     walkTerm,
@@ -317,7 +318,7 @@ export const recordToPretty = (
         block(
             recordDef.extends
                 .map((ex) => {
-                    const subTyeps = getAllSubTypes(env.global, [ex]);
+                    const subTyeps = getAllSubTypes(env.global.types, [ex]);
                     const defaults = recordDef.defaults
                         ? Object.keys(recordDef.defaults)
                               .map((k) => recordDef.defaults![k])
@@ -1114,6 +1115,10 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                     : null,
                 atom('"', ['string']),
             ]);
+        case 'Hole':
+            return atom('HOLE');
+        case 'NotFound':
+            return atom('NOTFOND(' + term.text + ')');
         default:
             let _x: never = term;
             return atom(
