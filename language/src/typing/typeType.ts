@@ -101,7 +101,7 @@ const typeType = (
                 };
             }
             if (type.id.hash) {
-                const rawId = type.id.hash.slice(1);
+                let rawId = type.id.hash.slice(1);
                 if (rawId === 'builtin') {
                     if (env.global.builtinTypes[type.id.text] == null) {
                         throw new LocatedError(
@@ -117,10 +117,17 @@ const typeType = (
                     };
                 }
                 if (!env.global.types[rawId]) {
-                    throw new LocatedError(
-                        type.location,
-                        `Unknown explicit type ${rawId}`,
+                    const starts = Object.keys(env.global.types).filter((k) =>
+                        k.startsWith(rawId),
                     );
+                    if (starts.length) {
+                        rawId = starts[0];
+                    } else {
+                        throw new LocatedError(
+                            type.location,
+                            `Unknown explicit type ${rawId}`,
+                        );
+                    }
                 }
                 return {
                     type: 'ref',

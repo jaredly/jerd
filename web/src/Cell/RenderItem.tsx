@@ -15,10 +15,15 @@ import {
     hashObject,
     idFromName,
     idName,
+} from '@jerd/language/src/typing/env';
+import {
+    Env,
+    Id,
+    Location,
+    Term,
     ToplevelRecord,
     ToplevelT,
-} from '@jerd/language/src/typing/env';
-import { Env, Id, Location, Term } from '@jerd/language/src/typing/types';
+} from '@jerd/language/src/typing/types';
 import * as React from 'react';
 // import { Location } from '../../language/src/parsing/parser';
 import {
@@ -437,12 +442,12 @@ const getTopLevel = (
         }
         if (name) {
             return [
-                null,
+                <div>#{hash}</div>,
                 { type: 'Define', name, term, id, location: term.location },
             ];
         } else {
             return [
-                null,
+                <div>#{hash}</div>,
                 { type: 'Expression', term, id, location: term.location },
             ];
         }
@@ -453,7 +458,7 @@ const getTopLevel = (
     }
     if (defn.type === 'Enum') {
         return [
-            null,
+            <div>#{hash}</div>,
             {
                 type: 'EnumDef',
                 id,
@@ -471,7 +476,9 @@ const getTopLevel = (
                 {env.global.recordGroups[idRaw][+second]}
             </span>
         </div>
-    ) : null;
+    ) : (
+        <div>#{hash}</div>
+    );
     return [
         prefix,
         {

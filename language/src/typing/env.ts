@@ -1222,7 +1222,7 @@ export const resolveIdentifier = (
             is: type,
         };
     } else if (hash != null) {
-        const [first, second] = hash.slice(1).split('#');
+        let [first, second] = hash.slice(1).split('#');
 
         if (first === 'builtin') {
             const type = env.global.builtins[text];
@@ -1258,7 +1258,16 @@ export const resolveIdentifier = (
                 }
             }
 
-            throw new Error(`Unknown hash ${hash} ${showLocation(location)}`);
+            const starts = Object.keys(env.global.terms).filter((k) =>
+                k.startsWith(first),
+            );
+            if (starts.length) {
+                first = starts[0];
+            } else {
+                throw new Error(
+                    `Unknown hash ${hash} ${showLocation(location)}`,
+                );
+            }
         }
         const id = idFromName(first);
         const term = env.global.terms[first];

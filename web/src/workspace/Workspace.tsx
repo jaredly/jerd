@@ -257,6 +257,7 @@ export const Workspace = ({ state, setState }: Props) => {
             <Library
                 env={state.env}
                 onOpen={onOpen}
+                plugins={defaultPlugins}
                 footer={<ImportExport state={state} setState={setState} />}
             />
             <Cells
