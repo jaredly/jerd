@@ -216,7 +216,7 @@ export type Record = {
 export type Op = { text: string; hash: string | null; location: Location };
 
 export type Ops = {
-    type: 'ops';
+    type: 'BinOp';
     first: Expression;
     location: Location;
     rest: Array<{

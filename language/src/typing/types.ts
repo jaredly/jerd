@@ -716,6 +716,14 @@ export type TypeError = {
     decorators?: Decorators;
 };
 
+export type NotFound = {
+    type: 'NotFound';
+    is: Type;
+    text: string;
+    location: Location;
+    decorators?: Decorators;
+};
+
 export type Ambiguous = {
     type: 'Ambiguous';
     options: Array<Term>;
@@ -724,7 +732,7 @@ export type Ambiguous = {
     decorators?: Decorators;
 };
 
-export type ErrorTerm = Ambiguous | TypeError;
+export type ErrorTerm = Ambiguous | TypeError | NotFound;
 
 // some-term
 // : some-type

@@ -1,7 +1,7 @@
 {
     let allComments: Array<[IFileRange, string]> = [];
     let idx = 0;
-    function myLocation() {
+    function myLocation(): Location {
         return {...location(), idx: idx++}
     }
 }
@@ -138,9 +138,10 @@ DecDefArg = id:IdentifierWithoutHash _ ":" _ type:Type {
 // ===== Expressions ======
 
 // Binop
-Expression = first:WithUnary rest:BinOpRight* {
+Expression = BinOp
+BinOp = first:WithUnary rest:BinOpRight* {
     if (rest.length) {
-        return {type: 'ops', first, rest, location: myLocation()}
+        return {type: 'BinOp', first, rest, location: myLocation()}
     } else {
         return first
     }

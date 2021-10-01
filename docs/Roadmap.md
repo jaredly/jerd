@@ -7,7 +7,7 @@
 
 - [x] autogenerate the `transform` impl from the typescript types for the AST.
   As config, provide the tyeps that you want to transform (Term, Type, Let, ToplevelT, Location, Pattern)
-- [ ] have the parser-generator add indices already folks. it should be super easy
+- [x] have the parser-generator add indices already folks. it should be super easy
 - [ ] let's keep track of comments
 - [ ] start rewriting the parser->typed tree stuff? probably using a visitor pattern, or something ... hmm .... knowing what I now know, I could probably do a better job of setting up the `env` and stuff. Also, `global` env is read-only, and `local` env is as well, but you add to it when passing it down. Right?
 

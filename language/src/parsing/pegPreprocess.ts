@@ -213,7 +213,7 @@ const processExpression = (
                         t.tsPropertySignature(
                             t.identifier('location'),
                             t.tsTypeAnnotation(
-                                t.tsTypeReference(t.identifier('IFileRange')),
+                                t.tsTypeReference(t.identifier('Location')),
                             ),
                         ),
                         ...(first
@@ -376,7 +376,7 @@ const jsOut = peggy.generate(grammarFile.join('\n\n'), {
 fs.writeFileSync(
     './src/parsing/parser-new.ts',
     jsOut +
-        '\n\n// TYPES\n\n' +
+        '\n\n// TYPES\n\nexport type Location = IFileRange & {idx: number};' +
         typesFile.join('\n\n') +
         `\n\nexport const parseTyped = (input: string): File => parse(input)\n`,
 );

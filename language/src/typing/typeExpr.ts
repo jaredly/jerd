@@ -535,7 +535,7 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                 is: yes.is,
             };
         }
-        case 'ops': {
+        case 'BinOp': {
             return typeOps(env, expr);
         }
         case 'WithSuffix': {
