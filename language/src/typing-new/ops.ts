@@ -359,12 +359,9 @@ export const resolveAttribute = (
         if (!t.idsEqual(base.is.ref.id, type.id)) {
             const baseDecl = ctx.library.types.defns[idName(base.is.ref.id)];
             if (baseDecl.type !== 'Record') {
-                ctx.warnings.push({
-                    location,
-                    text: `Attribute type ${idName(
-                        base.is.ref.id,
-                    )} is not a record`,
-                });
+                warn(
+                    `Attribute type ${idName(base.is.ref.id)} is not a record`,
+                );
                 return null;
             }
             // TODO: allow records to extend with type variables
@@ -377,12 +374,11 @@ export const resolveAttribute = (
                 }
             }
             if (!found) {
-                ctx.warnings.push({
-                    location,
-                    text: `Attribute id ${idName(
+                warn(
+                    `Attribute id ${idName(
                         type.id,
                     )} is not a subtype of ${idName(base.is.ref.id)}`,
-                });
+                );
                 return null;
             }
             // TODO: when we allow extends with vbls, this will have

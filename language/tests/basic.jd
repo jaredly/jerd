@@ -1,0 +1,127 @@
+
+// so first, we have 1 [+ 2] [+ 3] [== 3i]
+// then we arrange it into an op tree
+// == [+ [1] [2] [3]] [3i]
+// and then it becomes
+1 + 2 + 3 == 6i
+
+
+type Ok = {
+	"+": (a: int, b: float) => string
+}
+
+const x = <T#:0: Ok>(_#:1: T#:0): string => 1 +#:1#:0#0 2.0
+
+x(Ok{"+": (a: int, b: float) => "${a * 2} and ${b * 3.0}"}) == "2 and 6.0"
+x(Ok{"+": (a: int, b: float) => "${a as float + b"}) == "3.0"
+
+
+
+// So, is allowing `1` to be an int or a flow, an example of
+// implicit subtyping?
+// --==>
+
+// Ok but also, let's really dig into inference with type
+// variables.
+
+/*
+so, our type inference resolution will look like ...
+
+yeah, so when we're looking at ... an attribute, there's the possibility
+that it could match multiple things.
+Anddd if it's fully qualified attribute, then... do we
+just take it as read, that it's definitely this thing?
+
+So like we're collecting evidence, right?
+and at the end of it, it should be pretty easy
+to tally up the ... things that ... would be 
+
+Like
+
+myFn(a.b)
+
+// where .b can be two different types
+// and myFn expects a certain type
+
+OK so I'm thinking: let's respect #hashes.
+If something says it's a certain hash, we believe it.
+
+So, does this mean that I'm going to have like a constraint solver?
+
+A needs to be (X or Y)?
+
+I mean, it'll be quite simple, won't it?
+hmm how do you choose who wins?
+like, if there are two equally reasonable choices...
+
+Ok, so first we come up with all of the constraints.
+Then, as we resolve some, that will impact others.
+Do I have a way to capture that?
+
+orrrr I could just /not/ try for a completely general algorithm.
+And just do ~best effort.
+
+And so, when I'm resolving something ... 
+
+const a = [];
+[...a, 2.0]
+
+OK YEAH
+So here's the plan:
+When I have an ambiguity:
+- sort the available functions or whatever by some algorithm (recent, non-deprecated)
+- try to continue on ... using the first option? ... and if it doesn't work ... then go with the second?
+
+Yeah, and we'll rely on autocomplete to make ambiguities rare.
+
+Ok, so type variables won't have this "either or" nonsense.
+We'll pick one that makes sense, and go for it.
+
+
+
+
+
+
+
+
+WHILE I'm thinking about it, I want to simplify typed AST
+or, make it a little closer to the way a human would think about it.
+Specifically, the way we store Records is very obtuse.
+A human would think:
+- we have some spreads
+- we have some attributes
+and then typed -> IR can do all the rearranging it wants
+if it actually wants to, that is; because actually when
+printing the IR we just have to go all the way back.
+
+OK but so how do I namespace
+because that would be quite nice
+
+LETS HAVE
+a very nice upgrade path. For when I want to change the AST n stuff.
+basic idea being:
+anything important should be serializable down to syntax.
+Metadata can be represented as decorators.
+
+cells, and pins?
+are they decorators?
+seems like maybe they would be.
+
+Like just a bunch of toplevel expressions,
+
+@display("something")
+@sliders({10: Int(1), 12: Float(1.2)})
+@cell
+x#123123
+
+@display("something")
+@sliders({10: Int(1), 12: Float(1.2)})
+@pin(frozen: false)
+x#12343
+
+orrr maybe ... yeah let's not shoehorn the web ui's state
+in here.
+
+yeah we can export those separately.
+
+*/
