@@ -213,7 +213,7 @@ export const renderAttributedText = (
                     idColors[colorMap.colorAt++ % idColors.length];
             }
             const extra: Extra | null =
-                item.id !== ''
+                item.id !== '' && !item.id.startsWith(':')
                     ? {
                           type: 'id',
                           id: item.id,
@@ -299,6 +299,9 @@ export const renderAttributedText = (
             const first = item.attributes.find(
                 (x) => typeof x !== 'string',
             ) as Extra | null;
+            if (first) {
+                console.log('FIRST', first);
+            }
             return (
                 <span
                     data-location={
@@ -308,6 +311,7 @@ export const renderAttributedText = (
                     onMouseEnter={
                         first
                             ? (evt) => {
+                                  console.log('HOVER', first);
                                   setHover(
                                       first,
                                       evt.currentTarget as HTMLDivElement,

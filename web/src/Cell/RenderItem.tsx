@@ -314,6 +314,7 @@ Props) => {
                             'float',
                         ].includes(kind),
                     (extra: Extra, target: HTMLDivElement | null) => {
+                        console.log('SETTING HOVER', extra, target);
                         if (target) {
                             setHover([extra, target]);
                         } else if (hover) {
@@ -479,6 +480,7 @@ const getTopLevel = (
     ) : (
         <div>#{hash}</div>
     );
+
     return [
         prefix,
         {
@@ -499,6 +501,67 @@ const renderHover = (env: Env, hover: [Extra, HTMLDivElement]) => {
         top: box.bottom - pbox.top + 4,
         left: box.left - pbox.left,
     };
+    if (hover[0].type === 'Error') {
+        const pretty = (
+            <div>
+                <div>Found:</div>
+                <div
+                    style={{
+                        fontFamily: '"Source Code Pro", monospace',
+                        whiteSpace: 'pre-wrap',
+                        fontSize: '80%',
+                        padding: '2px 4px',
+                    }}
+                >
+                    {renderAttributedText(
+                        env.global,
+                        printToAttributedText(
+                            typeToPretty(env, hover[0].found),
+                            100,
+                        ),
+                        null,
+                        true,
+                    )}
+                </div>
+                <div>Expected:</div>
+                <div
+                    style={{
+                        fontFamily: '"Source Code Pro", monospace',
+                        whiteSpace: 'pre-wrap',
+                        fontSize: '80%',
+                        padding: '2px 4px',
+                    }}
+                >
+                    {renderAttributedText(
+                        env.global,
+                        printToAttributedText(
+                            typeToPretty(env, hover[0].expected),
+                            100,
+                        ),
+                        null,
+                        true,
+                    )}
+                </div>
+            </div>
+        );
+        return (
+            <div
+                css={{
+                    zIndex: 1000,
+                    position: 'absolute',
+                    backgroundColor: 'black',
+                    fontFamily: 'monospace',
+                    whiteSpace: 'pre-wrap',
+                    color: 'white',
+                    padding: 8,
+                    pointerEvents: 'none',
+                }}
+                style={pos}
+            >
+                {pretty}
+            </div>
+        );
+    }
     if (hover[0].type === 'id') {
         const id = hover[0].id;
         if (id.startsWith(':') || id === 'builtin') {

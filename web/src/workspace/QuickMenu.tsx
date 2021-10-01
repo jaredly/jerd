@@ -1,7 +1,10 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/react';
+import { printToAttributedText } from '@jerd/language/src/printing/printer';
+import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
+import { idFromName, idName } from '@jerd/language/src/typing/env';
+import { Env, idsEqual, ToplevelT } from '@jerd/language/src/typing/types';
 // A cmd-p menu for pulling things up quickly
-
 // Behavior
 // # Search
 // - with no input, list the most recently used things (grouping things with the same name)
@@ -11,19 +14,8 @@ import { jsx } from '@emotion/react';
 // # Commands
 // - import/export environment
 // - um probably some refactoring commands? idk
-
 import * as React from 'react';
-import { printToAttributedText } from '@jerd/language/src/printing/printer';
-import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
-import { idFromName, idName, ToplevelT } from '@jerd/language/src/typing/env';
-import {
-    Env,
-    idsEqual,
-    nullLoc,
-    nullLocation,
-} from '@jerd/language/src/typing/types';
-import { Index, Indices } from '../App';
-import { HashIcon } from '../HashIcon';
+import { Indices } from '../App';
 import { renderAttributedText } from '../Cell/Render';
 import { Content } from '../State';
 
@@ -530,7 +522,7 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
                               ),
                               undefined,
                               // onClick(env, cell, addCell, setScrub, term, value),
-                              false,
+                              true,
                               undefined,
                               undefined,
                               // (id, kind) =>

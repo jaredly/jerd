@@ -51,6 +51,7 @@ import { RenderItem } from './RenderItem';
 import { printToString } from '../../../language/src/printing/printer';
 import { toplevelToPretty } from '../../../language/src/printing/printTsLike';
 import { RenderResult } from './RenderResult';
+import { showLocation } from '@jerd/language/src/typing/typeExpr';
 
 // hrmmmm can I move the selection dealio up a level? Should I? hmm I do like each cell managing its own cursor, tbh.
 
@@ -461,7 +462,10 @@ const CellView_ = ({
         >
             {body}
             {typeResult.type === 'error' ? (
-                <div>{typeResult.err.message}</div>
+                <div>
+                    ERR
+                    {typeResult.err.message} {showLocation(typeResult.err.loc)}
+                </div>
             ) : null}
             {termAndValue ? (
                 <RenderResult
