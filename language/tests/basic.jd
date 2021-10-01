@@ -10,7 +10,7 @@ type Ok = {
 	"+": (a: int, b: float) => string
 }
 
-const x = <T#:0: Ok>(_#:1: T#:0): string => 1 +#:1#:0#0 2.0
+const x = <T#:0: Ok>(_#:1: T#:0): string => 1 +#:1#Ok#0 2.0
 
 x(Ok{"+": (a: int, b: float) => "${a * 2} and ${b * 3.0}"}) == "2 and 6.0"
 x(Ok{"+": (a: int, b: float) => "${a as float + b"}) == "3.0"

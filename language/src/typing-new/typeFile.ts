@@ -12,7 +12,13 @@ import {
 } from '../parsing/parser-new';
 import { getOpLevel, organizeDeep } from '../typing/terms/ops';
 import * as typed from '../typing/types';
+import { Type } from '../typing/types';
 import { reGroupOps } from './ops';
+
+type ConstructorNames = {
+    names: { [key: string]: Array<{ id: typed.Id; idx: number }> };
+    idToNames: { [key: string]: Array<string> };
+};
 
 type NamedDefns<Defn> = {
     // this is a cache of the other?
@@ -61,10 +67,15 @@ to an alias, for example.
 */
 
 export type Library = {
-    types: NamedDefns<typed.RecordDef | typed.EnumDef>;
+    types: NamedDefns<typed.RecordDef | typed.EnumDef> & {
+        constructors: ConstructorNames;
+    };
     terms: NamedDefns<typed.Term>;
-    effects: NamedDefns<typed.EffectDef>;
+    effects: NamedDefns<typed.EffectDef> & { constructors: ConstructorNames };
     decorators: NamedDefns<typed.DecoratorDef>;
+    // Derived from types:
+    // - attribute names
+    // - effect constructor names
 };
 
 /*
@@ -102,13 +113,17 @@ export type Context = {
     warnings: Array<{ location: Location; text: string }>;
 };
 
-export const typeWithUnary = (ctx: Context, unary: WithUnary) => {};
+export const typeWithUnary = (
+    ctx: Context,
+    unary: WithUnary,
+    expected: Array<Type>,
+) => {};
 
 // So, how does this go.
 export const typeBinOp = (ctx: Context, expr: BinOp) => {
     const grouped = reGroupOps(expr);
     if (grouped.type === 'WithUnary') {
-        return typeWithUnary(ctx, grouped);
+        return typeWithUnary(ctx, grouped, []);
     }
     return typeBinOps(ctx, expr);
 };

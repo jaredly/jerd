@@ -113,11 +113,12 @@ import {
     binopWithHash,
     IFilePosition,
     Location,
+    OpHash,
     WithUnary,
 } from '../parsing/parser-new';
 import { precedence } from '../typing/terms/ops';
 import { parseOpHash } from './hashes';
-import { Context, Library } from './typeFile';
+import { Context, Library, typeWithUnary } from './typeFile';
 import {
     ResolvedType,
     resolveType,
@@ -125,6 +126,7 @@ import {
     resolveValue,
 } from './resolve';
 import { idName } from '../typing/env';
+import { Type } from '../typing/types';
 
 const opsEqual = (one: binopWithHash, two: binopWithHash) =>
     one.op === two.op && one.hash === two.hash;
@@ -274,11 +276,12 @@ export const reGroupOps = (binop: BinOp): WithUnary | GroupedOp => {
 
 export const resolveOpHash = (
     ctx: Context,
-    hashRaw: binopWithHash,
+    hashRaw: string,
+    hashLoc: Location,
     location: Location,
 ): null | t.Attribute => {
     const warn = (text: string) => ctx.warnings.push({ location, text });
-    const hash = parseOpHash(hashRaw.op.slice(1));
+    const hash = parseOpHash(hashRaw.slice(1));
     if (hash == null) {
         warn(`Unable to parse hash "${hashRaw}"`);
         return null;
@@ -299,14 +302,7 @@ export const resolveOpHash = (
         warn(`Unable to resolve type for operator`);
         return null;
     }
-    return resolveAttribute(
-        ctx,
-        base,
-        type,
-        hash.attr.attr,
-        hashRaw.location,
-        location,
-    );
+    return resolveAttribute(ctx, base, type, hash.attr.attr, hashLoc, location);
 };
 
 export const resolveAttribute = (
@@ -419,14 +415,21 @@ export const getAllSubTypes = (
     );
 };
 
-export const typeGroup = (ctx: Context, group: GroupedOp) => {
+export const typePair = (
+    ctx: Context,
+    op: binopWithHash,
+    left: WithUnary | GroupedOp,
+    right: WithUnary | GroupedOp,
+    location: Location,
+    expectedTypes: Array<t.Type>,
+) => {
     let target: null | t.Attribute = null;
     // Things to consider:
     // - if the op has a hash, we just believe it, ... right?
     //   we could of course not believe it, if we wanted
     //   but we can handle that later
-    if (group.op.hash != null) {
-        target = resolveOpHash(ctx, group.op, group.location);
+    if (op.hash != null) {
+        target = resolveOpHash(ctx, op.hash, op.location, location);
         // TODO: show some warnings or something
         // HERE we resolve ... stuff.
         // Should I allow hashes to reference local whatsits?
@@ -446,6 +449,92 @@ export const typeGroup = (ctx: Context, group: GroupedOp) => {
         // says it's term #abc, and getting the #def#0
         // attribute from it, to be our binop.
     }
+
+    if (target == null) {
+        const potentials = ctx.library.types.constructors.names[op.op];
+        if (!potentials) {
+            ctx.warnings.push({
+                location: location,
+                text: `No attribute ${op.op}`,
+            });
+            return null;
+        }
+        // Ok, so this is where some things get interesting,
+        // because we want to resolve an implementor.
+        // And if there are multiple options, then we need
+        // to first resolve the arguments, so we know which
+        // one to pick.
+        // BUT that might get dicey? Or like, I like being
+        // able to provide an "expectedType"...
+        // So do I just try /each one/ ... that could get
+        // quite expensive.
+
+        // I think I'll evaluate without an expected type,
+        // and then go from there.
+
+        // OH yeah even more, there might be multiple attributes,
+        // and multiple implementors for each.
+
+        const options = potentials
+            .map(({ idx, id }): undefined | [t.Type, t.Type] => {
+                const decl = ctx.library.types.defns[idName(id)];
+                if (decl.type !== 'Record' || idx >= decl.items.length) {
+                    return;
+                }
+                const row = decl.items[idx];
+                // TODO: allow rest args?
+                if (row.type !== 'lambda' || row.args.length !== 2) {
+                    return;
+                }
+                // ummmm so ... hm ...
+                return [row.args[0], row.args[1]];
+            })
+            .filter(Boolean) as Array<[t.Type, t.Type]>;
+
+        const lefts = options.map((opts) => opts[0]);
+        const rights = options.map((opts) => opts[1]);
+
+        const larg = typeUnaryOrGroup(ctx, left, lefts);
+
+        // if (potentials.length === 1) {
+        //     // We can evaluate with expected types
+        //     // target = resolveAttribute
+        // }
+    }
+};
+
+export const typeUnaryOrGroup = (
+    ctx: Context,
+    term: WithUnary | GroupedOp,
+    expected: Array<Type>,
+) => {
+    if (term.type === 'WithUnary') {
+        return typeWithUnary(ctx, term, expected);
+    }
+    return typeGroup(ctx, term, expected);
+};
+
+// hmmmmmmmm ok yeah the groupedop just really isn't right.
+// hmm. because we lose location information of the other ops.
+export const typeGroup = (
+    ctx: Context,
+    group: GroupedOp,
+    expectedTypes: Array<t.Type>,
+) => {
+    if (group.items.length === 2) {
+        return typePair(
+            ctx,
+            group.op,
+            group.items[0],
+            group.items[1],
+            group.location,
+            expectedTypes,
+        );
+    }
+    // let left = group.items[0];
+    // for (let i=1; i<group.items.length; i++) {
+    // 	left = typePair(ctx, group.op, group.items[i], expectedTypes)
+    // }
 };
 
 export const typeBinOps = (ctx: Context, binop: BinOp) => {
