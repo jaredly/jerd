@@ -179,21 +179,21 @@ const isLevel = (op: string, level: Array<string>) =>
 
 // const combine = (left: WithUnary, op: binopWithHash, right: )
 
-type GroupedOp = {
+export type GroupedOp = {
     type: 'GroupedOp';
     location: Location;
-    op: binopWithHash;
-    items: Array<WithUnary | GroupedOp>;
+    left: WithUnary | GroupedOp;
+    items: Array<BinOpGroup>;
 };
 
-type BinOpGroup = {
+export type BinOpGroup = {
     type: 'BinOpRight';
     location: Location;
     op: binopWithHash;
     right: WithUnary | GroupedOp;
 };
 
-type Groups = {
+export type Groups = {
     location: Location;
     left: WithUnary | GroupedOp;
     rops: Array<BinOpGroup>;
@@ -208,18 +208,18 @@ const reGroupOps1Level = (
     }
     if (isLevel(rops[0].op.op)) {
         const orig = rops[0].op;
-        const items: Array<WithUnary | GroupedOp> = [left, rops[0].right];
+        const items: Array<BinOpGroup> = [rops[0]];
         let i = 1;
         for (; i < rops.length && opsEqual(orig, rops[i].op); i++) {
-            items.push(rops[i].right);
+            items.push(rops[i]);
         }
         return reGroupOps1Level(
             {
                 left: {
                     type: 'GroupedOp',
+                    left,
                     items,
                     location: rops[0].location,
-                    op: orig,
                 },
                 rops: rops.slice(i),
                 location,
@@ -251,7 +251,6 @@ const reGroupOps1Level = (
 
 export const reGroupOps = (binop: BinOp): WithUnary | GroupedOp => {
     if (!binop.rest.length) {
-        // return binop.first;
         return binop.first;
     }
     let groups: Groups = {
@@ -521,12 +520,12 @@ export const typeGroup = (
     group: GroupedOp,
     expectedTypes: Array<t.Type>,
 ) => {
-    if (group.items.length === 2) {
+    if (group.items.length === 1) {
         return typePair(
             ctx,
-            group.op,
-            group.items[0],
-            group.items[1],
+            group.items[0].op,
+            group.left,
+            group.items[0].right,
             group.location,
             expectedTypes,
         );
