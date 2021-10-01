@@ -26,12 +26,16 @@ const groups = (w: WithUnary | GroupedOp, i: number): any =>
 
 describe('stuff', () => {
     it('ok', () => {
-        const parsed = parseTyped(`2 + 3 * 4 * 5 + 1 + 2 ^ 3 & 4`);
+        const parsed = parseTyped(
+            `2 + 3 * 4 * 5 * 3 / 2 * 102 + 1 + 2 ^ 3 & 4`,
+        );
         const top = parsed.tops![0].top;
         if (top.type === 'ToplevelExpression') {
             expect(groups(reGroupOps(top.expr), 0)).toMatchInlineSnapshot(
-                `&[+(2 *{3 4 5} 1 ^{2 3}) 4]`,
+                `&[+(2 *{/<*[3 4 5 3] 2> 102} 1 ^{2 3}) 4]`,
             );
+        } else {
+            expect(false).toBe(true);
         }
     });
 });
