@@ -146,8 +146,8 @@ export const mergeGlobalEnvs = (
     newEnv: GlobalEnv,
 ): GlobalEnv => ({
     ...newEnv,
-    builtins: old.builtins,
-    builtinTypes: old.builtinTypes,
+    // builtins: newEnv.builtins,
+    // builtinTypes: newEnv.builtinTypes,
     metaData: { ...old.metaData, ...newEnv.metaData },
     rng: newEnv.rng,
     recordGroups: {

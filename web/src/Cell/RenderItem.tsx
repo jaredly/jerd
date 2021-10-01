@@ -2,6 +2,7 @@
 import { Interpolation, jsx, Theme } from '@emotion/react';
 import {
     Extra,
+    ExtraId,
     printToAttributedText,
     SourceItem,
     SourceMap,
@@ -434,6 +435,12 @@ const getTopLevel = (
     isType: boolean,
 ): [React.ReactNode, ToplevelT] | null => {
     const [idRaw, second] = hash.split('#');
+    if (second === 'builtin') {
+        if (!isType) {
+            return [null, {}];
+        }
+        return null;
+    }
     const id = idFromName(idRaw);
     const name = env.global.idNames[idRaw];
     if (!isType) {
@@ -563,25 +570,10 @@ const renderHover = (env: Env, hover: [Extra, HTMLDivElement]) => {
         );
     }
     if (hover[0].type === 'id') {
-        const id = hover[0].id;
-        if (id.startsWith(':') || id === 'builtin') {
+        const pretty = renderHoverId(env, hover[0]);
+        if (!pretty) {
             return;
         }
-        const top = getTopLevel(env, id, hover[0].isType);
-        const pretty = top ? (
-            <div>
-                {top[0]}
-                {renderAttributedText(
-                    env.global,
-                    printToAttributedText(
-                        toplevelToPretty(env, top[1], true),
-                        100,
-                    ),
-                )}
-            </div>
-        ) : (
-            <strong>Unable to find definition for {id}</strong>
-        );
         return (
             <div
                 css={{
@@ -600,6 +592,45 @@ const renderHover = (env: Env, hover: [Extra, HTMLDivElement]) => {
             </div>
         );
     }
+};
+
+export const renderHoverId = (env: Env, extra: ExtraId) => {
+    const id = extra.id;
+    if (id.startsWith(':')) {
+        return;
+    }
+    if (id.endsWith('#builtin')) {
+        const name = id.slice(0, -'#builtin'.length);
+        const t = env.global.builtins[name];
+        if (!t) {
+            return <div>No builtin {name}</div>;
+        }
+        return (
+            <div>
+                {name} :{' '}
+                {renderAttributedText(
+                    env.global,
+                    printToAttributedText(typeToPretty(env, t), 100),
+                    null,
+                    true,
+                )}
+            </div>
+        );
+    }
+    const top = getTopLevel(env, id, extra.isType);
+    return top ? (
+        <div>
+            {top[0]}
+            {renderAttributedText(
+                env.global,
+                printToAttributedText(toplevelToPretty(env, top[1], true), 100),
+                null,
+                true,
+            )}
+        </div>
+    ) : (
+        <strong>Unable to find definition for {id}</strong>
+    );
 };
 
 export const RenderItem = React.memo(RenderItem_);

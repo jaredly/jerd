@@ -216,7 +216,10 @@ export const renderAttributedText = (
                 item.id !== '' && !item.id.startsWith(':')
                     ? {
                           type: 'id',
-                          id: item.id,
+                          id:
+                              item.id === 'builtin'
+                                  ? item.text + '#builtin'
+                                  : item.id,
                           isType:
                               item.kind !== 'term' &&
                               item.kind !== 'term-deprecated' &&

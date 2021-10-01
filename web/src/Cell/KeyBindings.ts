@@ -302,6 +302,9 @@ export const bindKeys = (
             onEdit('start');
         }
         if (evt.key === 'c') {
+            if (evt.metaKey || evt.ctrlKey) {
+                return;
+            }
             evt.stopPropagation();
             evt.preventDefault();
             onEdit('change');
