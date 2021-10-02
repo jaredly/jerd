@@ -1,4 +1,28 @@
 
+## TYPE SYSTEM REWRITE
+
+- [x] autogen parser types
+  - [ ] make fallthrough a thing, IFF you have
+    one array, and one non-array; if the array is empty,
+    fall through to the other thing.
+- [x] autogen transformers of the typed ast types
+- [ ] Write the whole type checker
+  - [x] organize binops
+  - [ ] decide how to make a maximally recovering binop typer
+    - basically, even if they specified a hash, if it errors and something else doesn't, pick the something else I think...
+- [ ] profit
+
+## WEB UI MAKE IT USABLE
+
+- [ ] clicking the hash should NOT just remove it, but pull up a UI autocompleter so you can repalce it.
+
+
+
+## GLSL
+
+Think about doing lambdas as "id that goes into a mega function", the mega function being.
+
+
 # Let's make some things much nicer, ok?
 
 - [x] autogenerate actually correct typescript types for our parsed whatsit.

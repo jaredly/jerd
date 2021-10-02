@@ -13,6 +13,33 @@ Web/editor (in the `web` directory)
 - `yarn start`
 - open up `http://localhost:4343`
 
+## Basic cool things
+
+- Code is typed, hashed AST in a database, not text in a file
+    - reference toplevel terms by hash, not by name
+    - type checking happens exactly once per term
+- Algebraic effects (full purity, no )
+- Compiles to _readable_ typescript, glsl, and go
+- {...extend type} for ~row polymorphism
+    - fancy enums and records
+    - records can have default values
+- generics (with ~bounds)
+- compile-time macros
+
+## Inspired by
+
+- Unison (algebraic effects)
+- Elm (purity)
+- Roc ()
+- Reason (compile to readable typescript)
+
+
+
+
+
+
+
+
 
 ## (intended) Features:
 

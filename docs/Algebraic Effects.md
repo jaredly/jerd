@@ -2,6 +2,15 @@
 
 Very much based off of eff-lang, but taking, like unison, the choice of making handlers "shallow" (https://www.eff-lang.org/handlers-tutorial.pdf).
 
+
+## The Pitch!
+Here's what is convincing:
+- monadic json parser? it's encoding failure, have a `fail()` effect.
+- mixing different effects (fail() and Random() when parsing json)
+
+Is there a way to make algebraic effects /just/ syntax sugar over Tasks?
+
+
 ## Two-layers-deep effect variables?
 
 Allowing something like
