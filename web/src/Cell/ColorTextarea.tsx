@@ -5,9 +5,14 @@ import { parse } from '@jerd/language/src/parsing/grammar';
 import { Toplevel } from '@jerd/language/src/parsing/parser';
 import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
-import { typeToplevelT, ToplevelT } from '@jerd/language/src/typing/env';
+import { typeToplevelT } from '@jerd/language/src/typing/env';
 import { renderAttributedText } from './Render';
-import { Env, Location, newWithGlobal } from '@jerd/language/src/typing/types';
+import {
+    Env,
+    Location,
+    newWithGlobal,
+    ToplevelT,
+} from '@jerd/language/src/typing/types';
 import {
     addLocationIndices,
     getTermByIdx,
@@ -51,6 +56,31 @@ const getPosition = (
         node = node.parentElement!;
     }
     return at;
+};
+
+const textUpToPosition = (node: HTMLElement, at: number): string | number => {
+    if (at === 0) {
+        return '';
+    }
+    const len = node.textContent!.length;
+    if (at > len) {
+        return at - len;
+    }
+    if (node.nodeName === '#text') {
+        return node.textContent!.slice(0, at);
+    }
+    let text = '';
+    for (let i = 0; i < node.childNodes.length; i++) {
+        const child = node.childNodes[i];
+        const res = textUpToPosition(child as HTMLElement, at);
+        if (typeof res === 'number') {
+            text += child.textContent!;
+            at = res;
+        } else {
+            return text + res;
+        }
+    }
+    throw new Error(`No position`);
 };
 
 const selectPosition = (
@@ -332,62 +362,7 @@ export default ({
                     set.current = true;
                     const parsed = maybeParse(env, value, unique);
                     if (parsed) {
-                        const sourceMap = {};
-                        const div = document.createElement('div');
-                        render(
-                            renderAttributedText(
-                                env.global,
-                                printToAttributedText(
-                                    toplevelToPretty(env, parsed, true),
-                                    maxWidth,
-                                    undefined,
-                                    sourceMap,
-                                ),
-                            ),
-                            div,
-                            () => {
-                                node.innerHTML = div.innerHTML;
-                                // Select it y'all
-                                const nodes = node.querySelectorAll(
-                                    '[data-location]',
-                                );
-                                if (selection) {
-                                    console.log(
-                                        `Looking for selection ${JSON.stringify(
-                                            selection,
-                                        )}`,
-                                    );
-
-                                    for (let i = 0; i < nodes.length; i++) {
-                                        const l = JSON.parse(
-                                            nodes[i].getAttribute(
-                                                'data-location',
-                                            )!,
-                                        );
-                                        if (l.idx === selection.idx) {
-                                            nodes[i].classList.add(
-                                                'selected-id',
-                                            );
-                                            const sel = document.getSelection()!;
-                                            sel.removeAllRanges();
-                                            const r = document.createRange();
-                                            r.selectNodeContents(nodes[i]);
-                                            if (selection.pos === 'end') {
-                                                r.collapse(false);
-                                            } else if (
-                                                selection.pos === 'start'
-                                            ) {
-                                                r.collapse(true);
-                                            }
-                                            sel.addRange(r);
-                                            return;
-                                        }
-                                    }
-                                } else {
-                                    console.log(`No sleection?`);
-                                }
-                            },
-                        );
+                        renderTheCode(env, parsed, maxWidth, node, selection);
                     } else {
                         node.innerText = value;
                     }
@@ -435,9 +410,6 @@ export default ({
                     fontFamily: '"Source Code Pro", monospace',
                     minHeight: '1em',
                 }}
-                // onSelectionChange={evt => {
-                //     console.log('ok')
-                // }}
                 onInput={(evt) => {
                     onChange(getCode(evt.currentTarget));
                 }}
@@ -448,6 +420,33 @@ export default ({
                         const root = evt.currentTarget;
                         handleTab(evt.shiftKey, root);
                     }
+                    if (evt.key === ' ' && evt.ctrlKey) {
+                        console.log('SPACE');
+                    }
+                    // if (evt.key === '#') {
+                    //     // TODO: Autocomplete folks
+                    //     const sel = (window.sel = document.getSelection()!);
+                    //     console.log(sel, sel!.getRangeAt(0));
+                    //     const root = evt.currentTarget;
+                    //     const pos = getPosition(
+                    //         root,
+                    //         sel.anchorNode as HTMLElement,
+                    //         getOffset(
+                    //             sel.anchorNode as HTMLElement,
+                    //             sel.anchorOffset,
+                    //         ),
+                    //     );
+                    //     console.log('POS', pos);
+                    //     const lasts = textUpToPosition(root, pos);
+                    //     if (typeof lasts === 'string') {
+                    //         const suffix = lasts.match(/\w*$/);
+                    //         if (!suffix) {
+                    //             console.log('no suffix, sorry');
+                    //             return;
+                    //         }
+                    //         console.log('ok folks', suffix[0]);
+                    //     }
+                    // }
                     if (
                         // TODO: Should I just say anything other
                         // than alphanumeric?
@@ -455,71 +454,13 @@ export default ({
                         !evt.metaKey &&
                         !evt.ctrlKey
                     ) {
-                        const sel = document.getSelection();
-                        if (sel && sel.focusNode) {
-                            const parent = sel.focusNode.parentElement!;
-                            if (parent.hasAttribute('data-id')) {
-                                // how do I ... make a new text dealio
-                                // after hthe current one?
-                                // ok, so if we say
-                                // that this is the last item
-                                const idx = [
-                                    ...(parent.childNodes as any),
-                                ].indexOf(sel.focusNode);
-                                if (idx === parent.childNodes.length - 1) {
-                                    console.log(idx);
-                                    if (
-                                        sel.focusOffset ===
-                                        sel.focusNode.nodeValue?.length
-                                    ) {
-                                        console.log('LAST');
-                                        const next = document.createElement(
-                                            'span',
-                                        );
-                                        parent.insertAdjacentElement(
-                                            'afterend',
-                                            next,
-                                        );
-                                        // oh ok, so I can fill it with dummy,
-                                        // and then the key event replaces it!
-                                        // But what's the issue with the space?
-                                        // Does it auto-collapse, or some mess?
-                                        // ZERO_WIDTH_SPACE FOLKS
-                                        next.textContent = evt.key; // ZERO_WIDTH_SPACE; // evt.key;
-
-                                        sel.removeAllRanges();
-                                        const range = document.createRange();
-                                        range.selectNode(next);
-                                        range.collapse(false);
-                                        sel.addRange(range);
-
-                                        // const r = sel.getRangeAt(0);
-                                        // r.selectNode(next);
-                                        // r.collapse(false);
-
-                                        // sel.collapse(next, 1);
-                                        // hrmmmm does this prevent calling the whatsit?
-                                        evt.preventDefault();
-                                        evt.stopPropagation();
-
-                                        var event = new Event('input', {
-                                            bubbles: true,
-                                            cancelable: true,
-                                        });
-
-                                        evt.target.dispatchEvent(event);
-
-                                        // sel.selectAllChildren(next);
-                                    }
-                                }
-                            }
-                        }
+                        removeIdSpan(evt);
                     }
 
                     onKeyDown(evt);
                 }}
             />
-            {/* {hover ? (
+            {hover ? (
                 <div
                     style={{
                         pointerEvents: 'none',
@@ -529,12 +470,13 @@ export default ({
                         fontSize: '80%',
                         backgroundColor: '#111',
                         color: 'white',
+                        border: '1px solid white',
                         padding: 4,
                     }}
                 >
                     {hover.text}
                 </div>
-            ) : null} */}
+            ) : null}
             {selection ? (
                 <SelectionId
                     selection={selection.node}
@@ -586,3 +528,113 @@ const SelectionId = React.memo(
         );
     },
 );
+
+function renderTheCode(
+    env: Env,
+    parsed: any,
+    maxWidth: number,
+    node: HTMLDivElement,
+    selection: {
+        idx: number;
+        node: HTMLElement | null | undefined;
+        pos: SelectionPos;
+    } | null,
+) {
+    const sourceMap = {};
+    const div = document.createElement('div');
+    render(
+        renderAttributedText(
+            env.global,
+            printToAttributedText(
+                toplevelToPretty(env, parsed, true),
+                maxWidth,
+                undefined,
+                sourceMap,
+            ),
+        ),
+        div,
+        () => {
+            node.innerHTML = div.innerHTML;
+            // Select it y'all
+            const nodes = node.querySelectorAll('[data-location]');
+            if (selection) {
+                console.log(
+                    `Looking for selection ${JSON.stringify(selection)}`,
+                );
+
+                for (let i = 0; i < nodes.length; i++) {
+                    const l = JSON.parse(
+                        nodes[i].getAttribute('data-location')!,
+                    );
+                    if (l.idx === selection.idx) {
+                        nodes[i].classList.add('selected-id');
+                        const sel = document.getSelection()!;
+                        sel.removeAllRanges();
+                        const r = document.createRange();
+                        r.selectNodeContents(nodes[i]);
+                        if (selection.pos === 'end') {
+                            r.collapse(false);
+                        } else if (selection.pos === 'start') {
+                            r.collapse(true);
+                        }
+                        sel.addRange(r);
+                        return;
+                    }
+                }
+            } else {
+                console.log(`No sleection?`);
+            }
+        },
+    );
+}
+
+function removeIdSpan(evt: React.KeyboardEvent<HTMLDivElement>) {
+    const sel = document.getSelection();
+    if (sel && sel.focusNode) {
+        const parent = sel.focusNode.parentElement!;
+        if (parent.hasAttribute('data-id')) {
+            // how do I ... make a new text dealio
+            // after hthe current one?
+            // ok, so if we say
+            // that this is the last item
+            const idx = [...(parent.childNodes as any)].indexOf(sel.focusNode);
+            if (idx === parent.childNodes.length - 1) {
+                console.log(idx);
+                if (sel.focusOffset === sel.focusNode.nodeValue?.length) {
+                    console.log('LAST');
+                    const next = document.createElement('span');
+                    parent.insertAdjacentElement('afterend', next);
+                    // oh ok, so I can fill it with dummy,
+                    // and then the key event replaces it!
+                    // But what's the issue with the space?
+                    // Does it auto-collapse, or some mess?
+                    // ZERO_WIDTH_SPACE FOLKS
+                    next.textContent = evt.key; // ZERO_WIDTH_SPACE; // evt.key;
+
+                    sel.removeAllRanges();
+                    const range = document.createRange();
+                    range.selectNode(next);
+                    range.collapse(false);
+                    sel.addRange(range);
+
+                    // const r = sel.getRangeAt(0);
+                    // r.selectNode(next);
+                    // r.collapse(false);
+                    // sel.collapse(next, 1);
+                    // hrmmmm does this prevent calling the whatsit?
+                    evt.preventDefault();
+                    evt.stopPropagation();
+
+                    var event = new Event('input', {
+                        bubbles: true,
+                        cancelable: true,
+                    });
+
+                    evt.target.dispatchEvent(event);
+
+                    // sel.selectAllChildren(next);
+                }
+            }
+        }
+    }
+}

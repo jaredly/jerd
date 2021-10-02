@@ -625,7 +625,7 @@ export const renderHoverId = (env: Env, extra: ExtraId) => {
                 env.global,
                 printToAttributedText(toplevelToPretty(env, top[1], true), 100),
                 null,
-                true,
+                false,
             )}
         </div>
     ) : (
