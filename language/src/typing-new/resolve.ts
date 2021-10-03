@@ -1,5 +1,6 @@
 import { IdOrSym } from './hashes';
-import { Context, Library } from './typeFile';
+import { Context } from './typeFile';
+import { Library } from './Library';
 import * as t from '../typing/types';
 import { Location } from '../parsing/parser-new';
 import { idName } from '../typing/env';

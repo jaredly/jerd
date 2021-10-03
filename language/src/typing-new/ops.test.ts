@@ -3,7 +3,10 @@ import { idFromName, idName } from '../typing/env';
 import { nullLocation } from '../typing/types';
 import * as preset from '../typing/preset';
 import { GroupedOp, reGroupOps } from './ops';
-import { Context, NamedDefns, typeBinOp } from './typeFile';
+import { Context, ctxToEnv, NamedDefns, typeBinOp } from './typeFile';
+import { addRecord } from './Library';
+import { printToString } from '../printing/printer';
+import { termToPretty } from '../printing/printTsLike';
 
 export const rawSnapshotSerializer: jest.SnapshotSerializerPlugin = {
     test(value) {
@@ -59,6 +62,7 @@ const newContext = (): Context => ({
         types: {
             ...namedDefns(),
             constructors: { names: {}, idToNames: {} },
+            superTypes: {},
         },
         effects: {
             ...namedDefns(),
@@ -89,30 +93,37 @@ y float
 describe('full parse maybe', () => {
     it('ok', () => {
         const ctx: Context = newContext();
-        const slash = idFromName('slash');
-        ctx.library.types.constructors.names['/'] = [{ idx: 0, id: slash }];
-        ctx.library.types.defns[idName(slash)] = {
-            type: 'Record',
-            effectVbls: [],
-            extends: [],
-            ffi: null,
-            items: [
-                {
-                    type: 'lambda',
-                    args: [preset.int, preset.int],
-                    effectVbls: [],
-                    effects: [],
-                    location: nullLocation,
-                    res: preset.int,
-                    rest: null,
-                    typeVbls: [],
-                },
-            ],
-            location: nullLocation,
-            typeVbls: [],
-            unique: 0,
-        };
-        ctx.library.types.names['div'] = [slash];
+        let slash; // const slash = idFromName('slash');
+        [ctx.library, slash] = addRecord(
+            ctx.library,
+            {
+                type: 'Record',
+                effectVbls: [],
+                extends: [],
+                ffi: null,
+                items: [
+                    {
+                        type: 'lambda',
+                        args: [preset.int, preset.int],
+                        effectVbls: [],
+                        effects: [],
+                        location: nullLocation,
+                        res: preset.int,
+                        rest: null,
+                        typeVbls: [],
+                    },
+                ],
+                location: nullLocation,
+                typeVbls: [],
+                unique: 0,
+            },
+            'slash',
+            ['/'],
+        );
+        // ctx.library.types.constructors.names['/'] = [{ idx: 0, id: slash }];
+        // ctx.library.types.defns[idName(slash)] = {
+        // };
+        // ctx.library.types.names['div'] = [slash];
 
         const slashInt = idFromName('slash-int');
         ctx.library.terms.defns[idName(slashInt)] = {
@@ -165,7 +176,10 @@ describe('full parse maybe', () => {
         }
         const res = typeBinOp(ctx, top.expr, []);
         expect(ctx.warnings).toHaveLength(0);
-        expect(res).toMatchInlineSnapshot();
+        expect(res).toBeTruthy();
+        expect(
+            printToString(termToPretty(ctxToEnv(ctx), res!), 100),
+        ).toMatchInlineSnapshot(`2 /#slash-int#d28f8708#0 3`);
 
         // expect(groups(reGroupOps(top.expr), 0)).toMatchInlineSnapshot(
         //     `&[+(2 *{/<*[3 4 5 3] 2> 102} 1 ^{2 3}) 4]`,

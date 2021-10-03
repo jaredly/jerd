@@ -18,8 +18,9 @@ import * as typed from '../typing/types';
 import * as preset from '../typing/preset';
 import { Term, Type } from '../typing/types';
 import { reGroupOps, typeGroup } from './ops';
+import { Library } from './Library';
 
-type ConstructorNames = {
+export type ConstructorNames = {
     names: { [key: string]: Array<{ id: typed.Id; idx: number }> };
     idToNames: { [key: string]: Array<string> };
 };
@@ -51,38 +52,6 @@ export type NamedDefns<Defn> = {
 };
 
 /*
-
-Thinking about DOCS
-
-Also, this means that we could have our "this is a text cell",
-but psych it's actually a Term that's a Doc literal, and we
-switch on the documentation ~wsywig editor. And like, as long
-as the docs literal can be transformed to markdown, we can just
-edit it as markdown. Right?
-
-OK BUT
-also
-we really need to be able to define type aliases.
-ARE THESE just cosmetic?
-I don't think so. Like, they should exist in the library.
-For one thing, so that we can use an ID in docs that points
-to an alias, for example.
-
-*/
-
-export type Library = {
-    types: NamedDefns<typed.RecordDef | typed.EnumDef> & {
-        constructors: ConstructorNames;
-    };
-    terms: NamedDefns<typed.Term>;
-    effects: NamedDefns<typed.EffectDef> & { constructors: ConstructorNames };
-    decorators: NamedDefns<typed.DecoratorDef>;
-    // Derived from types:
-    // - attribute names
-    // - effect constructor names
-};
-
-/*
 Ok, clean slate. How does this database work?
 
 Let's lean into `toplevel`s.
@@ -96,6 +65,37 @@ types: {
 
 
 */
+
+export const ctxToEnv = (ctx: Context): typed.Env => {
+    return {
+        depth: 0,
+        term: {
+            localNames: {},
+            nextTraceId: 0,
+        },
+        global: {
+            attributeNames: ctx.library.types.constructors.names,
+            builtinTypes: {},
+            builtins: {},
+            decoratorNames: ctx.library.decorators.names,
+            decorators: ctx.library.decorators.defns,
+            effectConstrNames: ctx.library.effects.constructors.idToNames,
+            effectConstructors: {}, // ctx.library.effects.constructors.names,
+            effectNames: {}, // ctx.library.effects.names,
+            effects: {}, // ctx.library.effects.defns,
+            exportedTerms: {},
+            idNames: {},
+            metaData: {},
+            names: {},
+            recordGroups: ctx.library.types.constructors.idToNames,
+            rng: () => 0.0,
+            terms: ctx.library.terms.defns,
+            typeNames: ctx.library.types.names,
+            types: ctx.library.types.defns,
+        },
+        local: typed.newLocal(),
+    };
+};
 
 export type Context = {
     unique: { current: number };
