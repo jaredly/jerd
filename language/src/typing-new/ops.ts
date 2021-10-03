@@ -496,9 +496,16 @@ export const typePair = (
         // OH yeah even more, there might be multiple attributes,
         // and multiple implementors for each.
 
-        potentials.forEach(({ idx, id }):
-            | undefined
-            | { left: t.Type; right: t.Type; term: t.Term } => {
+        // Hmmmmmmmm when I'm searching around, I think I want
+        // to cache ... binary ... operators.
+        // like, "what are the ... "
+        // Here are the Supertypes
+        // of the given type.
+        // Yeah, the library should cache the supertypes.
+        // So I can just say "I'm looking for values that are
+        // one of these supertypes".
+
+        potentials.forEach(({ idx, id }) => {
             const decl = ctx.library.types.defns[idName(id)];
             if (decl.type !== 'Record' || idx >= decl.items.length) {
                 return;
@@ -601,6 +608,14 @@ export const typePair = (
             });
         });
 
+        if (!options.length) {
+            ctx.warnings.push({
+                location,
+                text: `No values found that match the operator. I found some types though.`,
+            });
+            return null;
+        }
+
         const lefts = options.map((opts) => opts.left);
 
         const larg = typeUnaryOrGroup(ctx, left, lefts);
@@ -626,6 +641,7 @@ export const typePair = (
                 (!rarg || t.typesEqual(rarg.is, opt.right)),
         );
         if (!op2) {
+            console.log(potentials, options, larg?.is, rarg?.is);
             throw new Error(`pick the first one, and fill with TypeError`);
         }
 
@@ -686,11 +702,6 @@ export const typeGroup = (
     });
     return typeGroup(ctx, left as GroupedOp, expectedTypes);
 };
-
-// export const typeBinOps = (ctx: Context, binop: BinOp) => {
-//     const groups = reGroupOps(binop);
-// 	// if (groups.type === 'WithUnary')
-// };
 
 export const applyTypeVariablesToRecord = (
     ctx: Context,

@@ -9,10 +9,13 @@ import {
     Toplevel,
     WithUnary,
     Location,
+    WithSuffix,
+    Apsub,
 } from '../parsing/parser-new';
 import { hashObject, idFromName } from '../typing/env';
 import { getOpLevel, organizeDeep } from '../typing/terms/ops';
 import * as typed from '../typing/types';
+import * as preset from '../typing/preset';
 import { Term, Type } from '../typing/types';
 import { reGroupOps, typeGroup } from './ops';
 
@@ -21,7 +24,7 @@ type ConstructorNames = {
     idToNames: { [key: string]: Array<string> };
 };
 
-type NamedDefns<Defn> = {
+export type NamedDefns<Defn> = {
     // this is a cache of the other?
     // let's just keep one around. we can reconstruct the other.
     names: { [key: string]: Array<typed.Id> };
@@ -95,7 +98,6 @@ types: {
 */
 
 export type Context = {
-    // I guess I kindof want a linked list here ... but that's fine
     unique: { current: number };
     library: Library;
     bindings: {
@@ -119,8 +121,38 @@ export const typeWithUnary = (
     unary: WithUnary,
     expected: Array<Type>,
 ): Term => {
-    // if (unary.)
-    throw new Error('nope');
+    if (unary.op != null) {
+        throw new Error(`unary`);
+    }
+    return typeWithSuffix(ctx, unary.inner, expected);
+};
+
+export const typeWithSuffix = (
+    ctx: Context,
+    term: WithSuffix,
+    expected: Array<Type>,
+) => {
+    if (term.suffixes.length) {
+        throw new Error('no');
+    }
+    return typeAbSub(ctx, term.sub, expected);
+};
+
+export const typeAbSub = (
+    ctx: Context,
+    term: Apsub,
+    expected: Array<Type>,
+): Term => {
+    switch (term.type) {
+        case 'Int':
+            return {
+                type: 'int',
+                location: term.location,
+                is: preset.int,
+                value: +term.contents,
+            };
+    }
+    throw new Error('no absub');
 };
 
 // So, how does this go.
