@@ -622,6 +622,12 @@ describe('generic examples', () => {
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
             `2 /#1b191ec9#49d8f77e#0 3`,
         );
+        // Explicit now
+        const res2 = parseExpression(ctx, `2 /#1b191ec9#49d8f77e#0 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res2)).toMatchInlineSnapshot(
+            `2 /#1b191ec9#49d8f77e#0 3`,
+        );
     });
 
     it('local type variable', () => {
@@ -643,6 +649,11 @@ describe('generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#:10#d28f8708#0 3`,
+        );
+        const res2 = parseExpression(ctx, `2 /#:10#d28f8708#0 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res2)).toMatchInlineSnapshot(
             `2 /#:10#d28f8708#0 3`,
         );
     });
@@ -668,6 +679,14 @@ describe('generic examples', () => {
             `1:2-1:6: No values found that match the operator. I found some types though.`,
         );
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `NOTFOND(/){}(2, 3)`,
+        );
+        const res2 = parseExpression(ctx, `2 /#:10#d28f8708#0 3`);
+        expect(termToString(ctx, res2)).toMatchInlineSnapshot(
+            `NOTFOND(/){}(2, 3)`,
+        );
+        const res3 = parseExpression(ctx, `2 /#:11#d28f8708#0 3`);
+        expect(termToString(ctx, res3)).toMatchInlineSnapshot(
             `NOTFOND(/){}(2, 3)`,
         );
     });
