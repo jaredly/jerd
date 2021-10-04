@@ -73,6 +73,7 @@ export const lambdaLiteral = (
     args: Array<{ sym: Symbol; is: Type }>,
     body: Term,
     location: Location = nullLocation,
+    typeVbls: Array<TypeVblDecl> = [],
 ): Lambda => ({
     type: 'lambda',
     args: args.map((arg) => arg.sym),
@@ -81,6 +82,7 @@ export const lambdaLiteral = (
     is: pureFunction(
         args.map((arg) => arg.is),
         body.is,
+        typeVbls,
     ),
     location,
 });

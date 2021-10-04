@@ -21,6 +21,7 @@ import {
     TypeReference,
     nullLocation,
     TypeVar,
+    typesEqual,
 } from './types';
 
 export const isType = (env: Env, found: Type, expected: Type) =>
@@ -211,4 +212,68 @@ export const getTypeError = (
     }
 
     return null;
+};
+
+export const resolveTypeVbls = (
+    concrete: Type,
+    abstract: Type,
+    mapping: { [unique: number]: Type },
+): boolean => {
+    if (abstract.type === 'var') {
+        if (
+            mapping[abstract.sym.unique] == null ||
+            typesEqual(concrete, mapping[abstract.sym.unique])
+        ) {
+            mapping[abstract.sym.unique] = concrete;
+            return true;
+        }
+        return false;
+    }
+    if (concrete.type !== abstract.type) {
+        return false;
+    }
+    switch (concrete.type) {
+        case 'Ambiguous':
+            return false;
+        case 'ref': {
+            const a = abstract as TypeReference;
+            if (!refsEqual(a.ref, concrete.ref)) {
+                return false;
+            }
+            if (a.typeVbls.length !== concrete.typeVbls.length) {
+                return false;
+            }
+            for (let i = 0; i < a.typeVbls.length; i++) {
+                if (
+                    !resolveTypeVbls(
+                        concrete.typeVbls[i],
+                        a.typeVbls[i],
+                        mapping,
+                    )
+                ) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        case 'lambda': {
+            const l = abstract as LambdaType;
+            if (!resolveTypeVbls(concrete.res, l.res, mapping)) {
+                return false;
+            }
+            if (concrete.args.length !== l.args.length) {
+                return false;
+            }
+            // TODO: Got to keep track of these internally I think? idk
+            if (concrete.typeVbls.length !== l.typeVbls.length) {
+                return false;
+            }
+            for (let i = 0; i < concrete.args.length; i++) {
+                if (!resolveTypeVbls(concrete.args[i], l.args[i], mapping)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
 };

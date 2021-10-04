@@ -122,6 +122,27 @@ const fakeIntOp = preset.lambdaLiteral(
     },
 );
 
+const unique = 1;
+const T: Type = {
+    type: 'var',
+    location: nullLocation,
+    sym: { unique, name: 'T' },
+};
+
+const fakeAnyOp = preset.lambdaLiteral(
+    [
+        { sym: { unique: 0, name: 'left' }, is: T },
+        { sym: { name: 'right', unique: 1 }, is: T },
+    ],
+    {
+        type: 'Hole',
+        is: T,
+        location: nullLocation,
+    },
+    undefined,
+    [{ unique, subTypes: [] }],
+);
+
 export const parseExpression = (ctx: Context, raw: string) => {
     const parsed = parseTyped(raw);
     const top = parsed.tops![0].top;
@@ -197,9 +218,44 @@ describe('generic examples', () => {
 
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
-        expect(res).toBeTruthy();
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
             `2 /#e17b40b4#e3800aa8#0 3`,
+        );
+    });
+
+    it('toplevel definition, using a generic /function/', () => {
+        const ctx: Context = newContext();
+
+        const unique = 1;
+        const T: Type = {
+            type: 'var',
+            location: nullLocation,
+            sym: { unique, name: 'T' },
+        };
+
+        let slash; // const slash = idFromName('slash');
+        [ctx.library, slash] = addRecord(
+            ctx.library,
+            preset.recordDefn(
+                [preset.pureFunction([T, T], T, [{ unique, subTypes: [] }])],
+                [],
+                [],
+            ),
+            'slash',
+            ['/'],
+        );
+
+        let slashImpl;
+        [ctx.library, slashImpl] = addTerm(
+            ctx.library,
+            preset.recordLiteral(slash, [fakeAnyOp], {}),
+            'slash',
+        );
+
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#1b191ec9#49d8f77e#0 3`,
         );
     });
 });
@@ -225,7 +281,6 @@ describe('non-generic examples', () => {
 
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
-        expect(res).toBeTruthy();
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
             `2 /#ae81c704#d28f8708#0 3`,
         );
@@ -269,7 +324,6 @@ describe('non-generic examples', () => {
 
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
-        expect(res).toBeTruthy();
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
             `2 /#f249c8e4#d28f8708#0 3`,
         );

@@ -130,6 +130,7 @@ import { idFromName, idName } from '../typing/env';
 import { Type } from '../typing/types';
 import { var_ } from '../typing/preset';
 import { subtTypeVars } from '../typing/typeExpr';
+import { resolveTypeVbls } from '../typing/getTypeError';
 
 const opsEqual = (one: binopWithHash, two: binopWithHash) =>
     one.op === two.op && one.hash === two.hash;
@@ -431,6 +432,7 @@ export const typePair = (
     location: Location,
     expectedTypes: Array<t.Type>,
 ): null | t.Term => {
+    // TODO: KEEP TRACK of the return types, and compare them to the expected types.
     const options: Array<Option> = [];
 
     // let target: null | t.Attribute = null;
@@ -452,24 +454,6 @@ export const typePair = (
                 typeArgs: [],
             });
         }
-        // TODO: show some warnings or something
-        // HERE we resolve ... stuff.
-        // Should I allow hashes to reference local whatsits?
-        // Seems like, in order for type classes to work,
-        // I should.
-        // What is our hash format, for once and for all?
-        // #abcdef.2 is a stringified ID.
-        // #:123 is a local symbol
-        // we can put hashes after it to do more things.
-        // like binops, for example, are all
-        // the ... an attribute of a record.
-        // And so the hash here .. the first bit is the
-        // value, and the second bit is the type,
-        // and the third bit is the index, right?
-        // yeah.
-        // So #abc#def#0
-        // says it's term #abc, and getting the #def#0
-        // attribute from it, to be our binop.
     }
 
     const potentials = ctx.library.types.constructors.names[op.op];
@@ -525,9 +509,21 @@ export const typePair = (
     //     throw new Error('n');
     // }
 
-    const rights = options
-        .filter((opt) => (larg ? t.typesEqual(opt.left, larg.is) : true))
-        .map((opts) => opts.right);
+    const rights: Array<Type> = [];
+    options.forEach((opt) => {
+        if (!larg) {
+            return rights.push(opt.right);
+        }
+        const mapping: { [unique: number]: Type } = {};
+        if (resolveTypeVbls(larg.is, opt.left, mapping)) {
+            rights.push(subtTypeVars(opt.right, mapping, undefined));
+        } else {
+            console.log(mapping, opt.left);
+        }
+    });
+    // .
+    // .filter((opt) => (larg ? t.typesEqual(opt.left, larg.is) : true))
+    // .map((opts) => opts.right);
 
     const rarg = typeUnaryOrGroup(ctx, right, rights);
 
@@ -537,9 +533,32 @@ export const typePair = (
 
     // const op2 = selectOp(ctx, options, larg.is, rarg.is);
     const op2 = options.find(
-        (opt) =>
-            (!larg || t.typesEqual(larg.is, opt.left)) &&
-            (!rarg || t.typesEqual(rarg.is, opt.right)),
+        (opt) => {
+            const mapping: { [unique: number]: Type } = {};
+            if (larg) {
+                if (!resolveTypeVbls(larg.is, opt.left, mapping)) {
+                    return false;
+                }
+            }
+            if (rarg) {
+                let ris = opt.right;
+                if (Object.keys(mapping).length !== 0) {
+                    ris = subtTypeVars(ris, mapping, undefined);
+                }
+                if (!t.typesEqual(ris, rarg.is)) {
+                    return false;
+                }
+            }
+
+            // if (resolveTypeVbls(larg.is, opt.left, mapping)) {
+            // 	rights.push(subtTypeVars(opt.right, mapping, undefined));
+            // } else {
+            // 	console.log(mapping, opt.left);
+            // }
+            return true;
+        },
+        // (!larg || t.typesEqual(larg.is, opt.left)) &&
+        // (!rarg || t.typesEqual(rarg.is, opt.right)),
     );
     if (!op2) {
         console.log(potentials, options, larg?.is, rarg?.is);
