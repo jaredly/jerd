@@ -252,8 +252,10 @@ export const idToPretty = (
 
 export const symToPretty = (env: Env | null, sym: Symbol, loc?: Location) => {
     const name = (env && env.term.localNames[sym.unique]) || sym.name;
-    return idPretty(name, ':' + sym.unique.toString(), 'sym', loc);
+    return idPretty(name, symHash(sym), 'sym', loc);
 };
+
+export const symHash = (sym: Symbol) => `:${sym.unique}`;
 
 export const effToPretty = (env: Env | null, eff: EffectRef, loc?: Location) =>
     eff.type === 'ref'
@@ -1267,7 +1269,7 @@ const isCustomBinOp = (env: Env, term: Term) => {
     if (
         term.type !== 'Attribute' ||
         term.ref.type !== 'user' ||
-        term.target.type !== 'ref'
+        (term.target.type !== 'ref' && term.target.type !== 'var')
     ) {
         return false;
     }
@@ -1279,7 +1281,7 @@ const showCustomBinOp = (env: Env, term: Term) => {
     if (
         term.type !== 'Attribute' ||
         term.ref.type !== 'user' ||
-        term.target.type !== 'ref'
+        (term.target.type !== 'ref' && term.target.type !== 'var')
     ) {
         throw new Error(`Not an attribute`);
     }
@@ -1287,7 +1289,9 @@ const showCustomBinOp = (env: Env, term: Term) => {
     // return !name.match(/[\w_$]/);
     return idPretty(
         name,
-        refName(term.target.ref) +
+        (term.target.type === 'ref'
+            ? refName(term.target.ref)
+            : symHash(term.target.sym)) +
             '#' +
             refName(term.ref) +
             '#' +

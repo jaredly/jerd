@@ -526,7 +526,7 @@ describe('explicit hashes', () => {
         const res = parseExpression(ctx, `2 /#:10#${idName(slash)}#0 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `slash#:10."/"#d28f8708#0{}(2, 3)`,
+            `2 /#:10#d28f8708#0 3`,
         );
     });
 });
@@ -557,7 +557,7 @@ describe('non-generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `slash#:10."/"#d28f8708#0{}(2, 3)`,
+            `2 /#:10#d28f8708#0 3`,
         );
     });
 
