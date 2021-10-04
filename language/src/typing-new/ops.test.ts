@@ -1,9 +1,20 @@
-import { parseTyped, WithUnary } from '../parsing/parser-new';
+import {
+    Expression,
+    parseTyped,
+    WithUnary,
+    WithUnary_inner,
+} from '../parsing/parser-new';
 import { idFromName, idName } from '../typing/env';
 import { nullLocation, Location, Term, Type } from '../typing/types';
 import * as preset from '../typing/preset';
 import { GroupedOp, reGroupOps } from './ops';
-import { Context, ctxToEnv, NamedDefns, typeBinOp } from './typeFile';
+import {
+    Context,
+    ctxToEnv,
+    NamedDefns,
+    typeBinOp,
+    typeExpression,
+} from './typeFile';
 import { addRecord, addTerm } from './Library';
 import { printToString } from '../printing/printer';
 import { termToPretty } from '../printing/printTsLike';
@@ -41,10 +52,14 @@ expect.addSnapshotSerializer(warningsSerializer);
 const l = (n: number) => '[({<'[n % 4];
 const r = (n: number) => '])}>'[n % 4];
 
-const int = (w: WithUnary) =>
-    w.inner.type === 'Int' ? w.inner.contents : null;
-const groups = (w: WithUnary | GroupedOp, i: number): any =>
+const int = (w: Expression) =>
     w.type === 'WithUnary'
+        ? w.inner.type === 'Int'
+            ? w.inner.contents
+            : null
+        : null;
+const groups = (w: Expression | GroupedOp, i: number): any =>
+    w.type !== 'GroupedOp'
         ? int(w)
         : `${w.items[0].op.op}${l(i)}${groups(
               w.left,
@@ -57,7 +72,7 @@ describe('just parse & group', () => {
             `2 + 3 * 4 * 5 * 3 / 2 * 102 + 1 + 2 ^ 3 & 4`,
         );
         const top = parsed.tops![0].top;
-        if (top.type === 'ToplevelExpression') {
+        if (top.type === 'ToplevelExpression' && top.expr.type === 'BinOp') {
             expect(groups(reGroupOps(top.expr), 0)).toMatchInlineSnapshot(
                 `&[+(2 *{/<*[3 4 5 3] 2> 102} 1 ^{2 3}) 4]`,
             );
@@ -149,7 +164,7 @@ export const parseExpression = (ctx: Context, raw: string) => {
     if (top.type !== 'ToplevelExpression') {
         return expect(false).toBe(true);
     }
-    return typeBinOp(ctx, top.expr, []);
+    return typeExpression(ctx, top.expr, []);
 };
 
 describe('failures', () => {

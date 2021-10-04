@@ -381,13 +381,45 @@ if (ast.initializer) {
     grammarFile.push('{\n' + ast.initializer.code + '\n}');
 }
 alls.map(([rule, type, expr]) => {
-    typesFile.push(
-        generate(
-            t.exportNamedDeclaration(
-                t.tsTypeAliasDeclaration(t.identifier(rule.name), null, type),
-            ),
-        ).code,
-    );
+    if (type.type === 'TSUnionType' && type.types[0].type === 'TSTypeLiteral') {
+        typesFile.push(
+            generate(
+                t.exportNamedDeclaration(
+                    t.tsTypeAliasDeclaration(
+                        t.identifier(rule.name + '_inner'),
+                        null,
+                        type.types[0],
+                    ),
+                ),
+            ).code,
+            generate(
+                t.exportNamedDeclaration(
+                    t.tsTypeAliasDeclaration(
+                        t.identifier(rule.name),
+                        null,
+                        t.tsUnionType([
+                            t.tsTypeReference(
+                                t.identifier(rule.name + '_inner'),
+                            ),
+                            ...type.types.slice(1),
+                        ]),
+                    ),
+                ),
+            ).code,
+        );
+    } else {
+        typesFile.push(
+            generate(
+                t.exportNamedDeclaration(
+                    t.tsTypeAliasDeclaration(
+                        t.identifier(rule.name),
+                        null,
+                        type,
+                    ),
+                ),
+            ).code,
+        );
+    }
 
     const ruleSource = getBasic(rule.expression);
     grammarFile.push(

@@ -10326,12 +10326,14 @@ export type DecDefArg = {
 
 export type Expression = BinOp;
 
-export type BinOp = {
+export type BinOp_inner = {
   type: "BinOp";
   location: Location;
   first: WithUnary;
   rest: BinOpRight[];
-} | WithUnary;
+};
+
+export type BinOp = BinOp_inner | WithUnary;
 
 export type BinOpRight = {
   type: "BinOpRight";
@@ -10340,28 +10342,34 @@ export type BinOpRight = {
   right: WithUnary;
 };
 
-export type WithUnary = {
+export type WithUnary_inner = {
   type: "WithUnary";
   location: Location;
   op: UnaryOp | null;
   inner: Decorated;
-} | Decorated;
+};
+
+export type WithUnary = WithUnary_inner | Decorated;
 
 export type UnaryOp = "-" | "!";
 
-export type Decorated = {
+export type Decorated_inner = {
   type: "Decorated";
   location: Location;
   decorators: Decorator[];
   wrapped: WithSuffix;
-} | WithSuffix;
+};
 
-export type WithSuffix = {
+export type Decorated = Decorated_inner | WithSuffix;
+
+export type WithSuffix_inner = {
   type: "WithSuffix";
   location: Location;
   target: Apsub;
   suffixes: Suffix[];
-} | Apsub;
+};
+
+export type WithSuffix = WithSuffix_inner | Apsub;
 
 export type Suffix = ApplySuffix | AttributeSuffix | IndexSuffix | AsSuffix;
 

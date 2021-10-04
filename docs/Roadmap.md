@@ -1,6 +1,9 @@
 
 ## TYPE SYSTEM REWRITE
 
+- [x] my "passthrough" dealop (_drop suffix) produces types that are extremely annoying.
+  like {x} | TheFallthrough. So I can't reference the object type itself.
+  I need to create an alias for the object type. Not 100% sure how to plumb it all.
 - [x] autogen parser types
   - [ ] make fallthrough a thing, IFF you have
     one array, and one non-array; if the array is empty,

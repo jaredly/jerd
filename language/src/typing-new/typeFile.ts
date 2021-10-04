@@ -11,6 +11,7 @@ import {
     Location,
     WithSuffix,
     Apsub,
+    BinOp_inner,
 } from '../parsing/parser-new';
 import { hashObject, idFromName } from '../typing/env';
 import { getOpLevel, organizeDeep } from '../typing/terms/ops';
@@ -171,7 +172,7 @@ export const typeExpression = (
 // So, how does this go.
 export const typeBinOp = (
     ctx: Context,
-    expr: BinOp,
+    expr: BinOp_inner,
     expected: Array<Type>,
 ): null | Term => {
     const grouped = reGroupOps(expr);

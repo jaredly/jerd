@@ -111,6 +111,7 @@ import {
     BinOp,
     BinOpRight,
     binopWithHash,
+    BinOp_inner,
     IFilePosition,
     Location,
     OpHash,
@@ -251,7 +252,7 @@ const reGroupOps1Level = (
     }
 };
 
-export const reGroupOps = (binop: BinOp): WithUnary | GroupedOp => {
+export const reGroupOps = (binop: BinOp_inner): WithUnary | GroupedOp => {
     if (!binop.rest.length) {
         return binop.first;
     }
