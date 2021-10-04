@@ -4,11 +4,12 @@
 OPS TESTS
 - [x] a bunch
 - [x] local variable impl
-- [ ] various failure modes probably
+- [x] various failure modes probably
 - [x] hashes that work
-- [ ] hashes that dont so we fall back
+- [x] hashes that dont so we fall back
 - [x] the left is correct but the right is not
 - [ ] subtyping maybe? hmmmm
+- [ ] hash, where the value is generic n stuff
 
 - [x] my "passthrough" dealop (_drop suffix) produces types that are extremely annoying.
   like {x} | TheFallthrough. So I can't reference the object type itself.

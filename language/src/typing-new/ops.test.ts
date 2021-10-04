@@ -204,370 +204,9 @@ export const findErrors = (term: Term | null | void) => {
     return errors;
 };
 
-describe('failures', () => {
-    it('type exists but no impl', () => {
-        const ctx: Context = newContext();
-
-        let slash; // const slash = idFromName('slash');
-        [ctx.library, slash] = addRecord(
-            ctx.library,
-            preset.recordDefn([fakeIntOp.is]),
-            'slash',
-            ['/'],
-        );
-
-        const res = parseExpression(ctx, `2 / 3`);
-        expect(ctx.warnings).toHaveLength(1);
-        expect(ctx.warnings).toMatchInlineSnapshot(
-            `1:2-1:6: No values found that match the operator. I found some types though.`,
-        );
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(`[null term]`);
-    });
-
-    it('no type exists', () => {
-        const ctx: Context = newContext();
-
-        const res = parseExpression(ctx, `2 / 3`);
-        expect(ctx.warnings).toHaveLength(1);
-        expect(ctx.warnings).toMatchInlineSnapshot(`1:2-1:6: No attribute /`);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(`[null term]`);
-    });
-
-    const ctx: Context = newContext();
-
-    let slash; // const slash = idFromName('slash');
-    [ctx.library, slash] = addRecord(
-        ctx.library,
-        preset.recordDefn([fakeIntOp.is]),
-        'slash',
-        ['/'],
-    );
-
-    [ctx.library] = addTerm(
-        ctx.library,
-        preset.recordLiteral(slash, [fakeIntOp]),
-        'slash',
-    );
-
-    it('right is wrong type', () => {
-        const res = parseExpression(ctx, `2 / 3.0`);
-        expect(ctx.warnings).toHaveLength(0);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3.0`,
-        );
-        expect(
-            findErrors(res)
-                .map((t) => termToString(ctx, t))
-                .join('\n'),
-        ).toMatchInlineSnapshot(`3.0`);
-    });
-
-    it('left is wrong type', () => {
-        const res = parseExpression(ctx, `2.0 / 3`);
-        expect(ctx.warnings).toHaveLength(0);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2.0 /#ae81c704#d28f8708#0 3`,
-        );
-        expect(
-            findErrors(res)
-                .map((t) => termToString(ctx, t))
-                .join('\n'),
-        ).toMatchInlineSnapshot(`2.0`);
-    });
-
-    it('both are wrong types', () => {
-        const res = parseExpression(ctx, `2.0 / 3.0`);
-        expect(ctx.warnings).toHaveLength(0);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2.0 /#ae81c704#d28f8708#0 3.0`,
-        );
-        expect(
-            findErrors(res)
-                .map((t) => termToString(ctx, t))
-                .join('\n'),
-        ).toMatchInlineSnapshot(`
-            2.0
-            3.0
-        `);
-    });
-});
-
-// TODO:
-// - a local implementation of the type dealio
-// - type variables folks
-
-describe('generic examples', () => {
-    it('toplevel definition, using a generic record', () => {
-        const ctx: Context = newContext();
-
-        const unique = 1;
-        const T: Type = {
-            type: 'var',
-            location: nullLocation,
-            sym: { unique, name: 'T' },
-        };
-
-        let slash; // const slash = idFromName('slash');
-        [ctx.library, slash] = addRecord(
-            ctx.library,
-            preset.recordDefn(
-                [preset.pureFunction([T, T], T)],
-                [],
-                [{ unique, subTypes: [] }],
-            ),
-            'slash',
-            ['/'],
-        );
-
-        let slashImpl;
-        [ctx.library, slashImpl] = addTerm(
-            ctx.library,
-            preset.recordLiteral(slash, [fakeIntOp], {}, [preset.int]),
-            'slash',
-        );
-
-        const res = parseExpression(ctx, `2 / 3`);
-        expect(ctx.warnings).toHaveLength(0);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#e17b40b4#e3800aa8#0 3`,
-        );
-    });
-
-    it('toplevel definition, using a generic record, two to choose from', () => {
-        const ctx: Context = newContext();
-
-        const unique = 1;
-        const T: Type = {
-            type: 'var',
-            location: nullLocation,
-            sym: { unique, name: 'T' },
-        };
-
-        let slash; // const slash = idFromName('slash');
-        [ctx.library, slash] = addRecord(
-            ctx.library,
-            preset.recordDefn(
-                [preset.pureFunction([T, T], T)],
-                [],
-                [{ unique, subTypes: [] }],
-            ),
-            'slash',
-            ['/'],
-        );
-
-        [ctx.library] = addTerm(
-            ctx.library,
-            preset.recordLiteral(slash, [fakeOp(preset.float)], {}, [
-                preset.float,
-            ]),
-            'slashFloat',
-        );
-
-        [ctx.library] = addTerm(
-            ctx.library,
-            preset.recordLiteral(slash, [fakeIntOp], {}, [preset.int]),
-            'slash',
-        );
-
-        const res = parseExpression(ctx, `2 / 3`);
-        expect(ctx.warnings).toHaveLength(0);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#e17b40b4#e3800aa8#0 3`,
-        );
-    });
-
-    it('toplevel definition, using a generic /function/', () => {
-        const ctx: Context = newContext();
-
-        const unique = 1;
-        const T: Type = {
-            type: 'var',
-            location: nullLocation,
-            sym: { unique, name: 'T' },
-        };
-
-        let slash; // const slash = idFromName('slash');
-        [ctx.library, slash] = addRecord(
-            ctx.library,
-            preset.recordDefn(
-                [preset.pureFunction([T, T], T, [{ unique, subTypes: [] }])],
-                [],
-                [],
-            ),
-            'slash',
-            ['/'],
-        );
-
-        let slashImpl;
-        [ctx.library, slashImpl] = addTerm(
-            ctx.library,
-            preset.recordLiteral(slash, [fakeAnyOp], {}),
-            'slash',
-        );
-
-        const res = parseExpression(ctx, `2 / 3`);
-        expect(ctx.warnings).toHaveLength(0);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#1b191ec9#49d8f77e#0 3`,
-        );
-    });
-});
-
-describe('explicit hashes', () => {
-    const ctx: Context = newContext();
-
-    let slash: Id; // const slash = idFromName('slash');
-    [ctx.library, slash] = addRecord(
-        ctx.library,
-        preset.recordDefn([fakeIntOp.is]),
-        'slash',
-        ['/'],
-    );
-
-    let slashImpl: Id;
-    [ctx.library, slashImpl] = addTerm(
-        ctx.library,
-        preset.recordLiteral(slash, [fakeIntOp]),
-    );
-
-    it('correct', () => {
-        ctx.warnings = [];
-        const res = parseExpression(
-            ctx,
-            `2 /#${idName(slashImpl)}#${idName(slash)}#0 3`,
-        );
-        expect(ctx.warnings).toHaveLength(0);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3`,
-        );
-    });
-
-    it('incorrect', () => {
-        ctx.warnings = [];
-        const res = parseExpression(
-            ctx,
-            `2 /#0${idName(slashImpl)}#${idName(slash)}#0 3`,
-        );
-        expect(ctx.warnings).toMatchInlineSnapshot(
-            `1:2-1:27: Unable to resolve value for operator`,
-        );
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3`,
-        );
-    });
-
-    it('incorrect type', () => {
-        ctx.warnings = [];
-        const res = parseExpression(
-            ctx,
-            `2 /#${idName(slashImpl)}#0${idName(slash)}#0 3`,
-        );
-        expect(ctx.warnings).toMatchInlineSnapshot(
-            `1:2-1:27: Attribute type 0d28f8708 doesn't exist`,
-        );
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3`,
-        );
-    });
-
-    it('invalid', () => {
-        ctx.warnings = [];
-        const res = parseExpression(ctx, `2 /#aaa 3`);
-        expect(ctx.warnings).toMatchInlineSnapshot(
-            `1:2-1:10: Unable to parse hash "#aaa"`,
-        );
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3`,
-        );
-    });
-
-    it('invalid', () => {
-        ctx.warnings = [];
-        const res = parseExpression(ctx, `2 /#${idName(slashImpl)}#0 3`);
-        expect(ctx.warnings).toMatchInlineSnapshot(
-            `1:2-1:17: Invalid hash "#ae81c704#0"`,
-        );
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3`,
-        );
-    });
-
-    it('wrong', () => {
-        const ctx: Context = newContext();
-
-        let slash; // const slash = idFromName('slash');
-        [ctx.library, slash] = addRecord(
-            ctx.library,
-            preset.recordDefn([fakeIntOp.is]),
-            'slash',
-            ['/'],
-        );
-
-        let wrong;
-        [ctx.library, wrong] = addTerm(
-            ctx.library,
-            preset.intLiteral(100, nullLocation),
-        );
-
-        let slashImpl;
-        [ctx.library, slashImpl] = addTerm(
-            ctx.library,
-            preset.recordLiteral(slash, [fakeIntOp]),
-        );
-
-        const res = parseExpression(
-            ctx,
-            `2 /#${idName(wrong)}#${idName(slash)}#0 3`,
-        );
-        expect(ctx.warnings).toMatchInlineSnapshot(
-            `1:2-1:26: Attribute target is a int#builtin, not a user-defined toplevel type`,
-        );
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3`,
-        );
-    });
-
-    it('local definition', () => {
-        const ctx: Context = newContext();
-
-        let slash; // const slash = idFromName('slash');
-        [ctx.library, slash] = addRecord(
-            ctx.library,
-            preset.recordDefn([fakeIntOp.is]),
-            'slash',
-            ['/'],
-        );
-
-        ctx.bindings.values.push({
-            location: nullLocation as Location,
-            sym: { unique: 10, name: 'slash' },
-            type: {
-                type: 'ref',
-                ref: { type: 'user', id: slash },
-                typeVbls: [],
-                location: nullLocation,
-            },
-        });
-
-        const res = parseExpression(ctx, `2 /#:10#${idName(slash)}#0 3`);
-        expect(ctx.warnings).toHaveLength(0);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#:10#d28f8708#0 3`,
-        );
-    });
-});
-
 describe('non-generic examples', () => {
     it('local definition', () => {
-        const ctx: Context = newContext();
-
-        let slash; // const slash = idFromName('slash');
-        [ctx.library, slash] = addRecord(
-            ctx.library,
-            preset.recordDefn([fakeIntOp.is]),
-            'slash',
-            ['/'],
-        );
+        const { ctx, slash } = simpleCtx();
 
         ctx.bindings.values.push({
             location: nullLocation as Location,
@@ -588,20 +227,7 @@ describe('non-generic examples', () => {
     });
 
     it('toplevel definition, using a basic record', () => {
-        const ctx: Context = newContext();
-
-        let slash; // const slash = idFromName('slash');
-        [ctx.library, slash] = addRecord(
-            ctx.library,
-            preset.recordDefn([fakeIntOp.is]),
-            'slash',
-            ['/'],
-        );
-
-        [ctx.library] = addTerm(
-            ctx.library,
-            preset.recordLiteral(slash, [fakeIntOp]),
-        );
+        const { ctx } = simpleCtx();
 
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
@@ -690,6 +316,381 @@ describe('non-generic examples', () => {
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
             `2 /#f249c8e4#d28f8708#0 3`,
+        );
+    });
+});
+
+const simpleCtx = () => {
+    const ctx: Context = newContext();
+
+    let slash; // const slash = idFromName('slash');
+    [ctx.library, slash] = addRecord(
+        ctx.library,
+        preset.recordDefn([fakeIntOp.is]),
+        'slash',
+        ['/'],
+    );
+
+    let slashImpl;
+    [ctx.library, slashImpl] = addTerm(
+        ctx.library,
+        preset.recordLiteral(slash, [fakeIntOp]),
+        'slash',
+    );
+
+    return { ctx, slash, slashImpl };
+};
+
+describe('failures', () => {
+    it('type exists but no impl', () => {
+        const ctx: Context = newContext();
+
+        let slash; // const slash = idFromName('slash');
+        [ctx.library, slash] = addRecord(
+            ctx.library,
+            preset.recordDefn([fakeIntOp.is]),
+            'slash',
+            ['/'],
+        );
+
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(1);
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:2-1:6: No values found that match the operator. I found some types though.`,
+        );
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(`[null term]`);
+    });
+
+    it('no type exists', () => {
+        const ctx: Context = newContext();
+
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(1);
+        expect(ctx.warnings).toMatchInlineSnapshot(`1:2-1:6: No attribute /`);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(`[null term]`);
+    });
+
+    it('right is wrong type', () => {
+        const { ctx } = simpleCtx();
+        const res = parseExpression(ctx, `2 / 3.0`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3.0`,
+        );
+        expect(
+            findErrors(res)
+                .map((t) => termToString(ctx, t))
+                .join('\n'),
+        ).toMatchInlineSnapshot(`3.0`);
+    });
+
+    it('left is wrong type', () => {
+        const { ctx } = simpleCtx();
+        const res = parseExpression(ctx, `2.0 / 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2.0 /#ae81c704#d28f8708#0 3`,
+        );
+        expect(
+            findErrors(res)
+                .map((t) => termToString(ctx, t))
+                .join('\n'),
+        ).toMatchInlineSnapshot(`2.0`);
+    });
+
+    it('both are wrong types', () => {
+        const { ctx } = simpleCtx();
+        const res = parseExpression(ctx, `2.0 / 3.0`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2.0 /#ae81c704#d28f8708#0 3.0`,
+        );
+        expect(
+            findErrors(res)
+                .map((t) => termToString(ctx, t))
+                .join('\n'),
+        ).toMatchInlineSnapshot(`
+            2.0
+            3.0
+        `);
+    });
+});
+
+// TODO:
+// - a local implementation of the type dealio
+// - type variables folks
+
+const simpleGeneric = () => {
+    const ctx: Context = newContext();
+
+    const unique = 1;
+    const T: Type = {
+        type: 'var',
+        location: nullLocation,
+        sym: { unique, name: 'T' },
+    };
+
+    let slash; // const slash = idFromName('slash');
+    [ctx.library, slash] = addRecord(
+        ctx.library,
+        preset.recordDefn(
+            [preset.pureFunction([T, T], T)],
+            [],
+            [{ unique, subTypes: [] }],
+        ),
+        'slash',
+        ['/'],
+    );
+
+    let slashImpl;
+    [ctx.library, slashImpl] = addTerm(
+        ctx.library,
+        preset.recordLiteral(slash, [fakeIntOp], {}, [preset.int]),
+        'slash',
+    );
+
+    return { ctx, unique, T, slash, slashImpl };
+};
+
+describe('generic examples', () => {
+    it('toplevel definition, using a generic record', () => {
+        const { ctx } = simpleGeneric();
+
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#e17b40b4#e3800aa8#0 3`,
+        );
+    });
+
+    it('toplevel definition, using a generic record, two to choose from', () => {
+        const { ctx, slash } = simpleGeneric();
+
+        [ctx.library] = addTerm(
+            ctx.library,
+            preset.recordLiteral(slash, [fakeIntOp], {}, [preset.int]),
+            'slash',
+        );
+
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#e17b40b4#e3800aa8#0 3`,
+        );
+    });
+
+    const complexGeneric = () => {
+        const ctx: Context = newContext();
+
+        const unique = 1;
+        const A: Type = {
+            type: 'var',
+            location: nullLocation,
+            sym: { unique, name: 'A' },
+        };
+
+        const uniqueB = 2;
+        const B: Type = {
+            type: 'var',
+            location: nullLocation,
+            sym: { unique: uniqueB, name: 'B' },
+        };
+
+        const uniqueC = 3;
+        const C: Type = {
+            type: 'var',
+            location: nullLocation,
+            sym: { unique: uniqueC, name: 'C' },
+        };
+
+        let slash; // const slash = idFromName('slash');
+        [ctx.library, slash] = addRecord(
+            ctx.library,
+            preset.recordDefn(
+                [preset.pureFunction([A, B], C)],
+                [],
+                [
+                    { unique, subTypes: [] },
+                    { unique: uniqueB, subTypes: [] },
+                    { unique: uniqueC, subTypes: [] },
+                ],
+            ),
+            'slash',
+            ['/'],
+        );
+
+        return { ctx, slash };
+    };
+
+    it('toplevel definition, using a generic record, both at play', () => {
+        const { ctx, slash } = complexGeneric();
+
+        [ctx.library] = addTerm(
+            ctx.library,
+            preset.recordLiteral(slash, [fakeOp(preset.float)], {}, [
+                preset.float,
+                preset.float,
+                preset.int,
+            ]),
+            'slashFloat',
+        );
+
+        [ctx.library] = addTerm(
+            ctx.library,
+            preset.recordLiteral(slash, [fakeIntOp], {}, [
+                preset.int,
+                preset.int,
+                preset.int,
+            ]),
+            'slash',
+        );
+
+        const res = parseExpression(ctx, `1.2 / 2.3 / 2 / 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `1.2 /#ad28952c#2243e894#0 2.3 /#001a21f6#2243e894#0 2 /#001a21f6#2243e894#0 3`,
+        );
+    });
+
+    it('toplevel definition, using a generic /function/', () => {
+        const ctx: Context = newContext();
+
+        const unique = 1;
+        const T: Type = {
+            type: 'var',
+            location: nullLocation,
+            sym: { unique, name: 'T' },
+        };
+
+        let slash; // const slash = idFromName('slash');
+        [ctx.library, slash] = addRecord(
+            ctx.library,
+            preset.recordDefn(
+                [preset.pureFunction([T, T], T, [{ unique, subTypes: [] }])],
+                [],
+                [],
+            ),
+            'slash',
+            ['/'],
+        );
+
+        let slashImpl;
+        [ctx.library, slashImpl] = addTerm(
+            ctx.library,
+            preset.recordLiteral(slash, [fakeAnyOp], {}),
+            'slash',
+        );
+
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#1b191ec9#49d8f77e#0 3`,
+        );
+    });
+});
+
+describe('explicit hashes', () => {
+    it('correct', () => {
+        const { ctx, slash, slashImpl } = simpleCtx();
+        const res = parseExpression(
+            ctx,
+            `2 /#${idName(slashImpl)}#${idName(slash)}#0 3`,
+        );
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3`,
+        );
+    });
+
+    it('incorrect', () => {
+        const { ctx, slash, slashImpl } = simpleCtx();
+        const res = parseExpression(
+            ctx,
+            `2 /#0${idName(slashImpl)}#${idName(slash)}#0 3`,
+        );
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:2-1:27: Unable to resolve value for operator`,
+        );
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3`,
+        );
+    });
+
+    it('incorrect type', () => {
+        const { ctx, slash, slashImpl } = simpleCtx();
+        const res = parseExpression(
+            ctx,
+            `2 /#${idName(slashImpl)}#0${idName(slash)}#0 3`,
+        );
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:2-1:27: Attribute type 0d28f8708 doesn't exist`,
+        );
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3`,
+        );
+    });
+
+    it('invalid', () => {
+        const { ctx, slash, slashImpl } = simpleCtx();
+        const res = parseExpression(ctx, `2 /#aaa 3`);
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:2-1:10: Unable to parse hash "#aaa"`,
+        );
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3`,
+        );
+    });
+
+    it('invalid', () => {
+        const { ctx, slash, slashImpl } = simpleCtx();
+        const res = parseExpression(ctx, `2 /#${idName(slashImpl)}#0 3`);
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:2-1:17: Invalid hash "#ae81c704#0"`,
+        );
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3`,
+        );
+    });
+
+    it('wrong', () => {
+        const { ctx, slash, slashImpl } = simpleCtx();
+
+        let wrong;
+        [ctx.library, wrong] = addTerm(
+            ctx.library,
+            preset.intLiteral(100, nullLocation),
+        );
+
+        const res = parseExpression(
+            ctx,
+            `2 /#${idName(wrong)}#${idName(slash)}#0 3`,
+        );
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:2-1:26: Attribute target is a int#builtin, not a user-defined toplevel type`,
+        );
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3`,
+        );
+    });
+
+    it('local definition beats global', () => {
+        const { ctx, slash, slashImpl } = simpleCtx();
+
+        ctx.bindings.values.push({
+            location: nullLocation as Location,
+            sym: { unique: 10, name: 'slash' },
+            type: {
+                type: 'ref',
+                ref: { type: 'user', id: slash },
+                typeVbls: [],
+                location: nullLocation,
+            },
+        });
+
+        const res = parseExpression(ctx, `2 /#:10#${idName(slash)}#0 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#:10#d28f8708#0 3`,
         );
     });
 });
