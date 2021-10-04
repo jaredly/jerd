@@ -3,11 +3,12 @@
 
 OPS TESTS
 - [x] a bunch
-- [ ] local variable impl
+- [x] local variable impl
 - [ ] various failure modes probably
-- [ ] hashes that work
+- [x] hashes that work
 - [ ] hashes that dont so we fall back
-- [ ] the left is correct but the right is not
+- [x] the left is correct but the right is not
+- [ ] subtyping maybe? hmmmm
 
 - [x] my "passthrough" dealop (_drop suffix) produces types that are extremely annoying.
   like {x} | TheFallthrough. So I can't reference the object type itself.

@@ -132,6 +132,7 @@ import { Type } from '../typing/types';
 import { var_ } from '../typing/preset';
 import { subtTypeVars } from '../typing/typeExpr';
 import { resolveTypeVbls } from '../typing/getTypeError';
+import { showType } from '../typing/unify';
 
 const opsEqual = (one: binopWithHash, two: binopWithHash) =>
     one.op === two.op && one.hash === two.hash;
@@ -348,7 +349,10 @@ export const resolveAttribute = (
         }
     } else if (base.is.type !== 'ref' || base.is.ref.type !== 'user') {
         warn(
-            `Attribute target is a ${base.is.type}, not a user-defined toplevel type`,
+            `Attribute target is a ${showType(
+                null,
+                base.is,
+            )}, not a user-defined toplevel type`,
         );
         return null;
     } else {

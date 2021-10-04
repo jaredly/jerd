@@ -3,11 +3,11 @@ import {
     parseTyped,
     WithUnary,
     WithUnary_inner,
+    Location,
 } from '../parsing/parser-new';
 import { idFromName, idName } from '../typing/env';
 import {
     nullLocation,
-    Location,
     Term,
     Type,
     TypeError,
@@ -412,8 +412,8 @@ describe('generic examples', () => {
     });
 });
 
-describe('non-generic examples', () => {
-    it('toplevel definition, using a basic record', () => {
+describe('explicit hashes', () => {
+    it('correct', () => {
         const ctx: Context = newContext();
 
         let slash; // const slash = idFromName('slash');
@@ -428,7 +428,153 @@ describe('non-generic examples', () => {
         [ctx.library, slashImpl] = addTerm(
             ctx.library,
             preset.recordLiteral(slash, [fakeIntOp]),
+        );
+
+        const res = parseExpression(
+            ctx,
+            `2 /#${idName(slashImpl)}#${idName(slash)}#0 3`,
+        );
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3`,
+        );
+    });
+
+    it('invalid', () => {
+        const ctx: Context = newContext();
+
+        let slash; // const slash = idFromName('slash');
+        [ctx.library, slash] = addRecord(
+            ctx.library,
+            preset.recordDefn([fakeIntOp.is]),
             'slash',
+            ['/'],
+        );
+
+        let slashImpl;
+        [ctx.library, slashImpl] = addTerm(
+            ctx.library,
+            preset.recordLiteral(slash, [fakeIntOp]),
+        );
+
+        const res = parseExpression(ctx, `2 /#${idName(slashImpl)}#0 3`);
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:2-1:17: Invalid hash "#ae81c704#0"`,
+        );
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3`,
+        );
+    });
+
+    it('wrong', () => {
+        const ctx: Context = newContext();
+
+        let slash; // const slash = idFromName('slash');
+        [ctx.library, slash] = addRecord(
+            ctx.library,
+            preset.recordDefn([fakeIntOp.is]),
+            'slash',
+            ['/'],
+        );
+
+        let wrong;
+        [ctx.library, wrong] = addTerm(
+            ctx.library,
+            preset.intLiteral(100, nullLocation),
+        );
+
+        let slashImpl;
+        [ctx.library, slashImpl] = addTerm(
+            ctx.library,
+            preset.recordLiteral(slash, [fakeIntOp]),
+        );
+
+        const res = parseExpression(
+            ctx,
+            `2 /#${idName(wrong)}#${idName(slash)}#0 3`,
+        );
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:2-1:26: Attribute target is a int#builtin, not a user-defined toplevel type`,
+        );
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3`,
+        );
+    });
+
+    it('local definition', () => {
+        const ctx: Context = newContext();
+
+        let slash; // const slash = idFromName('slash');
+        [ctx.library, slash] = addRecord(
+            ctx.library,
+            preset.recordDefn([fakeIntOp.is]),
+            'slash',
+            ['/'],
+        );
+
+        ctx.bindings.values.push({
+            location: nullLocation as Location,
+            sym: { unique: 10, name: 'slash' },
+            type: {
+                type: 'ref',
+                ref: { type: 'user', id: slash },
+                typeVbls: [],
+                location: nullLocation,
+            },
+        });
+
+        const res = parseExpression(ctx, `2 /#:10#${idName(slash)}#0 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `slash#:10."/"#d28f8708#0{}(2, 3)`,
+        );
+    });
+});
+
+describe('non-generic examples', () => {
+    it('local definition', () => {
+        const ctx: Context = newContext();
+
+        let slash; // const slash = idFromName('slash');
+        [ctx.library, slash] = addRecord(
+            ctx.library,
+            preset.recordDefn([fakeIntOp.is]),
+            'slash',
+            ['/'],
+        );
+
+        ctx.bindings.values.push({
+            location: nullLocation as Location,
+            sym: { unique: 10, name: 'slash' },
+            type: {
+                type: 'ref',
+                ref: { type: 'user', id: slash },
+                typeVbls: [],
+                location: nullLocation,
+            },
+        });
+
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `slash#:10."/"#d28f8708#0{}(2, 3)`,
+        );
+    });
+
+    it('toplevel definition, using a basic record', () => {
+        const ctx: Context = newContext();
+
+        let slash; // const slash = idFromName('slash');
+        [ctx.library, slash] = addRecord(
+            ctx.library,
+            preset.recordDefn([fakeIntOp.is]),
+            'slash',
+            ['/'],
+        );
+
+        [ctx.library] = addTerm(
+            ctx.library,
+            preset.recordLiteral(slash, [fakeIntOp]),
         );
 
         const res = parseExpression(ctx, `2 / 3`);

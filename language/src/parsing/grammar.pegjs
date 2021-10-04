@@ -374,7 +374,7 @@ EffectVbls_ = first:Identifier rest:(_ "," _ Identifier)* _ ","? {
     return [first, ...rest.map((r: any) => r[3])]
 }
 
-binopWithHash = op:binop hash:OpHash? {
+binopWithHash = op:binop hash:IdHash? {
     return {text: op, hash, location: myLocation()}
 }
 binop = $(!"//" [+*^/<>=|&-]+)
@@ -492,7 +492,7 @@ MaybeQuotedIdentifier = text:IdTextOrString hash:IdHash? {
 IdText = $(!"enum" [0-9a-zA-Z_]+)
 IdTextOrString = IdText / String
 IdHash = $SymHash / $OpHash / $BuiltinHash
-SymHash = $("#" ":" [0-9]+)
+SymHash = $("#" ":" [0-9]+) $OpHash
 OpHash = $("#" [0-9a-zA-Z]+)+
 BuiltinHash = $("#" "builtin")
 

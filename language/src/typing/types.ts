@@ -33,6 +33,7 @@ export const nullLocation: Location = {
     start: nullLoc,
     end: nullLoc,
     source: '<generated>',
+    idx: 0,
 };
 
 export const refsEqual = (one: Reference, two: Reference) => {
