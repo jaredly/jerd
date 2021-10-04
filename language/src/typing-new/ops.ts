@@ -119,7 +119,8 @@ import {
 } from '../parsing/parser-new';
 import { precedence } from '../typing/terms/ops';
 import { parseOpHash } from './hashes';
-import { Context, typeExpression } from './typeFile';
+import { Context } from './typeFile';
+import { typeExpression } from './typeExpression';
 import { Library } from './Library';
 import {
     ResolvedType,

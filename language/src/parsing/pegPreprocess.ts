@@ -169,7 +169,7 @@ const processExpression = (
             if (ctx.type === 'inner') {
                 throw new Error(`sequence is only toplevel`);
             }
-            const attributes: Array<[string, t.TSType, t.Expression]> = [];
+            let attributes: Array<[string, t.TSType, t.Expression]> = [];
             elements.forEach((element) => {
                 if (element.type === 'labeled' && element.label != null) {
                     const [type, expr] = processExpression(element.expression, {
@@ -204,13 +204,23 @@ const processExpression = (
                 attributes[1][1].type === 'TSArrayType' &&
                 typesEqual(attributes[0][1], attributes[1][1].elementType)
             ) {
-                return [
-                    attributes[1][1],
-                    t.arrayExpression([
-                        attributes[0][2],
-                        t.spreadElement(attributes[1][2]),
-                    ]),
+                attributes = [
+                    [
+                        'items',
+                        attributes[1][1],
+                        t.arrayExpression([
+                            attributes[0][2],
+                            t.spreadElement(attributes[1][2]),
+                        ]),
+                    ],
                 ];
+                // return [
+                //     attributes[1][1],
+                //     t.arrayExpression([
+                //         attributes[0][2],
+                //         t.spreadElement(attributes[1][2]),
+                //     ]),
+                // ];
             }
             const canDropThrough =
                 attributes.length === 2 &&

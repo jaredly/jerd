@@ -1125,7 +1125,23 @@ export type AmbiguousType = {
     location: Location;
     decorators?: Decorators;
 };
-export type Type = TypeRef | LambdaType | AmbiguousType;
+export type Type =
+    | TypeRef
+    | LambdaType
+    | AmbiguousType
+    | TypeNotFound
+    | TypeHole;
+export type TypeHole = {
+    type: 'Hole';
+    location: Location;
+    decorators?: Decorators;
+};
+export type TypeNotFound = {
+    type: 'NotFound';
+    location: Location;
+    decorators?: Decorators;
+    text: string;
+};
 
 // Here's the basics folks
 // kind lambdas can't have effects, thank goodness

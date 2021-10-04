@@ -4,7 +4,6 @@ import {
     BinOp,
     BinOpRight,
     binopWithHash,
-    Expression,
     File,
     Toplevel,
     WithUnary,
@@ -23,6 +22,7 @@ import { reGroupOps, typeGroup } from './ops';
 import { Library } from './Library';
 import { parseIdOrSym } from './hashes';
 import { resolveNamedValue, resolveValue } from './resolve';
+import { typeExpression } from './typeExpression';
 
 export type ConstructorNames = {
     names: { [key: string]: Array<{ id: typed.Id; idx: number }> };
@@ -120,143 +120,6 @@ export type Context = {
     warnings: Array<{ location: Location; text: string }>;
 };
 
-// export const typeWithUnary = (
-//     ctx: Context,
-//     unary: WithUnary,
-//     expected: Array<Type>,
-// ): Term => {
-//     if (unary.type === 'WithUnary') {
-//         throw new Error(`unary`);
-//     }
-//     return typeWithSuffix(ctx, unary.inner, expected);
-// };
-
-// export const typeWithSuffix = (
-//     ctx: Context,
-//     term: WithSuffix,
-//     expected: Array<Type>,
-// ) => {
-//     if (term.type === 'WithSuffix') {
-//         throw new Error('no');
-//     }
-//     return typeAbSub(ctx, term.sub, expected);
-// };
-
-export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
-    if (
-        expected.length &&
-        !expected.some((t) => typed.typesEqual(t, term.is))
-    ) {
-        return {
-            type: 'TypeError',
-            inner: term,
-            is: expected[0],
-            location: term.location,
-        };
-    }
-    return term;
-};
-
-export const typeIdentifier = (
-    ctx: Context,
-    term: Identifier,
-    expected: Array<Type>,
-): Term => {
-    if (term.hash) {
-        const idOrSym = parseIdOrSym(term.hash.slice(1));
-        const resolved = idOrSym && resolveValue(ctx, idOrSym, term.location);
-        if (resolved) {
-            return resolved;
-        }
-        ctx.warnings.push({
-            location: term.location,
-            text: `Unable to resolve term hash ${term.hash}`,
-        });
-    }
-    const named = resolveNamedValue(ctx, term.text, term.location, expected);
-    if (named) {
-        return named;
-    }
-    if (expected.length) {
-        // Try resolving without an expected type
-        const got = resolveNamedValue(ctx, term.text, term.location, []);
-        if (got) {
-            return {
-                type: 'TypeError',
-                is: expected[0],
-                inner: got,
-                location: term.location,
-            };
-        }
-    }
-    return {
-        type: 'NotFound',
-        is: expected.length ? expected[0] : preset.void_,
-        location: term.location,
-        text: term.text,
-    };
-};
-
-export const typeExpression = (
-    ctx: Context,
-    term: Expression,
-    expected: Array<Type>,
-): Term => {
-    switch (term.type) {
-        case 'Identifier': {
-            return typeIdentifier(ctx, term, expected);
-        }
-        case 'BinOp': {
-            const grouped = reGroupOps(term);
-            if (grouped.type !== 'GroupedOp') {
-                return typeExpression(ctx, grouped, expected);
-            }
-            return typeGroup(ctx, grouped, expected);
-        }
-        case 'WithUnary': {
-            if (term.op != null) {
-                throw new Error('no unary');
-            }
-            return typeExpression(ctx, term.inner, expected);
-        }
-        case 'Float': {
-            return wrapExpected(
-                {
-                    type: 'float',
-                    location: term.location,
-                    is: preset.float,
-                    value: +term.contents,
-                },
-                expected,
-            );
-        }
-        case 'Int':
-            return wrapExpected(
-                {
-                    type: 'int',
-                    location: term.location,
-                    is: preset.int,
-                    value: +term.contents,
-                },
-                expected,
-            );
-    }
-    throw new Error('no absub: ' + term.type);
-};
-
-// So, how does this go.
-export const typeBinOp = (
-    ctx: Context,
-    expr: BinOp_inner,
-    expected: Array<Type>,
-): null | Term => {
-    const grouped = reGroupOps(expr);
-    if (grouped.type != 'GroupedOp') {
-        return typeExpression(ctx, grouped, expected);
-    }
-    return typeGroup(ctx, grouped, expected);
-};
-
 export const typeToplevel = (
     ctx: Context,
     top: Toplevel,
@@ -274,6 +137,10 @@ export const typeToplevel = (
                 term,
             };
         }
+        // case 'Define': {
+        //     const t = top.ann ? typeType(ctx, )
+        //     const term = typeExpression(ctx, top.expr,)
+        // }
         // case 'DecoratorDef':
         // 	const defn = typeDecoratorDef(ctx, top.id, top.args, top.targetType)
         // 	return {
@@ -291,7 +158,7 @@ export const typeToplevel = (
 
 export const typeFile = (ctx: Context, file: File) => {
     if (file.tops) {
-        file.tops.forEach((top) => {
+        file.tops.items.forEach((top) => {
             if (top.decorators) {
                 throw new Error(`not yet`);
             }

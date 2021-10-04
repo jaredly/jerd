@@ -17,13 +17,8 @@ import {
 } from '../typing/types';
 import * as preset from '../typing/preset';
 import { GroupedOp, reGroupOps } from './ops';
-import {
-    Context,
-    ctxToEnv,
-    NamedDefns,
-    typeBinOp,
-    typeExpression,
-} from './typeFile';
+import { Context, ctxToEnv, NamedDefns } from './typeFile';
+import { typeExpression } from './typeExpression';
 import { addRecord, addTerm } from './Library';
 import { printToString } from '../printing/printer';
 import { termToPretty } from '../printing/printTsLike';
@@ -99,7 +94,7 @@ describe('just parse & group', () => {
         const parsed = parseTyped(
             `2 + 3 * 4 * 5 * 3 / 2 * 102 + 1 + 2 ^ 3 & 4`,
         );
-        const top = parsed.tops![0].top;
+        const top = parsed.tops!.items[0].top;
         if (top.type === 'ToplevelExpression' && top.expr.type === 'BinOp') {
             expect(groups(reGroupOps(top.expr), 0)).toMatchInlineSnapshot(
                 `&[+(2 *{/<*[3 4 5 3] 2> 102} 1 ^{2 3}) 4]`,
@@ -191,7 +186,7 @@ const fakeAnyOp = preset.lambdaLiteral(
 
 export const parseExpression = (ctx: Context, raw: string) => {
     const parsed = parseTyped(raw);
-    const top = parsed.tops![0].top;
+    const top = parsed.tops!.items[0].top;
     if (top.type !== 'ToplevelExpression') {
         return expect(false).toBe(true);
     }
