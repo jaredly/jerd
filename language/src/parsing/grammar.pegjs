@@ -139,9 +139,9 @@ DecDefArg = id:IdentifierWithoutHash _ ":" _ type:Type {
 
 // Binop
 Expression = BinOp
-BinOp = first:WithUnary rest:BinOpRight* {
-    if (rest.length) {
-        return {type: 'BinOp', first, rest, location: myLocation()}
+BinOp = first:WithUnary rest_drop:BinOpRight* {
+    if (rest_drop.length) {
+        return {type: 'BinOp', first, rest: rest_drop, location: myLocation()}
     } else {
         return first
     }
@@ -149,21 +149,26 @@ BinOp = first:WithUnary rest:BinOpRight* {
 BinOpRight = __ op:binopWithHash __ right:WithUnary {
     return {op, right, location: myLocation()}
 }
-WithUnary = op:UnaryOp? inner:WithSuffix {
-    if (op != null) {
-        return {type: 'Unary', op, inner, location: myLocation()}
+WithUnary = op_drop:UnaryOp? inner:Decorated {
+    if (op_drop != null) {
+        return {type: 'Unary', op: op_drop, inner, location: myLocation()}
     }
     return inner
 }
 UnaryOp = "-" / "!"
 // Apply / Attribute access
-WithSuffix = decorators:(Decorator __)* sub:Apsub suffixes:Suffix* {
-	const main = suffixes.length ? {type: 'WithSuffix', target: sub, suffixes, location: myLocation()} : sub
-    if (decorators.length) {
-        return {type: 'Decorated', wrapped: main, decorators: decorators.map((d: any) => d[0])}
+Decorated = decorators_drop:(Decorator __)* wrapped:WithSuffix {
+    if (decorators_drop.length) {
+        return {type: 'Decorated', wrapped, decorators: decorators_drop.map((d: any) => d[0])}
     } else {
-        return main
+        return wrapped
     }
+}
+WithSuffix = target:Apsub suffixes_drop:Suffix* {
+    if (suffixes_drop.length) {
+        return {type: 'WithSuffix', target, suffixes, location: myLocation()}
+    }
+    return sub
 }
 
 Suffix = ApplySuffix / AttributeSuffix / IndexSuffix / AsSuffix

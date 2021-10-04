@@ -201,87 +201,120 @@ const processExpression = (
             const typeName = attributes.some((s) => s[0] === 'type')
                 ? '$type'
                 : 'type';
-            return [
-                t.tsTypeLiteral(
-                    [
-                        t.tsPropertySignature(
-                            t.identifier(typeName),
-                            t.tsTypeAnnotation(
-                                t.tsLiteralType(t.stringLiteral(ctx.ruleName)),
-                            ),
+
+            const recordType = t.tsTypeLiteral(
+                [
+                    t.tsPropertySignature(
+                        t.identifier(typeName),
+                        t.tsTypeAnnotation(
+                            t.tsLiteralType(t.stringLiteral(ctx.ruleName)),
                         ),
-                        t.tsPropertySignature(
-                            t.identifier('location'),
-                            t.tsTypeAnnotation(
-                                t.tsTypeReference(t.identifier('Location')),
-                            ),
+                    ),
+                    t.tsPropertySignature(
+                        t.identifier('location'),
+                        t.tsTypeAnnotation(
+                            t.tsTypeReference(t.identifier('Location')),
                         ),
-                        ...(first
-                            ? [
-                                  t.tsPropertySignature(
-                                      t.identifier('comments'),
-                                      t.tsTypeAnnotation(
-                                          t.tsTypeReference(
-                                              t.identifier('Array'),
-                                              t.tsTypeParameterInstantiation([
-                                                  t.tsTupleType([
-                                                      t.tsTypeReference(
-                                                          t.identifier(
-                                                              'Location',
-                                                          ),
-                                                      ),
-                                                      t.tsTypeReference(
-                                                          t.identifier(
-                                                              'string',
-                                                          ),
-                                                      ),
-                                                  ]),
+                    ),
+                    ...(first
+                        ? [
+                              t.tsPropertySignature(
+                                  t.identifier('comments'),
+                                  t.tsTypeAnnotation(
+                                      t.tsTypeReference(
+                                          t.identifier('Array'),
+                                          t.tsTypeParameterInstantiation([
+                                              t.tsTupleType([
+                                                  t.tsTypeReference(
+                                                      t.identifier('Location'),
+                                                  ),
+                                                  t.tsTypeReference(
+                                                      t.identifier('string'),
+                                                  ),
                                               ]),
-                                          ),
+                                          ]),
                                       ),
                                   ),
-                              ]
-                            : []),
-                    ].concat(
-                        attributes.map(([name, type, _]) => {
-                            return t.tsPropertySignature(
-                                t.identifier(name),
-                                t.tsTypeAnnotation(type),
-                            );
-                        }),
-                    ),
+                              ),
+                          ]
+                        : []),
+                ].concat(
+                    attributes.map(([name, type, _]) => {
+                        return t.tsPropertySignature(
+                            t.identifier(name.replace(/_drop$/, '')),
+                            t.tsTypeAnnotation(type),
+                        );
+                    }),
                 ),
-                t.objectExpression(
-                    [
-                        t.objectProperty(
-                            t.identifier(typeName),
-                            t.stringLiteral(ctx.ruleName),
-                        ),
-                        t.objectProperty(
-                            t.identifier('location'),
-                            t.callExpression(t.identifier('myLocation'), []),
-                        ),
-                        ...(first
-                            ? [
-                                  t.objectProperty(
-                                      t.identifier('comments'),
-                                      t.identifier('allComments'),
+            );
+            const recordObject = t.objectExpression(
+                [
+                    t.objectProperty(
+                        t.identifier(typeName),
+                        t.stringLiteral(ctx.ruleName),
+                    ),
+                    t.objectProperty(
+                        t.identifier('location'),
+                        t.callExpression(t.identifier('myLocation'), []),
+                    ),
+                    ...(first
+                        ? [
+                              t.objectProperty(
+                                  t.identifier('comments'),
+                                  t.identifier('allComments'),
+                              ),
+                          ]
+                        : []),
+                ].concat(
+                    attributes.map(([name, _, expr]) => {
+                        return t.objectProperty(
+                            t.identifier(name.replace(/_drop$/, '')),
+                            expr,
+                            false,
+                            expr.type === 'Identifier' && expr.name === name,
+                        );
+                    }),
+                ),
+            );
+            const isExpendable = ([name, t, _]: [
+                string,
+                t.TSType,
+                t.Expression,
+            ]) =>
+                name.endsWith('_drop') &&
+                (t.type === 'TSArrayType' ||
+                    t.type === 'TSOptionalType' ||
+                    (t.type === 'TSUnionType' &&
+                        t.types[1].type === 'TSNullKeyword'));
+            if (
+                attributes.length === 2 &&
+                (isExpendable(attributes[0]) || isExpendable(attributes[1]))
+            ) {
+                const expFirst = isExpendable(attributes[0]);
+                return [
+                    t.tsUnionType([
+                        recordType,
+                        attributes[expFirst ? 1 : 0][1],
+                    ]),
+                    t.conditionalExpression(
+                        attributes[expFirst ? 0 : 1][1].type === 'TSArrayType'
+                            ? t.binaryExpression(
+                                  '===',
+                                  t.memberExpression(
+                                      t.identifier(
+                                          attributes[expFirst ? 0 : 1][0],
+                                      ),
+                                      t.identifier('length'),
                                   ),
-                              ]
-                            : []),
-                    ].concat(
-                        attributes.map(([name, _, expr]) => {
-                            return t.objectProperty(
-                                t.identifier(name),
-                                expr,
-                                false,
-                                expr.type === 'Identifier' &&
-                                    expr.name === name,
-                            );
-                        }),
+                                  t.numericLiteral(0),
+                              )
+                            : t.identifier(attributes[expFirst ? 0 : 1][0]),
+                        t.identifier(attributes[expFirst ? 1 : 0][0]),
+                        recordObject,
                     ),
-                ),
-            ];
+                ];
+            }
+            return [recordType, recordObject];
         }
     }
     return [t.tsAnyKeyword(), t.stringLiteral(`NOT_IMPL_${expr.type}`)];

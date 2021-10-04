@@ -118,7 +118,7 @@ import {
 } from '../parsing/parser-new';
 import { precedence } from '../typing/terms/ops';
 import { parseOpHash } from './hashes';
-import { Context, typeWithUnary } from './typeFile';
+import { Context, typeExpression } from './typeFile';
 import { Library } from './Library';
 import {
     ResolvedType,
@@ -590,8 +590,8 @@ export const typeUnaryOrGroup = (
     term: WithUnary | GroupedOp,
     expected: Array<Type>,
 ) => {
-    if (term.type === 'WithUnary') {
-        return typeWithUnary(ctx, term, expected);
+    if (term.type !== 'GroupedOp') {
+        return typeExpression(ctx, term, expected);
     }
     return typeGroup(ctx, term, expected);
 };

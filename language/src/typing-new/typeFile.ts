@@ -116,34 +116,47 @@ export type Context = {
     warnings: Array<{ location: Location; text: string }>;
 };
 
-export const typeWithUnary = (
-    ctx: Context,
-    unary: WithUnary,
-    expected: Array<Type>,
-): Term => {
-    if (unary.op != null) {
-        throw new Error(`unary`);
-    }
-    return typeWithSuffix(ctx, unary.inner, expected);
-};
+// export const typeWithUnary = (
+//     ctx: Context,
+//     unary: WithUnary,
+//     expected: Array<Type>,
+// ): Term => {
+//     if (unary.type === 'WithUnary') {
+//         throw new Error(`unary`);
+//     }
+//     return typeWithSuffix(ctx, unary.inner, expected);
+// };
 
-export const typeWithSuffix = (
-    ctx: Context,
-    term: WithSuffix,
-    expected: Array<Type>,
-) => {
-    if (term.suffixes.length) {
-        throw new Error('no');
-    }
-    return typeAbSub(ctx, term.sub, expected);
-};
+// export const typeWithSuffix = (
+//     ctx: Context,
+//     term: WithSuffix,
+//     expected: Array<Type>,
+// ) => {
+//     if (term.type === 'WithSuffix') {
+//         throw new Error('no');
+//     }
+//     return typeAbSub(ctx, term.sub, expected);
+// };
 
-export const typeAbSub = (
+export const typeExpression = (
     ctx: Context,
-    term: Apsub,
+    term: Expression,
     expected: Array<Type>,
-): Term => {
+): Term | null => {
     switch (term.type) {
+        case 'BinOp': {
+            const grouped = reGroupOps(term);
+            if (grouped.type !== 'GroupedOp') {
+                return typeExpression(ctx, grouped, expected);
+            }
+            return typeGroup(ctx, grouped, expected);
+        }
+        case 'WithUnary': {
+            if (term.op != null) {
+                throw new Error('no unary');
+            }
+            return typeExpression(ctx, term.inner, expected);
+        }
         case 'Int':
             return {
                 type: 'int',
@@ -152,7 +165,7 @@ export const typeAbSub = (
                 value: +term.contents,
             };
     }
-    throw new Error('no absub');
+    throw new Error('no absub: ' + term.type);
 };
 
 // So, how does this go.
@@ -162,8 +175,8 @@ export const typeBinOp = (
     expected: Array<Type>,
 ): null | Term => {
     const grouped = reGroupOps(expr);
-    if (grouped.type === 'WithUnary') {
-        return typeWithUnary(ctx, grouped, expected);
+    if (grouped.type != 'GroupedOp') {
+        return typeExpression(ctx, grouped, expected);
     }
     return typeGroup(ctx, grouped, expected);
 };
@@ -174,7 +187,7 @@ export const typeToplevel = (
 ): null | typed.ToplevelT => {
     switch (top.type) {
         case 'ToplevelExpression': {
-            const term = typeBinOp(ctx, top.expr, []);
+            const term = typeExpression(ctx, top.expr, []);
             if (!term) {
                 return null;
             }
