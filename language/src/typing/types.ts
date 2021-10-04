@@ -571,17 +571,18 @@ export type RecordBase<Contents> =
     | ConcreteBase<Contents>
     | { type: 'Variable'; var: Symbol; spread: Term; location: Location };
 
+export type RecordSubType = {
+    covered: boolean;
+    spread: Term | null;
+    rows: Array<Term | null>;
+};
 export type Record = {
     type: 'Record';
     base: RecordBase<Term | null>;
     is: Type;
     // For each subtype, we might have members defined
     subTypes: {
-        [id: string]: {
-            covered: boolean;
-            spread: Term | null;
-            rows: Array<Term | null>;
-        };
+        [id: string]: RecordSubType;
     };
     location: Location;
     decorators?: Decorators;

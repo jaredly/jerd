@@ -1,12 +1,13 @@
 import { parseTyped, WithUnary } from '../parsing/parser-new';
 import { idFromName, idName } from '../typing/env';
-import { nullLocation } from '../typing/types';
+import { nullLocation, Location, Term, Type } from '../typing/types';
 import * as preset from '../typing/preset';
 import { GroupedOp, reGroupOps } from './ops';
 import { Context, ctxToEnv, NamedDefns, typeBinOp } from './typeFile';
-import { addRecord } from './Library';
+import { addRecord, addTerm } from './Library';
 import { printToString } from '../printing/printer';
 import { termToPretty } from '../printing/printTsLike';
+import { showLocation } from '../typing/typeExpr';
 
 export const rawSnapshotSerializer: jest.SnapshotSerializerPlugin = {
     test(value) {
@@ -17,6 +18,25 @@ export const rawSnapshotSerializer: jest.SnapshotSerializerPlugin = {
     },
 };
 expect.addSnapshotSerializer(rawSnapshotSerializer);
+export const warningsSerializer: jest.SnapshotSerializerPlugin = {
+    test(value) {
+        return (
+            Array.isArray(value) &&
+            value.every(
+                (v) =>
+                    v &&
+                    typeof v.text === 'string' &&
+                    typeof v.location === 'object',
+            )
+        );
+    },
+    print(value, _, __) {
+        return (value as Array<{ location: Location; text: string }>)
+            .map((item) => `${showLocation(item.location)}: ${item.text}`)
+            .join('\n');
+    },
+};
+expect.addSnapshotSerializer(warningsSerializer);
 
 const l = (n: number) => '[({<'[n % 4];
 const r = (n: number) => '])}>'[n % 4];
@@ -90,99 +110,173 @@ y float
 
 */
 
-describe('full parse maybe', () => {
-    it('ok', () => {
+const fakeIntOp = preset.lambdaLiteral(
+    [
+        { sym: { unique: 0, name: 'left' }, is: preset.int },
+        { sym: { name: 'right', unique: 1 }, is: preset.int },
+    ],
+    {
+        type: 'Hole',
+        is: preset.int,
+        location: nullLocation,
+    },
+);
+
+export const parseExpression = (ctx: Context, raw: string) => {
+    const parsed = parseTyped(raw);
+    const top = parsed.tops![0].top;
+    if (top.type !== 'ToplevelExpression') {
+        return expect(false).toBe(true);
+    }
+    return typeBinOp(ctx, top.expr, []);
+};
+
+describe('failures', () => {
+    it('type exists but no impl', () => {
         const ctx: Context = newContext();
+
         let slash; // const slash = idFromName('slash');
         [ctx.library, slash] = addRecord(
             ctx.library,
-            {
-                type: 'Record',
-                effectVbls: [],
-                extends: [],
-                ffi: null,
-                items: [
-                    {
-                        type: 'lambda',
-                        args: [preset.int, preset.int],
-                        effectVbls: [],
-                        effects: [],
-                        location: nullLocation,
-                        res: preset.int,
-                        rest: null,
-                        typeVbls: [],
-                    },
-                ],
-                location: nullLocation,
-                typeVbls: [],
-                unique: 0,
-            },
+            preset.recordDefn([fakeIntOp.is]),
             'slash',
             ['/'],
         );
-        // ctx.library.types.constructors.names['/'] = [{ idx: 0, id: slash }];
-        // ctx.library.types.defns[idName(slash)] = {
-        // };
-        // ctx.library.types.names['div'] = [slash];
 
-        const slashInt = idFromName('slash-int');
-        ctx.library.terms.defns[idName(slashInt)] = {
-            type: 'Record',
-            location: nullLocation,
-            subTypes: {},
-            is: {
-                type: 'ref',
-                ref: { type: 'user', id: slash },
-                location: nullLocation,
-                typeVbls: [],
-            },
-            base: {
-                location: nullLocation,
-                ref: { type: 'user', id: slash },
-                spread: null,
-                type: 'Concrete',
-                rows: [
-                    {
-                        type: 'lambda',
-                        args: [
-                            { unique: 0, name: 'left' },
-                            { name: 'right', unique: 1 },
-                        ],
-                        body: {
-                            type: 'Hole',
-                            is: preset.int,
-                            location: nullLocation,
-                        },
-                        idLocations: [],
-                        is: preset.pureFunction(
-                            [preset.int, preset.int],
-                            preset.int,
-                        ),
-                        location: nullLocation,
-                    },
-                ],
-            },
-        };
-        ctx.library.terms.names['slash'] = [slashInt];
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(1);
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:2-1:6: No values found that match the operator. I found some types though.`,
+        );
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(`[null term]`);
+    });
 
-        // const parsed = parseTyped(
-        //     `2 + 3 * 4 * 5 * 3 / 2 * 102 + 1 + 2 ^ 3 & 4`,
-        // );
+    it('no type exists', () => {
+        const ctx: Context = newContext();
 
-        const parsed = parseTyped(`2 / 3`);
-        const top = parsed.tops![0].top;
-        if (top.type !== 'ToplevelExpression') {
-            return expect(false).toBe(true);
-        }
-        const res = typeBinOp(ctx, top.expr, []);
-        expect(ctx.warnings).toHaveLength(0);
-        expect(res).toBeTruthy();
-        expect(
-            printToString(termToPretty(ctxToEnv(ctx), res!), 100),
-        ).toMatchInlineSnapshot(`2 /#slash-int#d28f8708#0 3`);
-
-        // expect(groups(reGroupOps(top.expr), 0)).toMatchInlineSnapshot(
-        //     `&[+(2 *{/<*[3 4 5 3] 2> 102} 1 ^{2 3}) 4]`,
-        // );
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(1);
+        expect(ctx.warnings).toMatchInlineSnapshot(`1:2-1:6: No attribute /`);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(`[null term]`);
     });
 });
+
+// TODO:
+// - a local implementation of the type dealio
+// - type variables folks
+
+describe('generic examples', () => {
+    it('toplevel definition, using a generic record', () => {
+        const ctx: Context = newContext();
+
+        const unique = 1;
+        const T: Type = {
+            type: 'var',
+            location: nullLocation,
+            sym: { unique, name: 'T' },
+        };
+
+        let slash; // const slash = idFromName('slash');
+        [ctx.library, slash] = addRecord(
+            ctx.library,
+            preset.recordDefn(
+                [preset.pureFunction([T, T], T)],
+                [],
+                [{ unique, subTypes: [] }],
+            ),
+            'slash',
+            ['/'],
+        );
+
+        let slashImpl;
+        [ctx.library, slashImpl] = addTerm(
+            ctx.library,
+            preset.recordLiteral(slash, [fakeIntOp], {}, [preset.int]),
+            'slash',
+        );
+
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(res).toBeTruthy();
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#e17b40b4#e3800aa8#0 3`,
+        );
+    });
+});
+
+describe('non-generic examples', () => {
+    it('toplevel definition, using a basic record', () => {
+        const ctx: Context = newContext();
+
+        let slash; // const slash = idFromName('slash');
+        [ctx.library, slash] = addRecord(
+            ctx.library,
+            preset.recordDefn([fakeIntOp.is]),
+            'slash',
+            ['/'],
+        );
+
+        let slashImpl;
+        [ctx.library, slashImpl] = addTerm(
+            ctx.library,
+            preset.recordLiteral(slash, [fakeIntOp]),
+            'slash',
+        );
+
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(res).toBeTruthy();
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3`,
+        );
+    });
+
+    it('toplevel definition, impl for a record that extends the operator type', () => {
+        const ctx: Context = newContext();
+
+        let slash;
+        [ctx.library, slash] = addRecord(
+            ctx.library,
+            preset.recordDefn([fakeIntOp.is]),
+            'slash',
+            ['/'],
+        );
+
+        let slash2;
+        [ctx.library, slash2] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.int], [slash]),
+            'slash2',
+            ['what'],
+        );
+
+        let slashImpl;
+        [ctx.library, slashImpl] = addTerm(
+            ctx.library,
+            preset.recordLiteral(
+                slash2,
+                [preset.intLiteral(10, nullLocation)],
+                {
+                    [idName(slash)]: {
+                        covered: true,
+                        rows: [fakeIntOp],
+                        spread: null,
+                    },
+                },
+            ),
+            'slash',
+        );
+
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(res).toBeTruthy();
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#f249c8e4#d28f8708#0 3`,
+        );
+    });
+});
+
+const termToString = (ctx: Context, term: Term | null | void) =>
+    term == null
+        ? '[null term]'
+        : printToString(termToPretty(ctxToEnv(ctx), term), 100);

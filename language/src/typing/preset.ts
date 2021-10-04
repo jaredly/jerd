@@ -17,6 +17,10 @@ import {
     Location,
     TypeReference,
     Id,
+    Record,
+    RecordDef,
+    RecordSubType,
+    Lambda,
 } from './types';
 
 export const builtinLocation: Location = {
@@ -65,6 +69,22 @@ export const binOps = [
     '||',
 ];
 
+export const lambdaLiteral = (
+    args: Array<{ sym: Symbol; is: Type }>,
+    body: Term,
+    location: Location = nullLocation,
+): Lambda => ({
+    type: 'lambda',
+    args: args.map((arg) => arg.sym),
+    body: body,
+    idLocations: [],
+    is: pureFunction(
+        args.map((arg) => arg.is),
+        body.is,
+    ),
+    location,
+});
+
 export const pureFunction = (
     args: Array<Type>,
     res: Type,
@@ -82,6 +102,47 @@ export const pureFunction = (
         location: builtinLocation,
     };
 };
+
+export const recordDefn = (
+    items: Array<Type>,
+    extenders: Array<Id> = [],
+    typeVbls: Array<TypeVblDecl> = [],
+    location: Location = nullLocation,
+    unique: number = 0,
+): RecordDef => ({
+    type: 'Record',
+    effectVbls: [],
+    extends: extenders,
+    ffi: null,
+    items: items,
+    location,
+    typeVbls,
+    unique,
+});
+
+export const recordLiteral = (
+    id: Id,
+    rows: Array<Term>,
+    subTypes: { [id: string]: RecordSubType } = {},
+    typeVbls: Array<Type> = [],
+): Record => ({
+    type: 'Record',
+    location: nullLocation,
+    subTypes,
+    is: {
+        type: 'ref',
+        ref: { type: 'user', id },
+        location: nullLocation,
+        typeVbls,
+    },
+    base: {
+        location: nullLocation,
+        ref: { type: 'user', id },
+        spread: null,
+        type: 'Concrete',
+        rows: rows,
+    },
+});
 
 // This seems like it would work, right?
 `
