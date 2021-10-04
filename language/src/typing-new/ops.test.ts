@@ -237,7 +237,7 @@ describe('non-generic examples', () => {
     });
 
     it('toplevel definition, two to choose from', () => {
-        const ctx: Context = newContext();
+        const ctx = newContext();
 
         const float = fakeOp(preset.float);
 
@@ -277,7 +277,7 @@ describe('non-generic examples', () => {
     });
 
     it('toplevel definition, impl for a record that extends the operator type', () => {
-        const ctx: Context = newContext();
+        const ctx = newContext();
 
         let slash;
         [ctx.library, slash] = addRecord(
@@ -321,7 +321,7 @@ describe('non-generic examples', () => {
 });
 
 const simpleCtx = () => {
-    const ctx: Context = newContext();
+    const ctx = newContext();
 
     let slash; // const slash = idFromName('slash');
     [ctx.library, slash] = addRecord(
@@ -343,7 +343,7 @@ const simpleCtx = () => {
 
 describe('failures', () => {
     it('type exists but no impl', () => {
-        const ctx: Context = newContext();
+        const ctx = newContext();
 
         let slash; // const slash = idFromName('slash');
         [ctx.library, slash] = addRecord(
@@ -362,7 +362,7 @@ describe('failures', () => {
     });
 
     it('no type exists', () => {
-        const ctx: Context = newContext();
+        const ctx = newContext();
 
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(1);
@@ -421,7 +421,7 @@ describe('failures', () => {
 // - type variables folks
 
 const simpleGeneric = () => {
-    const ctx: Context = newContext();
+    const ctx = newContext();
 
     const unique = 1;
     const T: Type = {
@@ -480,7 +480,7 @@ describe('generic examples', () => {
     });
 
     const complexGeneric = () => {
-        const ctx: Context = newContext();
+        const ctx = newContext();
 
         const unique = 1;
         const A: Type = {
@@ -553,7 +553,7 @@ describe('generic examples', () => {
     });
 
     it('toplevel definition, using a generic /function/', () => {
-        const ctx: Context = newContext();
+        const ctx = newContext();
 
         const unique = 1;
         const T: Type = {
@@ -586,6 +586,10 @@ describe('generic examples', () => {
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
             `2 /#1b191ec9#49d8f77e#0 3`,
         );
+    });
+
+    it('local type variable', () => {
+        const ctx = newContext();
     });
 });
 
