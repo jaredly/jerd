@@ -133,17 +133,20 @@ y float
 
 */
 
-const fakeIntOp = preset.lambdaLiteral(
-    [
-        { sym: { unique: 0, name: 'left' }, is: preset.int },
-        { sym: { name: 'right', unique: 1 }, is: preset.int },
-    ],
-    {
-        type: 'Hole',
-        is: preset.int,
-        location: nullLocation,
-    },
-);
+const fakeOp = (t: Type) =>
+    preset.lambdaLiteral(
+        [
+            { sym: { unique: 0, name: 'left' }, is: t },
+            { sym: { name: 'right', unique: 1 }, is: t },
+        ],
+        {
+            type: 'Hole',
+            is: t,
+            location: nullLocation,
+        },
+    );
+
+const fakeIntOp = fakeOp(preset.int);
 
 const unique = 1;
 const T: Type = {
@@ -329,6 +332,49 @@ describe('generic examples', () => {
         );
     });
 
+    it('toplevel definition, using a generic record, two to choose from', () => {
+        const ctx: Context = newContext();
+
+        const unique = 1;
+        const T: Type = {
+            type: 'var',
+            location: nullLocation,
+            sym: { unique, name: 'T' },
+        };
+
+        let slash; // const slash = idFromName('slash');
+        [ctx.library, slash] = addRecord(
+            ctx.library,
+            preset.recordDefn(
+                [preset.pureFunction([T, T], T)],
+                [],
+                [{ unique, subTypes: [] }],
+            ),
+            'slash',
+            ['/'],
+        );
+
+        [ctx.library] = addTerm(
+            ctx.library,
+            preset.recordLiteral(slash, [fakeOp(preset.float)], {}, [
+                preset.float,
+            ]),
+            'slashFloat',
+        );
+
+        [ctx.library] = addTerm(
+            ctx.library,
+            preset.recordLiteral(slash, [fakeIntOp], {}, [preset.int]),
+            'slash',
+        );
+
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#e17b40b4#e3800aa8#0 3`,
+        );
+    });
+
     it('toplevel definition, using a generic /function/', () => {
         const ctx: Context = newContext();
 
@@ -380,6 +426,46 @@ describe('non-generic examples', () => {
 
         let slashImpl;
         [ctx.library, slashImpl] = addTerm(
+            ctx.library,
+            preset.recordLiteral(slash, [fakeIntOp]),
+            'slash',
+        );
+
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3`,
+        );
+    });
+
+    it('toplevel definition, two to choose from', () => {
+        const ctx: Context = newContext();
+
+        const float = fakeOp(preset.float);
+
+        let slashF; // const slash = idFromName('slash');
+        [ctx.library, slashF] = addRecord(
+            ctx.library,
+            preset.recordDefn([float.is]),
+            'slash',
+            ['/'],
+        );
+
+        [ctx.library] = addTerm(
+            ctx.library,
+            preset.recordLiteral(slashF, [float]),
+            'slash',
+        );
+
+        let slash; // const slash = idFromName('slash');
+        [ctx.library, slash] = addRecord(
+            ctx.library,
+            preset.recordDefn([fakeIntOp.is]),
+            'slash',
+            ['/'],
+        );
+
+        [ctx.library] = addTerm(
             ctx.library,
             preset.recordLiteral(slash, [fakeIntOp]),
             'slash',
