@@ -276,6 +276,8 @@ const processExpression = (
                     }),
                 ),
             );
+            // TODO: if the type is | or null, and we're verifying that it exists, then
+            // we can drop the orNull
             const isExpendable = ([name, t, _]: [
                 string,
                 t.TSType,

@@ -42,7 +42,7 @@ const l = (n: number) => '[({<'[n % 4];
 const r = (n: number) => '])}>'[n % 4];
 
 const int = (w: WithUnary) =>
-    w.inner.sub.type === 'Int' ? w.inner.sub.contents : null;
+    w.inner.type === 'Int' ? w.inner.contents : null;
 const groups = (w: WithUnary | GroupedOp, i: number): any =>
     w.type === 'WithUnary'
         ? int(w)
