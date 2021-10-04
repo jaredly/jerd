@@ -129,7 +129,7 @@ import {
 } from './resolve';
 import { idFromName, idName } from '../typing/env';
 import { Type } from '../typing/types';
-import { var_ } from '../typing/preset';
+import { pureFunction, var_, void_ } from '../typing/preset';
 import { subtTypeVars } from '../typing/typeExpr';
 import { resolveTypeVbls } from '../typing/getTypeError';
 import { showType } from '../typing/unify';
@@ -417,7 +417,7 @@ export const typePair = (
     right: WithUnary | GroupedOp,
     location: Location,
     expectedTypes: Array<t.Type>,
-): null | t.Term => {
+): t.Term => {
     // TODO: KEEP TRACK of the return types, and compare them to the expected types.
     const options: Array<Option> = [];
 
@@ -448,7 +448,7 @@ export const typePair = (
             location: location,
             text: `No attribute ${op.op}`,
         });
-        return null;
+        return attributeHole(ctx, op.op, left, location, right, expectedTypes);
     }
     // Ok, so this is where some things get interesting,
     // because we want to resolve an implementor.
@@ -484,70 +484,41 @@ export const typePair = (
             location,
             text: `No values found that match the operator. I found some types though.`,
         });
-        return null;
+        return attributeHole(ctx, op.op, left, location, right, expectedTypes);
     }
 
     const lefts = options.map((opts) => opts.left);
 
     const larg = typeUnaryOrGroup(ctx, left, lefts);
-    // if (larg == null) {
-    //     // TODO: put a hole here
-    //     throw new Error('n');
-    // }
-
     const rights: Array<Type> = [];
     options.forEach((opt) => {
-        if (!larg) {
-            return rights.push(opt.right);
-        }
         const mapping: { [unique: number]: Type } = {};
         if (resolveTypeVbls(larg.is, opt.left, mapping)) {
             rights.push(subtTypeVars(opt.right, mapping, undefined));
         } else {
-            console.log(mapping, opt.left);
+            // console.log(mapping, opt.left);
         }
     });
-    // .
-    // .filter((opt) => (larg ? t.typesEqual(opt.left, larg.is) : true))
-    // .map((opts) => opts.right);
 
     const rarg = typeUnaryOrGroup(ctx, right, rights);
 
-    // if (rarg == null) {
-    //     throw new Error('fill with hole');
-    // }
+    const op2 = options.find((opt) => {
+        const mapping: { [unique: number]: Type } = {};
+        if (!resolveTypeVbls(larg.is, opt.left, mapping)) {
+            return false;
+        }
+        let ris = opt.right;
+        if (Object.keys(mapping).length !== 0) {
+            ris = subtTypeVars(ris, mapping, undefined);
+        }
+        if (!t.typesEqual(ris, rarg.is)) {
+            return false;
+        }
 
-    // const op2 = selectOp(ctx, options, larg.is, rarg.is);
-    const op2 = options.find(
-        (opt) => {
-            const mapping: { [unique: number]: Type } = {};
-            if (larg) {
-                if (!resolveTypeVbls(larg.is, opt.left, mapping)) {
-                    return false;
-                }
-            }
-            if (rarg) {
-                let ris = opt.right;
-                if (Object.keys(mapping).length !== 0) {
-                    ris = subtTypeVars(ris, mapping, undefined);
-                }
-                if (!t.typesEqual(ris, rarg.is)) {
-                    return false;
-                }
-            }
-
-            // if (resolveTypeVbls(larg.is, opt.left, mapping)) {
-            // 	rights.push(subtTypeVars(opt.right, mapping, undefined));
-            // } else {
-            // 	console.log(mapping, opt.left);
-            // }
-            return true;
-        },
-        // (!larg || t.typesEqual(larg.is, opt.left)) &&
-        // (!rarg || t.typesEqual(rarg.is, opt.right)),
-    );
+        return true;
+    });
     if (!op2) {
-        console.log(potentials, options, larg?.is, rarg?.is);
+        console.log(potentials, options, larg.is, rarg.is);
         throw new Error(`pick the first one, and fill with TypeError`);
     }
 
@@ -558,10 +529,7 @@ export const typePair = (
 
     return {
         type: 'apply',
-        args: [
-            larg || hole(op2.left, location),
-            rarg || hole(op2.right, location),
-        ],
+        args: [larg, rarg],
         location,
         target: op2.term,
         effectVbls: [],
@@ -593,7 +561,7 @@ export const typeGroup = (
     ctx: Context,
     group: GroupedOp,
     expectedTypes: Array<t.Type>,
-): null | t.Term => {
+): t.Term => {
     if (group.items.length === 1) {
         return typePair(
             ctx,
@@ -658,6 +626,35 @@ export const createTypeVblMapping = (
 
     return mapping;
 };
+
+function attributeHole(
+    ctx: Context,
+    text: string,
+    left: WithUnary | GroupedOp,
+    location: Location,
+    right: WithUnary | GroupedOp,
+    expectedTypes: t.Type[],
+): t.Term {
+    const larg = typeUnaryOrGroup(ctx, left, []);
+    const rarg = typeUnaryOrGroup(ctx, right, []);
+
+    const res = expectedTypes.length ? expectedTypes[0] : void_;
+
+    return {
+        type: 'apply',
+        args: [larg, rarg],
+        location,
+        target: {
+            type: 'NotFound',
+            is: pureFunction([larg.is, rarg.is], res),
+            location,
+            text,
+        },
+        effectVbls: [],
+        is: res,
+        typeVbls: [],
+    };
+}
 
 function findBinopImplementorsForRecordTypes(
     potentials: { id: t.Id; idx: number }[],

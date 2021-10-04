@@ -158,7 +158,7 @@ export const typeExpression = (
     ctx: Context,
     term: Expression,
     expected: Array<Type>,
-): Term | null => {
+): Term => {
     switch (term.type) {
         case 'BinOp': {
             const grouped = reGroupOps(term);

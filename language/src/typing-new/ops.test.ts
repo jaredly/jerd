@@ -12,6 +12,7 @@ import {
     Type,
     TypeError,
     ErrorTerm,
+    Symbol,
     Id,
 } from '../typing/types';
 import * as preset from '../typing/preset';
@@ -28,6 +29,7 @@ import { printToString } from '../printing/printer';
 import { termToPretty } from '../printing/printTsLike';
 import { showLocation } from '../typing/typeExpr';
 import { transformTerm } from '../typing/auto-transform';
+import { showType } from '../typing/unify';
 
 export const rawSnapshotSerializer: jest.SnapshotSerializerPlugin = {
     test(value) {
@@ -38,6 +40,28 @@ export const rawSnapshotSerializer: jest.SnapshotSerializerPlugin = {
     },
 };
 expect.addSnapshotSerializer(rawSnapshotSerializer);
+
+export const errorSerilaizer: jest.SnapshotSerializerPlugin = {
+    test(value) {
+        return (
+            value &&
+            typeof value === 'object' &&
+            typeof value.ctx === 'object' &&
+            Array.isArray(value.errors)
+        );
+    },
+    print(value, _, __) {
+        const v = value as { ctx: Context; errors: Array<ErrorTerm> };
+        return v.errors
+            .map(
+                (t: ErrorTerm) =>
+                    `${termToString(v.ctx, t)} at ${showLocation(t.location)}`,
+            )
+            .join('\n');
+    },
+};
+expect.addSnapshotSerializer(errorSerilaizer);
+
 export const warningsSerializer: jest.SnapshotSerializerPlugin = {
     test(value) {
         return (
@@ -320,9 +344,7 @@ describe('non-generic examples', () => {
     });
 });
 
-const simpleCtx = () => {
-    const ctx = newContext();
-
+const addSimpleRecord = (ctx: Context) => {
     let slash; // const slash = idFromName('slash');
     [ctx.library, slash] = addRecord(
         ctx.library,
@@ -330,6 +352,12 @@ const simpleCtx = () => {
         'slash',
         ['/'],
     );
+
+    return { ctx, slash };
+};
+
+const simpleCtx = () => {
+    const { ctx, slash } = addSimpleRecord(newContext());
 
     let slashImpl;
     [ctx.library, slashImpl] = addTerm(
@@ -358,7 +386,12 @@ describe('failures', () => {
         expect(ctx.warnings).toMatchInlineSnapshot(
             `1:2-1:6: No values found that match the operator. I found some types though.`,
         );
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(`[null term]`);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `NOTFOND(/){}(2, 3)`,
+        );
+        expect({ ctx, errors: findErrors(res) }).toMatchInlineSnapshot(
+            `NOTFOND(/) at 1:2-1:6`,
+        );
     });
 
     it('no type exists', () => {
@@ -367,7 +400,12 @@ describe('failures', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(1);
         expect(ctx.warnings).toMatchInlineSnapshot(`1:2-1:6: No attribute /`);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(`[null term]`);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `NOTFOND(/){}(2, 3)`,
+        );
+        expect({ ctx, errors: findErrors(res) }).toMatchInlineSnapshot(
+            `NOTFOND(/) at 1:2-1:6`,
+        );
     });
 
     it('right is wrong type', () => {
@@ -377,11 +415,9 @@ describe('failures', () => {
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
             `2 /#ae81c704#d28f8708#0 3.0`,
         );
-        expect(
-            findErrors(res)
-                .map((t) => termToString(ctx, t))
-                .join('\n'),
-        ).toMatchInlineSnapshot(`3.0`);
+        expect({ ctx, errors: findErrors(res) }).toMatchInlineSnapshot(
+            `3.0 at 1:5-1:8`,
+        );
     });
 
     it('left is wrong type', () => {
@@ -589,7 +625,51 @@ describe('generic examples', () => {
     });
 
     it('local type variable', () => {
-        const ctx = newContext();
+        const { ctx, slash } = addSimpleRecord(newContext());
+
+        const tunique = 1;
+        const tsym: Symbol = { unique: tunique, name: 'T' };
+        ctx.bindings.types.push({
+            location: nullLocation as Location,
+            subTypes: [slash],
+            sym: tsym,
+        });
+        ctx.bindings.values.push({
+            location: nullLocation as Location,
+            sym: { unique: 10, name: 'slasher' },
+            type: { type: 'var', sym: tsym, location: nullLocation },
+        });
+
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#:10#d28f8708#0 3`,
+        );
+    });
+
+    it('local type variable invalid', () => {
+        const { ctx, slash } = addSimpleRecord(newContext());
+
+        const tunique = 1;
+        const tsym: Symbol = { unique: tunique, name: 'T' };
+        ctx.bindings.types.push({
+            location: nullLocation as Location,
+            subTypes: [],
+            sym: tsym,
+        });
+        ctx.bindings.values.push({
+            location: nullLocation as Location,
+            sym: { unique: 10, name: 'slasher' },
+            type: { type: 'var', sym: tsym, location: nullLocation },
+        });
+
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:2-1:6: No values found that match the operator. I found some types though.`,
+        );
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `NOTFOND(/){}(2, 3)`,
+        );
     });
 });
 
