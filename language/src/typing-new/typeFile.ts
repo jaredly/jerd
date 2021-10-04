@@ -12,6 +12,7 @@ import {
     WithSuffix,
     Apsub,
     BinOp_inner,
+    Identifier,
 } from '../parsing/parser-new';
 import { hashObject, idFromName } from '../typing/env';
 import { getOpLevel, organizeDeep } from '../typing/terms/ops';
@@ -20,6 +21,8 @@ import * as preset from '../typing/preset';
 import { Term, Type } from '../typing/types';
 import { reGroupOps, typeGroup } from './ops';
 import { Library } from './Library';
+import { parseIdOrSym } from './hashes';
+import { resolveNamedValue, resolveValue } from './resolve';
 
 export type ConstructorNames = {
     names: { [key: string]: Array<{ id: typed.Id; idx: number }> };
@@ -154,12 +157,55 @@ export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
     return term;
 };
 
+export const typeIdentifier = (
+    ctx: Context,
+    term: Identifier,
+    expected: Array<Type>,
+): Term => {
+    if (term.hash) {
+        const idOrSym = parseIdOrSym(term.hash.slice(1));
+        const resolved = idOrSym && resolveValue(ctx, idOrSym, term.location);
+        if (resolved) {
+            return resolved;
+        }
+        ctx.warnings.push({
+            location: term.location,
+            text: `Unable to resolve term hash ${term.hash}`,
+        });
+    }
+    const named = resolveNamedValue(ctx, term.text, term.location, expected);
+    if (named) {
+        return named;
+    }
+    if (expected.length) {
+        // Try resolving without an expected type
+        const got = resolveNamedValue(ctx, term.text, term.location, []);
+        if (got) {
+            return {
+                type: 'TypeError',
+                is: expected[0],
+                inner: got,
+                location: term.location,
+            };
+        }
+    }
+    return {
+        type: 'NotFound',
+        is: expected.length ? expected[0] : preset.void_,
+        location: term.location,
+        text: term.text,
+    };
+};
+
 export const typeExpression = (
     ctx: Context,
     term: Expression,
     expected: Array<Type>,
 ): Term => {
     switch (term.type) {
+        case 'Identifier': {
+            return typeIdentifier(ctx, term, expected);
+        }
         case 'BinOp': {
             const grouped = reGroupOps(term);
             if (grouped.type !== 'GroupedOp') {

@@ -80,10 +80,16 @@ export const resolveNamedValue = (
     ctx: Context,
     name: string,
     location: Location,
-    expectedType: null | t.Type,
+    expectedTypes: Array<t.Type>,
 ): t.Term | null => {
     for (let binding of ctx.bindings.values) {
         if (binding.sym.name === name) {
+            if (
+                expectedTypes.length &&
+                !expectedTypes.some((et) => t.typesEqual(binding.type, et))
+            ) {
+                continue;
+            }
             return {
                 type: 'var',
                 sym: binding.sym,
@@ -94,7 +100,10 @@ export const resolveNamedValue = (
     }
     for (let id of ctx.library.terms.names[name] || []) {
         const term = ctx.library.terms.defns[idName(id)];
-        if (expectedType && !t.typesEqual(term.is, expectedType)) {
+        if (
+            expectedTypes.length &&
+            !expectedTypes.some((et) => t.typesEqual(term.is, et))
+        ) {
             continue;
         }
         return {
