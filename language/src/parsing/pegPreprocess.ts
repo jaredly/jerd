@@ -183,6 +183,20 @@ const processExpression = (
                     ]);
                 }
             });
+
+            // TODO: if the type is | or null, and we're verifying that it exists, then
+            // we can drop the orNull
+            const isExpendable = ([name, t, _]: [
+                string,
+                t.TSType,
+                t.Expression,
+            ]) =>
+                name.endsWith('_drop') &&
+                (t.type === 'TSArrayType' ||
+                    t.type === 'TSOptionalType' ||
+                    (t.type === 'TSUnionType' &&
+                        t.types[1].type === 'TSNullKeyword'));
+
             if (
                 attributes.length === 2 &&
                 attributes[0][0] === 'first' &&
@@ -198,6 +212,9 @@ const processExpression = (
                     ]),
                 ];
             }
+            const canDropThrough =
+                attributes.length === 2 &&
+                (isExpendable(attributes[0]) || isExpendable(attributes[1]));
             const typeName = attributes.some((s) => s[0] === 'type')
                 ? '$type'
                 : 'type';
@@ -242,7 +259,12 @@ const processExpression = (
                     attributes.map(([name, type, _]) => {
                         return t.tsPropertySignature(
                             t.identifier(name.replace(/_drop$/, '')),
-                            t.tsTypeAnnotation(type),
+                            name.endsWith('_drop') &&
+                                canDropThrough &&
+                                type.type === 'TSUnionType' &&
+                                type.types[1].type === 'TSNullKeyword'
+                                ? t.tsTypeAnnotation(type.types[0])
+                                : t.tsTypeAnnotation(type),
                         );
                     }),
                 ),
@@ -276,22 +298,7 @@ const processExpression = (
                     }),
                 ),
             );
-            // TODO: if the type is | or null, and we're verifying that it exists, then
-            // we can drop the orNull
-            const isExpendable = ([name, t, _]: [
-                string,
-                t.TSType,
-                t.Expression,
-            ]) =>
-                name.endsWith('_drop') &&
-                (t.type === 'TSArrayType' ||
-                    t.type === 'TSOptionalType' ||
-                    (t.type === 'TSUnionType' &&
-                        t.types[1].type === 'TSNullKeyword'));
-            if (
-                attributes.length === 2 &&
-                (isExpendable(attributes[0]) || isExpendable(attributes[1]))
-            ) {
+            if (canDropThrough) {
                 const expFirst = isExpendable(attributes[0]);
                 return [
                     t.tsUnionType([

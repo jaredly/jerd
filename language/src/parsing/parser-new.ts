@@ -10372,7 +10372,7 @@ export type BinOpRight = {
 export type WithUnary_inner = {
   type: "WithUnary";
   location: Location;
-  op: UnaryOp | null;
+  op: UnaryOp;
   inner: Decorated;
 };
 
