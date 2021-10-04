@@ -24,6 +24,33 @@ import { parseIdOrSym } from './hashes';
 import { resolveNamedValue, resolveValue } from './resolve';
 import { typeExpression } from './typeExpression';
 
+export type Context = {
+    unique: { current: number };
+    library: Library;
+    builtins: {
+        terms: {
+            [key: string]: typed.Type;
+        };
+        types: {
+            [key: string]: number; // number of type variables accepted.
+        };
+    };
+    bindings: {
+        self: null | { type: typed.Type; name: string };
+        values: Array<{
+            location: Location;
+            sym: typed.Symbol;
+            type: typed.Type;
+        }>;
+        types: Array<{
+            location: Location;
+            sym: typed.Symbol;
+            subTypes: Array<typed.Id>;
+        }>;
+    };
+    warnings: Array<{ location: Location; text: string }>;
+};
+
 export type ConstructorNames = {
     names: { [key: string]: Array<{ id: typed.Id; idx: number }> };
     idToNames: { [key: string]: Array<string> };
@@ -99,25 +126,6 @@ export const ctxToEnv = (ctx: Context): typed.Env => {
         },
         local: typed.newLocal(),
     };
-};
-
-export type Context = {
-    unique: { current: number };
-    library: Library;
-    bindings: {
-        self: null | { type: typed.Type; name: string };
-        values: Array<{
-            location: Location;
-            sym: typed.Symbol;
-            type: typed.Type;
-        }>;
-        types: Array<{
-            location: Location;
-            sym: typed.Symbol;
-            subTypes: Array<typed.Id>;
-        }>;
-    };
-    warnings: Array<{ location: Location; text: string }>;
 };
 
 export const typeToplevel = (

@@ -6,7 +6,7 @@ import { Location } from '../parsing/parser-new';
 import { idName } from '../typing/env';
 
 export type ResolvedType =
-    | { type: 'id'; id: t.Id }
+    | { type: 'id'; id: t.Id; typeVbls: Array<t.TypeVblDecl> }
     | { type: 'var'; binding: { sym: t.Symbol; subTypes: Array<t.Id> } };
 
 export const resolveTypeSym = (ctx: Context, unique: number) =>
@@ -29,20 +29,26 @@ export const resolveType = (
         }
         return null;
     } else {
-        const term = ctx.library.types.defns[idName(idOrSym.id)];
-        if (term != null) {
+        const type = ctx.library.types.defns[idName(idOrSym.id)];
+        if (type != null) {
             return {
-                // type: 'ref',
-                // location,
-                // typeVbls: [],
-                // ref: { type: 'user', id: idOrSym.id },
                 type: 'id',
                 id: idOrSym.id,
+                typeVbls: type.typeVbls,
             };
         }
         return null;
     }
 };
+
+// START HERE:
+// OOoooooooh ok folks
+// So if you specified /too many/ type variables, we wrap it in an 'extra type variables' dealio
+// but if you didn't specify /enough/, then we can just fill in with type holes.
+// BUT let's talk about fallthrough behavior.
+// if you have the wrong number of type variables for this one, but the right for another...
+// Yeah, I think we want another "options" setup. So we can go through and see what matches.
+// And if nothing does, we take the top one and jimmy it up.
 
 export const resolveValue = (
     ctx: Context,

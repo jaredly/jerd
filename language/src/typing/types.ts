@@ -1120,17 +1120,26 @@ export type TypeVar = {
     decorators?: Decorators;
 };
 
+// TODO: DELETE THIS
 export type AmbiguousType = {
     type: 'Ambiguous';
     location: Location;
     decorators?: Decorators;
 };
-export type Type =
-    | TypeRef
-    | LambdaType
+
+export type Type = TypeRef | LambdaType | ErrorType;
+export type ErrorType =
     | AmbiguousType
     | TypeNotFound
+    | InvalidTypeApplication
+    | NotASubType
     | TypeHole;
+export type NotASubType = {
+    type: 'NotASubType';
+    ref: TypeRef;
+    decorators?: Decorators;
+    inner: Type;
+};
 export type TypeHole = {
     type: 'Hole';
     location: Location;
@@ -1141,6 +1150,13 @@ export type TypeNotFound = {
     location: Location;
     decorators?: Decorators;
     text: string;
+};
+export type InvalidTypeApplication = {
+    type: 'InvalidTypeApplication';
+    location: Location;
+    decorators?: Decorators;
+    inner: Type;
+    typeVbls: Array<Type>;
 };
 
 // Here's the basics folks
