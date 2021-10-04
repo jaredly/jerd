@@ -85,12 +85,7 @@ expect.addSnapshotSerializer(warningsSerializer);
 const l = (n: number) => '[({<'[n % 4];
 const r = (n: number) => '])}>'[n % 4];
 
-const int = (w: Expression) =>
-    w.type === 'WithUnary'
-        ? w.inner.type === 'Int'
-            ? w.inner.contents
-            : null
-        : null;
+const int = (w: Expression) => (w.type === 'Int' ? w.contents : null);
 const groups = (w: Expression | GroupedOp, i: number): any =>
     w.type !== 'GroupedOp'
         ? int(w)

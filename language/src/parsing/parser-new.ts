@@ -396,7 +396,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     };
   };
   const peg$c60 = function(op_drop: any, inner: any): any {
-    return op_drop ? inner : {
+    return !op_drop ? inner : {
       type: "WithUnary",
       location: myLocation(),
       op: op_drop,

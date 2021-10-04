@@ -310,7 +310,10 @@ const processExpression = (
                                   ),
                                   t.numericLiteral(0),
                               )
-                            : t.identifier(attributes[expFirst ? 0 : 1][0]),
+                            : t.unaryExpression(
+                                  '!',
+                                  t.identifier(attributes[expFirst ? 0 : 1][0]),
+                              ),
                         t.identifier(attributes[expFirst ? 1 : 0][0]),
                         recordObject,
                     ),
