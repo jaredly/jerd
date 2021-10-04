@@ -12,6 +12,7 @@ import {
     Type,
     TypeError,
     ErrorTerm,
+    Id,
 } from '../typing/types';
 import * as preset from '../typing/preset';
 import { GroupedOp, reGroupOps } from './ops';
@@ -413,23 +414,24 @@ describe('generic examples', () => {
 });
 
 describe('explicit hashes', () => {
+    const ctx: Context = newContext();
+
+    let slash: Id; // const slash = idFromName('slash');
+    [ctx.library, slash] = addRecord(
+        ctx.library,
+        preset.recordDefn([fakeIntOp.is]),
+        'slash',
+        ['/'],
+    );
+
+    let slashImpl: Id;
+    [ctx.library, slashImpl] = addTerm(
+        ctx.library,
+        preset.recordLiteral(slash, [fakeIntOp]),
+    );
+
     it('correct', () => {
-        const ctx: Context = newContext();
-
-        let slash; // const slash = idFromName('slash');
-        [ctx.library, slash] = addRecord(
-            ctx.library,
-            preset.recordDefn([fakeIntOp.is]),
-            'slash',
-            ['/'],
-        );
-
-        let slashImpl;
-        [ctx.library, slashImpl] = addTerm(
-            ctx.library,
-            preset.recordLiteral(slash, [fakeIntOp]),
-        );
-
+        ctx.warnings = [];
         const res = parseExpression(
             ctx,
             `2 /#${idName(slashImpl)}#${idName(slash)}#0 3`,
@@ -440,23 +442,47 @@ describe('explicit hashes', () => {
         );
     });
 
+    it('incorrect', () => {
+        ctx.warnings = [];
+        const res = parseExpression(
+            ctx,
+            `2 /#0${idName(slashImpl)}#${idName(slash)}#0 3`,
+        );
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:2-1:27: Unable to resolve value for operator`,
+        );
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3`,
+        );
+    });
+
+    it('incorrect type', () => {
+        ctx.warnings = [];
+        const res = parseExpression(
+            ctx,
+            `2 /#${idName(slashImpl)}#0${idName(slash)}#0 3`,
+        );
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:2-1:27: Attribute type 0d28f8708 doesn't exist`,
+        );
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3`,
+        );
+    });
+
     it('invalid', () => {
-        const ctx: Context = newContext();
-
-        let slash; // const slash = idFromName('slash');
-        [ctx.library, slash] = addRecord(
-            ctx.library,
-            preset.recordDefn([fakeIntOp.is]),
-            'slash',
-            ['/'],
+        ctx.warnings = [];
+        const res = parseExpression(ctx, `2 /#aaa 3`);
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:2-1:10: Unable to parse hash "#aaa"`,
         );
-
-        let slashImpl;
-        [ctx.library, slashImpl] = addTerm(
-            ctx.library,
-            preset.recordLiteral(slash, [fakeIntOp]),
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3`,
         );
+    });
 
+    it('invalid', () => {
+        ctx.warnings = [];
         const res = parseExpression(ctx, `2 /#${idName(slashImpl)}#0 3`);
         expect(ctx.warnings).toMatchInlineSnapshot(
             `1:2-1:17: Invalid hash "#ae81c704#0"`,

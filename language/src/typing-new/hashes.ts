@@ -37,5 +37,5 @@ export const parseAttrHash = (hash: string) => {
     if (isNaN(attr)) {
         return null;
     }
-    return { type: parseIdOrSym(hash.slice(0, idx)), attr };
+    return { type: idFromName(hash.slice(0, idx)), attr };
 };

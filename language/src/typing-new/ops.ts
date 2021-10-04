@@ -133,6 +133,7 @@ import { var_ } from '../typing/preset';
 import { subtTypeVars } from '../typing/typeExpr';
 import { resolveTypeVbls } from '../typing/getTypeError';
 import { showType } from '../typing/unify';
+import { getAllSubTypes, hasSubType } from './utils';
 
 const opsEqual = (one: binopWithHash, two: binopWithHash) =>
     one.op === two.op && one.hash === two.hash;
@@ -298,20 +299,20 @@ export const resolveOpHash = (
         warn(`Unable to resolve value for operator`);
         return null;
     }
-    // SOOO what about type ... variables.
-    // if (base.type === 'ref')
-    const type = resolveType(ctx, hash.attr.type, location);
-    if (!type) {
-        warn(`Unable to resolve type for operator`);
-        return null;
-    }
-    return resolveAttribute(ctx, base, type, hash.attr.attr, hashLoc, location);
+    return resolveAttribute(
+        ctx,
+        base,
+        hash.attr.type,
+        hash.attr.attr,
+        hashLoc,
+        location,
+    );
 };
 
 export const resolveAttribute = (
     ctx: Context,
     base: t.Term,
-    type: ResolvedType,
+    tid: t.Id,
     attr: number,
     idLocation: Location,
     location: Location,
@@ -321,18 +322,18 @@ export const resolveAttribute = (
     // I don't think the attribute type #abc#THIS#0 part
     // will even be a :sym. Because it'll be referring to
     // the subType thing.
-    if (type.type !== 'id') {
-        warn(`Attribute type cannot be a symbol`);
+    let decl = ctx.library.types.defns[idName(tid)];
+    if (!decl) {
+        warn(`Attribute type ${idName(tid)} doesn't exist`);
         return null;
     }
-
-    let decl = ctx.library.types.defns[idName(type.id)];
     if (decl.type === 'Enum') {
-        warn(`Attribute type ${idName(type.id)} is an enum, not a record`);
+        warn(`Attribute type ${idName(tid)} is an enum, not a record`);
         return null;
     }
     let refTypeVbls: Array<t.Type> = [];
 
+    const supers = ctx.library.types.superTypes[idName(tid)];
     if (base.is.type === 'var') {
         const binding = resolveTypeSym(ctx, base.is.sym.unique);
         if (!binding) {
@@ -343,9 +344,19 @@ export const resolveAttribute = (
 
         let found = false;
         for (let sub of allSubTypes) {
-            if (t.idsEqual(sub, type.id)) {
+            if (t.idsEqual(sub, tid)) {
                 found = true;
             }
+        }
+        if (!found) {
+            warn(
+                `Attribute id ${idName(
+                    tid,
+                )} is not a subtype of type variable ${base.is.sym.name}#:${
+                    base.is.sym.unique
+                }`,
+            );
+            return null;
         }
     } else if (base.is.type !== 'ref' || base.is.ref.type !== 'user') {
         warn(
@@ -358,28 +369,13 @@ export const resolveAttribute = (
     } else {
         refTypeVbls = base.is.typeVbls;
 
-        if (!t.idsEqual(base.is.ref.id, type.id)) {
-            const baseDecl = ctx.library.types.defns[idName(base.is.ref.id)];
-            if (baseDecl.type !== 'Record') {
+        if (!t.idsEqual(base.is.ref.id, tid)) {
+            const bid = base.is.ref.id;
+            if (!supers.some((id) => t.idsEqual(id, bid))) {
                 warn(
-                    `Attribute type ${idName(base.is.ref.id)} is not a record`,
-                );
-                return null;
-            }
-            // TODO: allow records to extend with type variables
-            const allSubTypes = getAllSubTypes(ctx.library, baseDecl.extends);
-
-            let found = false;
-            for (let sub of allSubTypes) {
-                if (t.idsEqual(sub, type.id)) {
-                    found = true;
-                }
-            }
-            if (!found) {
-                warn(
-                    `Attribute id ${idName(
-                        type.id,
-                    )} is not a subtype of ${idName(base.is.ref.id)}`,
+                    `Attribute id ${idName(tid)} is not a subtype of ${idName(
+                        bid,
+                    )}`,
                 );
                 return null;
             }
@@ -400,25 +396,10 @@ export const resolveAttribute = (
         idx: attr,
         inferred: false,
         is: decl.items[attr],
-        ref: { type: 'user', id: type.id },
+        ref: { type: 'user', id: tid },
         target: base,
         refTypeVbls,
     };
-};
-
-export const getAllSubTypes = (
-    lib: Library,
-    extend: Array<t.Id>,
-): Array<t.Id> => {
-    return ([] as Array<t.Id>).concat(
-        ...extend.map((id) => {
-            const defn = lib.types.defns[idName(id)];
-            if (defn.type !== 'Record') {
-                return [];
-            }
-            return [id].concat(getAllSubTypes(lib, defn.extends));
-        }),
-    );
 };
 
 export type Option = {
@@ -676,42 +657,6 @@ export const createTypeVblMapping = (
     });
 
     return mapping;
-};
-
-export const hasSubType = (ctx: Context, type: Type, id: t.Id) => {
-    if (type.type === 'var') {
-        const found = ctx.bindings.types.find(
-            (b) => b.sym.unique === type.sym.unique,
-        );
-        if (!found) {
-            return false;
-        }
-        for (let sid of found.subTypes) {
-            if (t.idsEqual(id, sid)) {
-                return true;
-            }
-            const decl = ctx.library.types.defns[idName(sid)];
-            if (decl.type !== 'Record') {
-                return false;
-            }
-            const allSubTypes = getAllSubTypes(ctx.library, decl.extends);
-            if (allSubTypes.find((x) => t.idsEqual(id, x)) != null) {
-                return true;
-            }
-        }
-    }
-    if (type.type !== 'ref' || type.ref.type === 'builtin') {
-        return false;
-    }
-    if (t.idsEqual(type.ref.id, id)) {
-        return true;
-    }
-    const decl = ctx.library.types.defns[idName(type.ref.id)];
-    if (decl.type === 'Enum') {
-        return false;
-    }
-    const allSubTypes = getAllSubTypes(ctx.library, decl.extends);
-    return allSubTypes.find((x) => t.idsEqual(id, x)) != null;
 };
 
 function findBinopImplementorsForRecordTypes(
