@@ -424,7 +424,7 @@ const makeTransformer = (name: string) => {
         transformerStatus[name] = null;
         return `// no transformer for ${name}`;
     }
-    return `const transform${name} = <Ctx>(node: ${name}, visitor: Visitor<Ctx>, ctx: Ctx): ${name} => {
+    return `export const transform${name} = <Ctx>(node: ${name}, visitor: Visitor<Ctx>, ctx: Ctx): ${name} => {
         if (!node) {
             throw new Error('No ${name} provided');
         }

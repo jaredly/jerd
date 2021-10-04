@@ -1,6 +1,14 @@
 
 ## TYPE SYSTEM REWRITE
 
+OPS TESTS
+- [x] a bunch
+- [ ] local variable impl
+- [ ] various failure modes probably
+- [ ] hashes that work
+- [ ] hashes that dont so we fall back
+- [ ] the left is correct but the right is not
+
 - [x] my "passthrough" dealop (_drop suffix) produces types that are extremely annoying.
   like {x} | TheFallthrough. So I can't reference the object type itself.
   I need to create an alias for the object type. Not 100% sure how to plumb it all.

@@ -381,6 +381,7 @@ if (ast.initializer) {
     grammarFile.push('{\n' + ast.initializer.code + '\n}');
 }
 alls.map(([rule, type, expr]) => {
+    // extract out an _inner version.
     if (type.type === 'TSUnionType' && type.types[0].type === 'TSTypeLiteral') {
         typesFile.push(
             generate(

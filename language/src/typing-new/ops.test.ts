@@ -5,7 +5,14 @@ import {
     WithUnary_inner,
 } from '../parsing/parser-new';
 import { idFromName, idName } from '../typing/env';
-import { nullLocation, Location, Term, Type } from '../typing/types';
+import {
+    nullLocation,
+    Location,
+    Term,
+    Type,
+    TypeError,
+    ErrorTerm,
+} from '../typing/types';
 import * as preset from '../typing/preset';
 import { GroupedOp, reGroupOps } from './ops';
 import {
@@ -19,6 +26,7 @@ import { addRecord, addTerm } from './Library';
 import { printToString } from '../printing/printer';
 import { termToPretty } from '../printing/printTsLike';
 import { showLocation } from '../typing/typeExpr';
+import { transformTerm } from '../typing/auto-transform';
 
 export const rawSnapshotSerializer: jest.SnapshotSerializerPlugin = {
     test(value) {
@@ -167,6 +175,31 @@ export const parseExpression = (ctx: Context, raw: string) => {
     return typeExpression(ctx, top.expr, []);
 };
 
+export const findErrors = (term: Term | null | void) => {
+    if (!term) {
+        return [];
+    }
+    const errors: Array<ErrorTerm> = [];
+    transformTerm(
+        term,
+        {
+            Term(node: Term, _) {
+                if (
+                    node.type === 'TypeError' ||
+                    node.type === 'Hole' ||
+                    node.type === 'Ambiguous' ||
+                    node.type === 'NotFound'
+                ) {
+                    errors.push(node);
+                }
+                return null;
+            },
+        },
+        null,
+    );
+    return errors;
+};
+
 describe('failures', () => {
     it('type exists but no impl', () => {
         const ctx: Context = newContext();
@@ -194,6 +227,64 @@ describe('failures', () => {
         expect(ctx.warnings).toHaveLength(1);
         expect(ctx.warnings).toMatchInlineSnapshot(`1:2-1:6: No attribute /`);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(`[null term]`);
+    });
+
+    const ctx: Context = newContext();
+
+    let slash; // const slash = idFromName('slash');
+    [ctx.library, slash] = addRecord(
+        ctx.library,
+        preset.recordDefn([fakeIntOp.is]),
+        'slash',
+        ['/'],
+    );
+
+    [ctx.library] = addTerm(
+        ctx.library,
+        preset.recordLiteral(slash, [fakeIntOp]),
+        'slash',
+    );
+
+    it('right is wrong type', () => {
+        const res = parseExpression(ctx, `2 / 3.0`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#ae81c704#d28f8708#0 3.0`,
+        );
+        expect(
+            findErrors(res)
+                .map((t) => termToString(ctx, t))
+                .join('\n'),
+        ).toMatchInlineSnapshot(`3.0`);
+    });
+
+    it('left is wrong type', () => {
+        const res = parseExpression(ctx, `2.0 / 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2.0 /#ae81c704#d28f8708#0 3`,
+        );
+        expect(
+            findErrors(res)
+                .map((t) => termToString(ctx, t))
+                .join('\n'),
+        ).toMatchInlineSnapshot(`2.0`);
+    });
+
+    it('both are wrong types', () => {
+        const res = parseExpression(ctx, `2.0 / 3.0`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2.0 /#ae81c704#d28f8708#0 3.0`,
+        );
+        expect(
+            findErrors(res)
+                .map((t) => termToString(ctx, t))
+                .join('\n'),
+        ).toMatchInlineSnapshot(`
+            2.0
+            3.0
+        `);
     });
 });
 

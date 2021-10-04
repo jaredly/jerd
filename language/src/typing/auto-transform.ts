@@ -1,4 +1,4 @@
-import {Term, Location, Loc, Type, TypeVblDecl, Id, Decorators, Decorator, DecoratorArg, Pattern, Symbol, TypeReference, Reference, UserReference, RecordPatternItem, Literal, Boolean, EffectRef, TypeRef, TypeVar, SwitchCase, LambdaType, AmbiguousType, Case, LiteralWithTemplateString, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
+import {Term, Location, Loc, Type, TypeVblDecl, Id, Decorators, Decorator, DecoratorArg, Pattern, Symbol, TypeReference, Reference, UserReference, RecordPatternItem, Literal, Boolean, EffectRef, TypeRef, TypeVar, RecordSubType, SwitchCase, LambdaType, AmbiguousType, Case, LiteralWithTemplateString, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
 
 export type Visitor<Ctx> = {
     Term?: (node: Term, ctx: Ctx) => null | false | Term | [Term, Ctx]
@@ -16,7 +16,7 @@ export type Visitor<Ctx> = {
 }
 // not a type Loc
 
-const transformLocation = <Ctx>(node: Location, visitor: Visitor<Ctx>, ctx: Ctx): Location => {
+export const transformLocation = <Ctx>(node: Location, visitor: Visitor<Ctx>, ctx: Ctx): Location => {
         if (!node) {
             throw new Error('No Location provided');
         }
@@ -58,7 +58,7 @@ const transformLocation = <Ctx>(node: Location, visitor: Visitor<Ctx>, ctx: Ctx)
 
 // no transformer for Reference
 
-const transformTypeReference = <Ctx>(node: TypeReference, visitor: Visitor<Ctx>, ctx: Ctx): TypeReference => {
+export const transformTypeReference = <Ctx>(node: TypeReference, visitor: Visitor<Ctx>, ctx: Ctx): TypeReference => {
         if (!node) {
             throw new Error('No TypeReference provided');
         }
@@ -108,7 +108,7 @@ const transformTypeReference = <Ctx>(node: TypeReference, visitor: Visitor<Ctx>,
         return updatedNode;
     }
 
-const transformRecordPatternItem = <Ctx>(node: RecordPatternItem, visitor: Visitor<Ctx>, ctx: Ctx): RecordPatternItem => {
+export const transformRecordPatternItem = <Ctx>(node: RecordPatternItem, visitor: Visitor<Ctx>, ctx: Ctx): RecordPatternItem => {
         if (!node) {
             throw new Error('No RecordPatternItem provided');
         }
@@ -149,7 +149,7 @@ const transformRecordPatternItem = <Ctx>(node: RecordPatternItem, visitor: Visit
         return updatedNode;
     }
 
-const transformBoolean = <Ctx>(node: Boolean, visitor: Visitor<Ctx>, ctx: Ctx): Boolean => {
+export const transformBoolean = <Ctx>(node: Boolean, visitor: Visitor<Ctx>, ctx: Ctx): Boolean => {
         if (!node) {
             throw new Error('No Boolean provided');
         }
@@ -186,7 +186,7 @@ const transformBoolean = <Ctx>(node: Boolean, visitor: Visitor<Ctx>, ctx: Ctx): 
         return updatedNode;
     }
 
-const transformLiteral = <Ctx>(node: Literal, visitor: Visitor<Ctx>, ctx: Ctx): Literal => {
+export const transformLiteral = <Ctx>(node: Literal, visitor: Visitor<Ctx>, ctx: Ctx): Literal => {
         if (!node) {
             throw new Error('No Literal provided');
         }
@@ -311,7 +311,7 @@ const transformLiteral = <Ctx>(node: Literal, visitor: Visitor<Ctx>, ctx: Ctx): 
         return updatedNode;
     }
 
-const transformPattern = <Ctx>(node: Pattern, visitor: Visitor<Ctx>, ctx: Ctx): Pattern => {
+export const transformPattern = <Ctx>(node: Pattern, visitor: Visitor<Ctx>, ctx: Ctx): Pattern => {
         if (!node) {
             throw new Error('No Pattern provided');
         }
@@ -667,7 +667,7 @@ const transformPattern = <Ctx>(node: Pattern, visitor: Visitor<Ctx>, ctx: Ctx): 
         
     }
 
-const transformDecoratorArg = <Ctx>(node: DecoratorArg, visitor: Visitor<Ctx>, ctx: Ctx): DecoratorArg => {
+export const transformDecoratorArg = <Ctx>(node: DecoratorArg, visitor: Visitor<Ctx>, ctx: Ctx): DecoratorArg => {
         if (!node) {
             throw new Error('No DecoratorArg provided');
         }
@@ -739,7 +739,7 @@ const transformDecoratorArg = <Ctx>(node: DecoratorArg, visitor: Visitor<Ctx>, c
         return updatedNode;
     }
 
-const transformDecorator = <Ctx>(node: Decorator, visitor: Visitor<Ctx>, ctx: Ctx): Decorator => {
+export const transformDecorator = <Ctx>(node: Decorator, visitor: Visitor<Ctx>, ctx: Ctx): Decorator => {
         if (!node) {
             throw new Error('No Decorator provided');
         }
@@ -792,7 +792,7 @@ const transformDecorator = <Ctx>(node: Decorator, visitor: Visitor<Ctx>, ctx: Ct
         return updatedNode;
     }
 
-const transformDecorators = <Ctx>(node: Decorators, visitor: Visitor<Ctx>, ctx: Ctx): Decorators => {
+export const transformDecorators = <Ctx>(node: Decorators, visitor: Visitor<Ctx>, ctx: Ctx): Decorators => {
         if (!node) {
             throw new Error('No Decorators provided');
         }
@@ -817,7 +817,7 @@ const transformDecorators = <Ctx>(node: Decorators, visitor: Visitor<Ctx>, ctx: 
         return updatedNode;
     }
 
-const transformTypeVblDecl = <Ctx>(node: TypeVblDecl, visitor: Visitor<Ctx>, ctx: Ctx): TypeVblDecl => {
+export const transformTypeVblDecl = <Ctx>(node: TypeVblDecl, visitor: Visitor<Ctx>, ctx: Ctx): TypeVblDecl => {
         if (!node) {
             throw new Error('No TypeVblDecl provided');
         }
@@ -857,7 +857,7 @@ const transformTypeVblDecl = <Ctx>(node: TypeVblDecl, visitor: Visitor<Ctx>, ctx
         return updatedNode;
     }
 
-const transformEffectRef = <Ctx>(node: EffectRef, visitor: Visitor<Ctx>, ctx: Ctx): EffectRef => {
+export const transformEffectRef = <Ctx>(node: EffectRef, visitor: Visitor<Ctx>, ctx: Ctx): EffectRef => {
         if (!node) {
             throw new Error('No EffectRef provided');
         }
@@ -937,7 +937,7 @@ const transformEffectRef = <Ctx>(node: EffectRef, visitor: Visitor<Ctx>, ctx: Ct
         return updatedNode;
     }
 
-const transformTypeVar = <Ctx>(node: TypeVar, visitor: Visitor<Ctx>, ctx: Ctx): TypeVar => {
+export const transformTypeVar = <Ctx>(node: TypeVar, visitor: Visitor<Ctx>, ctx: Ctx): TypeVar => {
         if (!node) {
             throw new Error('No TypeVar provided');
         }
@@ -970,7 +970,7 @@ const transformTypeVar = <Ctx>(node: TypeVar, visitor: Visitor<Ctx>, ctx: Ctx): 
         return updatedNode;
     }
 
-const transformTypeRef = <Ctx>(node: TypeRef, visitor: Visitor<Ctx>, ctx: Ctx): TypeRef => {
+export const transformTypeRef = <Ctx>(node: TypeRef, visitor: Visitor<Ctx>, ctx: Ctx): TypeRef => {
         if (!node) {
             throw new Error('No TypeRef provided');
         }
@@ -1038,7 +1038,7 @@ const transformTypeRef = <Ctx>(node: TypeRef, visitor: Visitor<Ctx>, ctx: Ctx): 
         return updatedNode;
     }
 
-const transformType = <Ctx>(node: Type, visitor: Visitor<Ctx>, ctx: Ctx): Type => {
+export const transformType = <Ctx>(node: Type, visitor: Visitor<Ctx>, ctx: Ctx): Type => {
         if (!node) {
             throw new Error('No Type provided');
         }
@@ -1251,7 +1251,60 @@ const transformType = <Ctx>(node: Type, visitor: Visitor<Ctx>, ctx: Ctx): Type =
         
     }
 
-const transformSwitchCase = <Ctx>(node: SwitchCase, visitor: Visitor<Ctx>, ctx: Ctx): SwitchCase => {
+export const transformRecordSubType = <Ctx>(node: RecordSubType, visitor: Visitor<Ctx>, ctx: Ctx): RecordSubType => {
+        if (!node) {
+            throw new Error('No RecordSubType provided');
+        }
+        
+        let changed0 = false;
+        
+            let updatedNode = node;
+            {
+                let changed1 = false;
+                
+        let updatedNode$spread = null;
+        const updatedNode$spread$current = node.spread;
+        if (updatedNode$spread$current != null) {
+            
+                const updatedNode$spread$1$ = transformTerm(updatedNode$spread$current, visitor, ctx);
+                changed1 = changed1 || updatedNode$spread$1$ !== updatedNode$spread$current;
+            updatedNode$spread = updatedNode$spread$1$;
+        }
+        
+
+                
+                let updatedNode$rows = node.rows;
+                {
+                    let changed2 = false;
+                    const arr1 = node.rows.map((updatedNode$rows$item1) => {
+                        
+        let result = null;
+        const result$current = updatedNode$rows$item1;
+        if (result$current != null) {
+            
+                const result$2$ = transformTerm(result$current, visitor, ctx);
+                changed2 = changed2 || result$2$ !== result$current;
+            result = result$2$;
+        }
+        
+                        return result
+                    })
+                    if (changed2) {
+                        updatedNode$rows = arr1;
+                        changed1 = true;
+                    }
+                }
+                
+                if (changed1) {
+                    updatedNode =  {...updatedNode, spread: updatedNode$spread, rows: updatedNode$rows};
+                    changed0 = true;
+                }
+            }
+            
+        return updatedNode;
+    }
+
+export const transformSwitchCase = <Ctx>(node: SwitchCase, visitor: Visitor<Ctx>, ctx: Ctx): SwitchCase => {
         if (!node) {
             throw new Error('No SwitchCase provided');
         }
@@ -1292,7 +1345,7 @@ const transformSwitchCase = <Ctx>(node: SwitchCase, visitor: Visitor<Ctx>, ctx: 
         return updatedNode;
     }
 
-const transformLambdaType = <Ctx>(node: LambdaType, visitor: Visitor<Ctx>, ctx: Ctx): LambdaType => {
+export const transformLambdaType = <Ctx>(node: LambdaType, visitor: Visitor<Ctx>, ctx: Ctx): LambdaType => {
         if (!node) {
             throw new Error('No LambdaType provided');
         }
@@ -1432,7 +1485,7 @@ const transformLambdaType = <Ctx>(node: LambdaType, visitor: Visitor<Ctx>, ctx: 
         return updatedNode;
     }
 
-const transformAmbiguousType = <Ctx>(node: AmbiguousType, visitor: Visitor<Ctx>, ctx: Ctx): AmbiguousType => {
+export const transformAmbiguousType = <Ctx>(node: AmbiguousType, visitor: Visitor<Ctx>, ctx: Ctx): AmbiguousType => {
         if (!node) {
             throw new Error('No AmbiguousType provided');
         }
@@ -1465,7 +1518,7 @@ const transformAmbiguousType = <Ctx>(node: AmbiguousType, visitor: Visitor<Ctx>,
         return updatedNode;
     }
 
-const transformCase = <Ctx>(node: Case, visitor: Visitor<Ctx>, ctx: Ctx): Case => {
+export const transformCase = <Ctx>(node: Case, visitor: Visitor<Ctx>, ctx: Ctx): Case => {
         if (!node) {
             throw new Error('No Case provided');
         }
@@ -1539,7 +1592,7 @@ const transformCase = <Ctx>(node: Case, visitor: Visitor<Ctx>, ctx: Ctx): Case =
         return updatedNode;
     }
 
-const transformLiteralWithTemplateString = <Ctx>(node: LiteralWithTemplateString, visitor: Visitor<Ctx>, ctx: Ctx): LiteralWithTemplateString => {
+export const transformLiteralWithTemplateString = <Ctx>(node: LiteralWithTemplateString, visitor: Visitor<Ctx>, ctx: Ctx): LiteralWithTemplateString => {
         if (!node) {
             throw new Error('No LiteralWithTemplateString provided');
         }
@@ -1730,7 +1783,7 @@ const transformLiteralWithTemplateString = <Ctx>(node: LiteralWithTemplateString
         return updatedNode;
     }
 
-const transformTerm = <Ctx>(node: Term, visitor: Visitor<Ctx>, ctx: Ctx): Term => {
+export const transformTerm = <Ctx>(node: Term, visitor: Visitor<Ctx>, ctx: Ctx): Term => {
         if (!node) {
             throw new Error('No Term provided');
         }
@@ -1844,56 +1897,11 @@ const transformTerm = <Ctx>(node: Term, visitor: Visitor<Ctx>, ctx: Ctx): Term =
             {
                 let changed3 = false;
                 
-                const spread: {[key: string]: {
-  covered: boolean;
-  spread: Term | null;
-  rows: Array<Term | null>;
-}} = {};
+                const spread: {[key: string]: RecordSubType} = {};
                 Object.keys(updatedNode$0specified.subTypes).forEach(key => {
                     
-            let updatedNode$0node$subTypes$value = updatedNode$0specified.subTypes[key];
-            {
-                let changed4 = false;
-                
-        let updatedNode$0node$subTypes$value$spread = null;
-        const updatedNode$0node$subTypes$value$spread$current = updatedNode$0specified.subTypes[key].spread;
-        if (updatedNode$0node$subTypes$value$spread$current != null) {
-            
-                const updatedNode$0node$subTypes$value$spread$4$ = transformTerm(updatedNode$0node$subTypes$value$spread$current, visitor, ctx);
-                changed4 = changed4 || updatedNode$0node$subTypes$value$spread$4$ !== updatedNode$0node$subTypes$value$spread$current;
-            updatedNode$0node$subTypes$value$spread = updatedNode$0node$subTypes$value$spread$4$;
-        }
-        
-
-                
-                let updatedNode$0node$subTypes$value$rows = updatedNode$0specified.subTypes[key].rows;
-                {
-                    let changed5 = false;
-                    const arr4 = updatedNode$0specified.subTypes[key].rows.map((updatedNode$0node$subTypes$value$rows$item4) => {
-                        
-        let result = null;
-        const result$current = updatedNode$0node$subTypes$value$rows$item4;
-        if (result$current != null) {
-            
-                const result$5$ = transformTerm(result$current, visitor, ctx);
-                changed5 = changed5 || result$5$ !== result$current;
-            result = result$5$;
-        }
-        
-                        return result
-                    })
-                    if (changed5) {
-                        updatedNode$0node$subTypes$value$rows = arr4;
-                        changed4 = true;
-                    }
-                }
-                
-                if (changed4) {
-                    updatedNode$0node$subTypes$value =  {...updatedNode$0node$subTypes$value, spread: updatedNode$0node$subTypes$value$spread, rows: updatedNode$0node$subTypes$value$rows};
-                    changed3 = true;
-                }
-            }
-            
+                const updatedNode$0node$subTypes$value = transformRecordSubType(updatedNode$0specified.subTypes[key], visitor, ctx);
+                changed3 = changed3 || updatedNode$0node$subTypes$value !== updatedNode$0specified.subTypes[key];
                     spread[key] = updatedNode$0node$subTypes$value
                 })
                 
@@ -3011,7 +3019,7 @@ const transformTerm = <Ctx>(node: Term, visitor: Visitor<Ctx>, ctx: Ctx): Term =
         
     }
 
-const transformLet = <Ctx>(node: Let, visitor: Visitor<Ctx>, ctx: Ctx): Let => {
+export const transformLet = <Ctx>(node: Let, visitor: Visitor<Ctx>, ctx: Ctx): Let => {
         if (!node) {
             throw new Error('No Let provided');
         }
@@ -3080,7 +3088,7 @@ const transformLet = <Ctx>(node: Let, visitor: Visitor<Ctx>, ctx: Ctx): Let => {
         
     }
 
-const transformEffectDef = <Ctx>(node: EffectDef, visitor: Visitor<Ctx>, ctx: Ctx): EffectDef => {
+export const transformEffectDef = <Ctx>(node: EffectDef, visitor: Visitor<Ctx>, ctx: Ctx): EffectDef => {
         if (!node) {
             throw new Error('No EffectDef provided');
         }
@@ -3157,7 +3165,7 @@ const transformEffectDef = <Ctx>(node: EffectDef, visitor: Visitor<Ctx>, ctx: Ct
         return updatedNode;
     }
 
-const transformDecoratorDefArg = <Ctx>(node: DecoratorDefArg, visitor: Visitor<Ctx>, ctx: Ctx): DecoratorDefArg => {
+export const transformDecoratorDefArg = <Ctx>(node: DecoratorDefArg, visitor: Visitor<Ctx>, ctx: Ctx): DecoratorDefArg => {
         if (!node) {
             throw new Error('No DecoratorDefArg provided');
         }
@@ -3194,7 +3202,7 @@ const transformDecoratorDefArg = <Ctx>(node: DecoratorDefArg, visitor: Visitor<C
         return updatedNode;
     }
 
-const transformDecoratorDef = <Ctx>(node: DecoratorDef, visitor: Visitor<Ctx>, ctx: Ctx): DecoratorDef => {
+export const transformDecoratorDef = <Ctx>(node: DecoratorDef, visitor: Visitor<Ctx>, ctx: Ctx): DecoratorDef => {
         if (!node) {
             throw new Error('No DecoratorDef provided');
         }
@@ -3324,7 +3332,7 @@ const transformDecoratorDef = <Ctx>(node: DecoratorDef, visitor: Visitor<Ctx>, c
         return updatedNode;
     }
 
-const transformUserTypeReference = <Ctx>(node: UserTypeReference, visitor: Visitor<Ctx>, ctx: Ctx): UserTypeReference => {
+export const transformUserTypeReference = <Ctx>(node: UserTypeReference, visitor: Visitor<Ctx>, ctx: Ctx): UserTypeReference => {
         if (!node) {
             throw new Error('No UserTypeReference provided');
         }
@@ -3374,7 +3382,7 @@ const transformUserTypeReference = <Ctx>(node: UserTypeReference, visitor: Visit
         return updatedNode;
     }
 
-const transformEnumDef = <Ctx>(node: EnumDef, visitor: Visitor<Ctx>, ctx: Ctx): EnumDef => {
+export const transformEnumDef = <Ctx>(node: EnumDef, visitor: Visitor<Ctx>, ctx: Ctx): EnumDef => {
         if (!node) {
             throw new Error('No EnumDef provided');
         }
@@ -3458,7 +3466,7 @@ const transformEnumDef = <Ctx>(node: EnumDef, visitor: Visitor<Ctx>, ctx: Ctx): 
         return updatedNode;
     }
 
-const transformRecordDef = <Ctx>(node: RecordDef, visitor: Visitor<Ctx>, ctx: Ctx): RecordDef => {
+export const transformRecordDef = <Ctx>(node: RecordDef, visitor: Visitor<Ctx>, ctx: Ctx): RecordDef => {
         if (!node) {
             throw new Error('No RecordDef provided');
         }
@@ -3567,7 +3575,7 @@ const transformRecordDef = <Ctx>(node: RecordDef, visitor: Visitor<Ctx>, ctx: Ct
         return updatedNode;
     }
 
-const transformToplevelRecord = <Ctx>(node: ToplevelRecord, visitor: Visitor<Ctx>, ctx: Ctx): ToplevelRecord => {
+export const transformToplevelRecord = <Ctx>(node: ToplevelRecord, visitor: Visitor<Ctx>, ctx: Ctx): ToplevelRecord => {
         if (!node) {
             throw new Error('No ToplevelRecord provided');
         }
@@ -3593,7 +3601,7 @@ const transformToplevelRecord = <Ctx>(node: ToplevelRecord, visitor: Visitor<Ctx
         return updatedNode;
     }
 
-const transformToplevelT = <Ctx>(node: ToplevelT, visitor: Visitor<Ctx>, ctx: Ctx): ToplevelT => {
+export const transformToplevelT = <Ctx>(node: ToplevelT, visitor: Visitor<Ctx>, ctx: Ctx): ToplevelT => {
         if (!node) {
             throw new Error('No ToplevelT provided');
         }

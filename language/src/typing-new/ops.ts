@@ -566,6 +566,11 @@ export const typePair = (
         throw new Error(`pick the first one, and fill with TypeError`);
     }
 
+    if (op2.term.is.type !== 'lambda') {
+        console.log(op2.term);
+        throw new Error(`Not lambda`);
+    }
+
     return {
         type: 'apply',
         args: [
@@ -575,7 +580,7 @@ export const typePair = (
         location,
         target: op2.term,
         effectVbls: [],
-        is: (op2.term.is as t.LambdaType).res,
+        is: op2.term.is.res,
         typeVbls: op2.typeArgs,
     };
 };
@@ -752,7 +757,7 @@ function findBinopImplementorsForRecordTypes(
                             ref: { type: 'user', id },
                             idLocation: location,
                             inferred: false,
-                            is: row.res,
+                            is: row,
                             location,
                             refTypeVbls: [],
                             target: var_(sym, type, location),
@@ -827,7 +832,7 @@ const optionForValue = (
                     ref: { type: 'user', id },
                     idLocation: location,
                     inferred: false,
-                    is: row.res,
+                    is: row,
                     location,
                     refTypeVbls: type.typeVbls,
                     target: target,
@@ -854,7 +859,7 @@ const optionForValue = (
                 ref: { type: 'user', id },
                 idLocation: location,
                 inferred: false,
-                is: row.res,
+                is: row,
                 location,
                 refTypeVbls: [],
                 target,

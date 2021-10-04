@@ -139,6 +139,21 @@ export type Context = {
 //     return typeAbSub(ctx, term.sub, expected);
 // };
 
+export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
+    if (
+        expected.length &&
+        !expected.some((t) => typed.typesEqual(t, term.is))
+    ) {
+        return {
+            type: 'TypeError',
+            inner: term,
+            is: expected[0],
+            location: term.location,
+        };
+    }
+    return term;
+};
+
 export const typeExpression = (
     ctx: Context,
     term: Expression,
@@ -158,13 +173,27 @@ export const typeExpression = (
             }
             return typeExpression(ctx, term.inner, expected);
         }
+        case 'Float': {
+            return wrapExpected(
+                {
+                    type: 'float',
+                    location: term.location,
+                    is: preset.float,
+                    value: +term.contents,
+                },
+                expected,
+            );
+        }
         case 'Int':
-            return {
-                type: 'int',
-                location: term.location,
-                is: preset.int,
-                value: +term.contents,
-            };
+            return wrapExpected(
+                {
+                    type: 'int',
+                    location: term.location,
+                    is: preset.int,
+                    value: +term.contents,
+                },
+                expected,
+            );
     }
     throw new Error('no absub: ' + term.type);
 };
