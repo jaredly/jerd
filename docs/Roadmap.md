@@ -1,4 +1,16 @@
 
+## EDITOR DUMP
+
+OK so this is all well and fun,
+but I seriously need a way to DUMP the editor state into text,
+so I can re-parse it with some things being very different.
+
+Like:
+- record literals no longer have things organized super weird.
+- and such, idk.
+
+
+
 ## TYPE SYSTEM REWRITE
 
 OPS TESTS

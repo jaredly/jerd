@@ -10,10 +10,14 @@ import { addLocationIndices } from '@jerd/language/src/typing/analyze';
 import {
     addToplevelToEnv,
     idName,
-    ToplevelExpression,
     typeToplevelT,
 } from '@jerd/language/src/typing/env';
-import { Env, Id, newWithGlobal } from '@jerd/language/src/typing/types';
+import {
+    Env,
+    Id,
+    newWithGlobal,
+    ToplevelExpression,
+} from '@jerd/language/src/typing/types';
 import { defaultPlugins } from '../defaultPlugins';
 import { OpenGLCanvas } from '../display/OpenGLCanvas';
 import { runTerm } from '../eval';

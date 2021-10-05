@@ -1,12 +1,8 @@
 /** @jsx jsx */
 import { Interpolation, jsx, Theme } from '@emotion/react';
+import { hashObject, idFromName, idName } from '@jerd/language/src/typing/env';
 import {
-    hashObject,
-    idFromName,
-    idName,
     ToplevelT,
-} from '@jerd/language/src/typing/env';
-import {
     Env,
     Id,
     idsEqual,

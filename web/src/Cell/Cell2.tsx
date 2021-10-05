@@ -6,7 +6,6 @@ import * as React from 'react';
 import {
     hashObject,
     idName,
-    ToplevelT,
     typeToplevelT,
 } from '@jerd/language/src/typing/env';
 import {
@@ -35,6 +34,7 @@ import {
     GlobalEnv,
     Id,
     newWithGlobal,
+    ToplevelT,
     nullLocation,
 } from '../../../language/src/typing/types';
 import { WorkspacePicker } from '../workspace/WorkspacePicker';

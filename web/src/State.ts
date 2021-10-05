@@ -1,13 +1,16 @@
 // Type definitions for state
 
-import { Env, Id, Term, Type } from '@jerd/language/src/typing/types';
 import {
+    Env,
+    Id,
+    Term,
+    Type,
     ToplevelDefine,
     ToplevelEffect,
     ToplevelEnum,
     ToplevelExpression,
     ToplevelRecord,
-} from '../../language/src/typing/env';
+} from '@jerd/language/src/typing/types';
 import { Traces } from './eval';
 
 // hmm so I want

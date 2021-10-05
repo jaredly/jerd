@@ -1,11 +1,8 @@
+import { idName, idFromName } from '@jerd/language/src/typing/env';
 import {
-    idName,
-    idFromName,
     ToplevelT,
     ToplevelDefine,
     ToplevelDecorator,
-} from '@jerd/language/src/typing/env';
-import {
     Env,
     Id,
     idsEqual,

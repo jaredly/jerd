@@ -437,7 +437,7 @@ const getTopLevel = (
     const [idRaw, second] = hash.split('#');
     if (second === 'builtin') {
         if (!isType) {
-            return [null, {}];
+            // return [null, {}];
         }
         return null;
     }

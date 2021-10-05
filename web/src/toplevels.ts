@@ -10,14 +10,14 @@ import {
     addEnum,
     idName,
     addEffect,
-    ToplevelT,
-    ToplevelDefine,
 } from '@jerd/language/src/typing/env';
 import {
     EnumDef,
     Env,
     Id,
     nullLocation,
+    ToplevelT,
+    ToplevelDefine,
 } from '@jerd/language/src/typing/types';
 import { Content, TopContent } from './State';
 

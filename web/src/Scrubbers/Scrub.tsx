@@ -1,17 +1,13 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/react';
-import {
-    hashObject,
-    idFromName,
-    idName,
-    ToplevelT,
-} from '@jerd/language/src/typing/env';
+import { hashObject, idFromName, idName } from '@jerd/language/src/typing/env';
 import {
     Env,
     Term,
     Float,
     Location,
     walkTerm,
+    ToplevelT,
 } from '@jerd/language/src/typing/types';
 import * as React from 'react';
 import { IconButton } from '../display/OpenGLCanvas';
