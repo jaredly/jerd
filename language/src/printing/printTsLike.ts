@@ -447,6 +447,12 @@ export const typeVblDeclsToPretty = (
 export const typeToPretty = (env: Env | null, type: Type): PP => {
     switch (type.type) {
         case 'ref':
+            if (
+                type.ref.type === 'builtin' &&
+                type.ref.name.startsWith('Tuple')
+            ) {
+                return args(type.typeVbls.map((t) => typeToPretty(env, t)));
+            }
             if (type.typeVbls.length) {
                 return items(
                     [
@@ -509,6 +515,21 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
             return atom(`[Not Found: ${type.text}]`);
         case 'THole':
             return atom('[type hole]');
+        case 'InvalidTypeApplication':
+            return items([
+                atom('[extra vbls '),
+                typeToPretty(env, type.inner),
+                atom(' '),
+                args(type.typeVbls.map((t) => typeToPretty(env, t))),
+                atom(']'),
+            ]);
+        case 'NotASubType':
+            return items([
+                atom('[not a subtype: '),
+                typeToPretty(env, type.inner),
+                atom(' of '),
+                args(type.subTypes.map((id) => idToPretty(env, id, 'subType'))),
+            ]);
         default:
             throw new Error(`Unexpected type ${JSON.stringify(type)}`);
     }

@@ -66,6 +66,45 @@ export const addTerm = (
     ];
 };
 
+export const addEffect = (
+    lib: Library,
+    effDef: EffectDef,
+    name: string,
+    constrNames: Array<string>,
+): [Library, Id] => {
+    const id = idFromName(hashObject(effDef));
+    const names = {
+        ...lib.effects.constructors.names,
+    };
+    constrNames.forEach((name, i) => {
+        names[name] = (names[name] || []).concat({ id, idx: i });
+    });
+    return [
+        {
+            ...lib,
+            effects: {
+                ...lib.effects,
+                defns: {
+                    ...lib.effects.defns,
+                    [idName(id)]: effDef,
+                },
+                names: {
+                    ...lib.effects.names,
+                    [name]: (lib.effects.names[name] || []).concat([id]),
+                },
+                constructors: {
+                    idToNames: {
+                        ...lib.effects.constructors.idToNames,
+                        [idName(id)]: constrNames,
+                    },
+                    names,
+                },
+            },
+        },
+        id,
+    ];
+};
+
 export const addRecord = (
     lib: Library,
     record: RecordDef,

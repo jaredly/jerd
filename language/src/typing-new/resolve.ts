@@ -42,6 +42,14 @@ export const resolveEffectId = (
             }
         }
     }
+    const binding = ctx.bindings.effects.find((ef) => ef.sym.name === id.text);
+    if (binding) {
+        return {
+            type: 'var',
+            sym: binding?.sym,
+            location: id.location,
+        };
+    }
     const ids = ctx.library.effects.names[id.text];
     if (ids) {
         return {

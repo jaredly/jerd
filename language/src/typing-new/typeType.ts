@@ -151,6 +151,7 @@ export const typeTypeRef = (ctx: Context, type: TypeRef): t.Type => {
             if (
                 subTypes.some(
                     (sub) =>
+                        !t.idsEqual(sub, id) &&
                         !ctx.library.types.superTypes[idName(sub)].some((sid) =>
                             t.idsEqual(sid, id),
                         ),
@@ -315,11 +316,12 @@ export const typeType = (ctx: Context, type: Type): t.Type => {
                     : [],
                 effectVbls,
                 typeVbls,
-                effects: type.effects?.items
-                    .map((item) => {
-                        return resolveEffectId(inner, item);
-                    })
-                    .filter(Boolean) as Array<t.EffectRef>,
+                effects:
+                    (type.effects?.items
+                        .map((item) => {
+                            return resolveEffectId(inner, item);
+                        })
+                        .filter(Boolean) as Array<t.EffectRef>) || [],
                 location: type.location,
                 res: typeType(inner, type.res),
                 rest: null,
