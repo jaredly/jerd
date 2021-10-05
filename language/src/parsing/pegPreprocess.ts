@@ -143,6 +143,9 @@ const processExpression = (
                     if (el.type === 'rule_ref' && el.name.match(/^[^A-Z]/)) {
                         return;
                     }
+                    if (found && el.type === 'literal') {
+                        return;
+                    }
                     const vbl = t.memberExpression(
                         ctx.vbl,
                         t.numericLiteral(i),

@@ -108,11 +108,13 @@ describe('just parse & group', () => {
 const namedDefns = <T>(): NamedDefns<T> => ({ defns: {}, names: {} });
 const newContext = (): Context => ({
     warnings: [],
-    unique: { current: 0 },
+    builtins: { terms: {}, types: {} },
     bindings: {
+        unique: { current: 0 },
         self: null,
         types: [],
         values: [],
+        effects: [],
     },
     library: {
         terms: namedDefns(),

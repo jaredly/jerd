@@ -1,4 +1,4 @@
-import {Term, Location, Loc, Type, TypeVblDecl, Id, Decorators, Decorator, DecoratorArg, Pattern, Symbol, TypeReference, Reference, UserReference, RecordPatternItem, Literal, Boolean, EffectRef, TypeRef, TypeVar, RecordSubType, SwitchCase, LambdaType, AmbiguousType, Case, LiteralWithTemplateString, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
+import {Term, Location, Loc, Type, TypeVblDecl, Id, Decorators, Decorator, DecoratorArg, Pattern, Symbol, TypeReference, Reference, UserReference, RecordPatternItem, Literal, Boolean, EffectRef, ErrorType, TypeHole, RecordSubType, SwitchCase, LambdaType, AmbiguousType, Case, LiteralWithTemplateString, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
 
 export type Visitor<Ctx> = {
     Term?: (node: Term, ctx: Ctx) => null | false | Term | [Term, Ctx]
@@ -937,9 +937,9 @@ export const transformEffectRef = <Ctx>(node: EffectRef, visitor: Visitor<Ctx>, 
         return updatedNode;
     }
 
-export const transformTypeVar = <Ctx>(node: TypeVar, visitor: Visitor<Ctx>, ctx: Ctx): TypeVar => {
+export const transformTypeHole = <Ctx>(node: TypeHole, visitor: Visitor<Ctx>, ctx: Ctx): TypeHole => {
         if (!node) {
-            throw new Error('No TypeVar provided');
+            throw new Error('No TypeHole provided');
         }
         
         let changed0 = false;
@@ -970,16 +970,16 @@ export const transformTypeVar = <Ctx>(node: TypeVar, visitor: Visitor<Ctx>, ctx:
         return updatedNode;
     }
 
-export const transformTypeRef = <Ctx>(node: TypeRef, visitor: Visitor<Ctx>, ctx: Ctx): TypeRef => {
+export const transformErrorType = <Ctx>(node: ErrorType, visitor: Visitor<Ctx>, ctx: Ctx): ErrorType => {
         if (!node) {
-            throw new Error('No TypeRef provided');
+            throw new Error('No ErrorType provided');
         }
         
         let changed0 = false;
         
         let updatedNode = node;
         switch (node.type) {
-            case 'ref': {
+            case 'Ambiguous': {
                     const updatedNode$0specified = node;
                     let changed1 = false;
                     
@@ -989,6 +989,83 @@ export const transformTypeRef = <Ctx>(node: TypeRef, visitor: Visitor<Ctx>, ctx:
                 
                 const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
                 changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
+            case 'NotFound': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
+            case 'InvalidTypeApplication': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+
+                
+                const updatedNode$0node$inner = transformType(updatedNode$0specified.inner, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$inner !== updatedNode$0specified.inner;
 
                 
                 let updatedNode$0node$typeVbls = updatedNode$0specified.typeVbls;
@@ -1006,6 +1083,30 @@ export const transformTypeRef = <Ctx>(node: TypeRef, visitor: Visitor<Ctx>, ctx:
                     }
                 }
                 
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators, inner: updatedNode$0node$inner, typeVbls: updatedNode$0node$typeVbls};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
+            case 'NotASubType': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$inner = transformType(updatedNode$0specified.inner, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$inner !== updatedNode$0specified.inner;
+
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
 
                 
         let updatedNode$0node$decorators = undefined;
@@ -1018,7 +1119,7 @@ export const transformTypeRef = <Ctx>(node: TypeRef, visitor: Visitor<Ctx>, ctx:
         }
         
                 if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, typeVbls: updatedNode$0node$typeVbls, decorators: updatedNode$0node$decorators};
+                    updatedNode$0node =  {...updatedNode$0node, inner: updatedNode$0node$inner, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
                     changed1 = true;
                 }
             }
@@ -1030,7 +1131,7 @@ export const transformTypeRef = <Ctx>(node: TypeRef, visitor: Visitor<Ctx>, ctx:
             default: {
                         let changed1 = false;
                         
-                const updatedNode$0node = transformTypeVar(node, visitor, ctx);
+                const updatedNode$0node = transformTypeHole(node, visitor, ctx);
                 changed1 = changed1 || updatedNode$0node !== node;
                         updatedNode = updatedNode$0node;
                     }
@@ -1200,7 +1301,55 @@ export const transformType = <Ctx>(node: Type, visitor: Visitor<Ctx>, ctx: Ctx):
                     break;
                 }
 
-            case 'Ambiguous': {
+            case 'ref': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+                let updatedNode$0node$typeVbls = updatedNode$0specified.typeVbls;
+                {
+                    let changed3 = false;
+                    const arr2 = updatedNode$0specified.typeVbls.map((updatedNode$0node$typeVbls$item2) => {
+                        
+                const result = transformType(updatedNode$0node$typeVbls$item2, visitor, ctx);
+                changed3 = changed3 || result !== updatedNode$0node$typeVbls$item2;
+                        return result
+                    })
+                    if (changed3) {
+                        updatedNode$0node$typeVbls = arr2;
+                        changed2 = true;
+                    }
+                }
+                
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, typeVbls: updatedNode$0node$typeVbls, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
+            case 'var': {
                     const updatedNode$0specified = node;
                     let changed1 = false;
                     
@@ -1234,7 +1383,7 @@ export const transformType = <Ctx>(node: Type, visitor: Visitor<Ctx>, ctx: Ctx):
             default: {
                         let changed1 = false;
                         
-                const updatedNode$0node = transformTypeRef(node, visitor, ctx);
+                const updatedNode$0node = transformErrorType(node, visitor, ctx);
                 changed1 = changed1 || updatedNode$0node !== node;
                         updatedNode = updatedNode$0node;
                     }

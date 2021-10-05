@@ -207,7 +207,7 @@ function peg$parse(input: string, options?: IParseOptions) {
       location: myLocation(),
       id,
       typeVbls,
-      args: args ? args[4] : args
+      args: args ? args[2] : args
     };
   };
   const peg$c13 = ":";
@@ -278,7 +278,7 @@ function peg$parse(input: string, options?: IParseOptions) {
       type: "Effect",
       location: myLocation(),
       id,
-      constrs: constrs.map((element: any) => element[2])
+      constrs: constrs.map((element: any) => element[0])
     };
   };
   const peg$c38 = function(id: any, type: any): any {
@@ -361,7 +361,7 @@ function peg$parse(input: string, options?: IParseOptions) {
       type: "RecordSpread",
       location: myLocation(),
       constr,
-      defaults: defaults ? defaults[5] : defaults
+      defaults: defaults ? defaults[3] : defaults
     };
   };
   const peg$c54 = function(first: any, rest: any): any {
@@ -396,7 +396,7 @@ function peg$parse(input: string, options?: IParseOptions) {
       location: myLocation(),
       id,
       typeVbls,
-      args: args ? args[4] : args,
+      args: args ? args[2] : args,
       targetType: targetType ? targetType[1] : targetType
     };
   };
@@ -499,7 +499,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     return {
       type: "LabeledCommaExpr",
       location: myLocation(),
-      label: label ? label[1] : label,
+      label: label ? label[0] : label,
       first,
       rest: rest.map((element: any) => element[4])
     };
@@ -571,7 +571,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     return {
       type: "ArrayLiteral",
       location: myLocation(),
-      ann: ann ? ann[5] : ann,
+      ann: ann ? ann[4] : ann,
       items
     };
   };
@@ -798,7 +798,7 @@ function peg$parse(input: string, options?: IParseOptions) {
       effvbls,
       args,
       rettype: rettype ? rettype[2] : rettype,
-      effects: effects ? effects[4] : effects,
+      effects: effects ? effects[2] : effects,
       body
     };
   };
@@ -901,7 +901,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     return {
       $type: "TypeWithOptionalName",
       location: myLocation(),
-      id: id ? id[2] : id,
+      id: id ? id[0] : id,
       type
     };
   };
@@ -919,7 +919,7 @@ function peg$parse(input: string, options?: IParseOptions) {
       typevbls,
       effvbls,
       args,
-      effects: effects ? effects[4] : effects,
+      effects: effects ? effects[2] : effects,
       res
     };
   };
@@ -10369,7 +10369,7 @@ export type Decorator = {
   location: Location;
   id: Identifier;
   typeVbls: TypeVblsApply | null;
-  args: string | null;
+  args: (CommaDecoratorArg | null) | null;
 };
 
 export type DecoratorArg = DecType | DecPat | DecExpr;
@@ -10417,7 +10417,7 @@ export type Effect = {
   type: "Effect";
   location: Location;
   id: Identifier;
-  constrs: string[];
+  constrs: EfConstr[];
 };
 
 export type EfConstr = {
@@ -10488,7 +10488,7 @@ export type RecordSpread = {
   type: "RecordSpread";
   location: Location;
   constr: Identifier;
-  defaults: string | null;
+  defaults: (SpreadDefaults | null) | null;
 };
 
 export type SpreadDefaults = {
@@ -10517,7 +10517,7 @@ export type DecoratorDef = {
   location: Location;
   id: Identifier;
   typeVbls: TypeVbls | null;
-  args: string | null;
+  args: (DecDefArgs | null) | null;
   targetType: Type | null;
 };
 
@@ -10614,7 +10614,7 @@ export type FullSlice = {
 export type LabeledCommaExpr = {
   type: "LabeledCommaExpr";
   location: Location;
-  label: string | null;
+  label: IdText | null;
   first: Expression;
   rest: Expression[];
 };
@@ -10676,7 +10676,7 @@ export type RecordLiteralItem = {
 export type ArrayLiteral = {
   type: "ArrayLiteral";
   location: Location;
-  ann: string | null;
+  ann: (string | null) | null;
   items: ArrayItems | null;
 };
 
@@ -10868,7 +10868,7 @@ export type Lambda = {
   effvbls: EffectVbls | null;
   args: Args | null;
   rettype: Type | null;
-  effects: string | null;
+  effects: (CommaEffects | null) | null;
   body: Expression;
 };
 
@@ -10958,7 +10958,7 @@ export type EffectVblsApply = {
 export type TypeWithOptionalName = {
   $type: "TypeWithOptionalName";
   location: Location;
-  id: string | null;
+  id: IdentifierWithoutHash | null;
   type: Type;
 };
 
@@ -10974,7 +10974,7 @@ export type LambdaType = {
   typevbls: TypeVbls | null;
   effvbls: EffectVbls | null;
   args: CommaTypeWithNames | null;
-  effects: string | null;
+  effects: (CommaEffects | null) | null;
   res: Type;
 };
 

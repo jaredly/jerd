@@ -276,4 +276,5 @@ export const resolveTypeVbls = (
             return true;
         }
     }
+    return false;
 };
