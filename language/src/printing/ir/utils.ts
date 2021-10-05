@@ -264,9 +264,9 @@ export const typeFromTermType = (
                     typeFromTermType(env, opts, t),
                 ),
             };
-        case 'Hole':
+        case 'THole':
         case 'InvalidTypeApplication':
-        case 'NotFound':
+        case 'TNotFound':
         case 'NotASubType':
         case 'Ambiguous':
             throw new Error(

@@ -505,6 +505,10 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
             return symToPretty(env, type.sym, type.location);
         case 'Ambiguous':
             return atom('[ambiguous - error!]');
+        case 'TNotFound':
+            return atom(`[Not Found: ${type.text}]`);
+        case 'THole':
+            return atom('[type hole]');
         default:
             throw new Error(`Unexpected type ${JSON.stringify(type)}`);
     }

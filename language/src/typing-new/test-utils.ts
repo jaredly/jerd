@@ -14,6 +14,7 @@ import {
     ErrorTerm,
     Symbol,
     Id,
+    ErrorType,
 } from '../typing/types';
 import * as preset from '../typing/preset';
 import { GroupedOp, reGroupOps } from './ops';
@@ -21,10 +22,130 @@ import { Context, ctxToEnv, NamedDefns } from './typeFile';
 import { typeExpression } from './typeExpression';
 import { addRecord, addTerm } from './Library';
 import { printToString } from '../printing/printer';
-import { termToPretty } from '../printing/printTsLike';
+import { termToPretty, typeToPretty } from '../printing/printTsLike';
 import { showLocation } from '../typing/typeExpr';
-import { transformTerm } from '../typing/auto-transform';
+import {
+    transformTerm,
+    transformType,
+    Visitor,
+} from '../typing/auto-transform';
 import { showType } from '../typing/unify';
+
+declare global {
+    namespace jest {
+        interface Matchers<R> {
+            toNotHaveErrors(ctx: Context): CustomMatcherResult;
+            toNotHaveErrorsT(ctx: Context): CustomMatcherResult;
+        }
+    }
+}
+
+export const customMatchers: jest.ExpectExtendMap = {
+    toNotHaveErrorsT(value, ctx) {
+        if (
+            !value ||
+            typeof value !== 'object' ||
+            typeof value.type !== 'string'
+        ) {
+            return {
+                pass: false,
+                message: () => 'invalid object. must be a term or type',
+            };
+        }
+
+        const errors = findTypeErrors(value);
+        if (errors.length) {
+            return {
+                pass: false,
+                message: () => {
+                    return errors
+                        .map(
+                            (t: ErrorType) =>
+                                `${typeToString(ctx, t)} at ${showLocation(
+                                    t.location,
+                                )}`,
+                        )
+                        .join('\n');
+                },
+            };
+        }
+
+        return { pass: true, message: () => 'ok' };
+    },
+    toNotHaveErrors(value, ctx) {
+        if (
+            !value ||
+            typeof value !== 'object' ||
+            typeof value.type !== 'string'
+        ) {
+            return {
+                pass: false,
+                message: () => 'invalid object. must be a term or type',
+            };
+        }
+
+        const errors = findErrors(value);
+        const terrors = findTermTypeErrors(value);
+        if (errors.length || terrors.length) {
+            return {
+                pass: false,
+                message: () => {
+                    return (
+                        errors
+                            .map(
+                                (t: ErrorTerm) =>
+                                    `${termToString(ctx, t)} at ${showLocation(
+                                        t.location,
+                                    )}`,
+                            )
+                            .join('\n') +
+                        terrors.map(
+                            (t: ErrorType) =>
+                                `${typeToString(ctx, t)} at ${showLocation(
+                                    t.location,
+                                )}`,
+                        )
+                    );
+                },
+            };
+        }
+
+        return { pass: true, message: () => 'ok' };
+    },
+};
+
+export const typeErrorVisitor = (errors: Array<ErrorType>): Visitor<null> => ({
+    Type(node: Type, _) {
+        if (
+            node.type === 'NotASubType' ||
+            node.type === 'InvalidTypeApplication' ||
+            node.type === 'THole' ||
+            node.type === 'Ambiguous' ||
+            node.type === 'TNotFound'
+        ) {
+            errors.push(node);
+        }
+        return null;
+    },
+});
+
+export const findTypeErrors = (type: Type | null | void) => {
+    if (!type) {
+        return [];
+    }
+    const errors: Array<ErrorType> = [];
+    transformType(type, typeErrorVisitor(errors), null);
+    return errors;
+};
+
+export const findTermTypeErrors = (term: Term | null | void) => {
+    if (!term) {
+        return [];
+    }
+    const errors: Array<ErrorType> = [];
+    transformTerm(term, typeErrorVisitor(errors), null);
+    return errors;
+};
 
 export const findErrors = (term: Term | null | void) => {
     if (!term) {
@@ -106,7 +227,32 @@ export const errorSerilaizer: jest.SnapshotSerializerPlugin = {
     },
 };
 
-const termToString = (ctx: Context, term: Term | null | void) =>
+export const errorTypeSerilaizer: jest.SnapshotSerializerPlugin = {
+    test(value) {
+        return (
+            value &&
+            typeof value === 'object' &&
+            typeof value.ctx === 'object' &&
+            Array.isArray(value.errorTypes)
+        );
+    },
+    print(value, _, __) {
+        const v = value as { ctx: Context; errorTypes: Array<ErrorType> };
+        return v.errorTypes
+            .map(
+                (t: ErrorType) =>
+                    `${typeToString(v.ctx, t)} at ${showLocation(t.location)}`,
+            )
+            .join('\n');
+    },
+};
+
+export const typeToString = (ctx: Context, term: Type | null | void) =>
+    term == null
+        ? '[null term]'
+        : printToString(typeToPretty(ctxToEnv(ctx), term), 100);
+
+export const termToString = (ctx: Context, term: Term | null | void) =>
     term == null
         ? '[null term]'
         : printToString(termToPretty(ctxToEnv(ctx), term), 100);

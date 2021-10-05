@@ -1010,7 +1010,7 @@ export const transformErrorType = <Ctx>(node: ErrorType, visitor: Visitor<Ctx>, 
                     break;
                 }
 
-            case 'NotFound': {
+            case 'TNotFound': {
                     const updatedNode$0specified = node;
                     let changed1 = false;
                     

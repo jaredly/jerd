@@ -9491,6 +9491,9 @@ function peg$parse(input: string, options?: IParseOptions) {
     if (s1 !== peg$FAILED) {
       s2 = peg$currPos;
       s3 = peg$parseOpHash();
+      if (s3 === peg$FAILED) {
+        s3 = null;
+      }
       if (s3 !== peg$FAILED) {
         s2 = input.substring(s2, peg$currPos);
       } else {

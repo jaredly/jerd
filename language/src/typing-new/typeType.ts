@@ -110,9 +110,20 @@ export const typeTypeRef = (ctx: Context, type: TypeRef): t.Type => {
         }
     }
 
+    if (ctx.builtins.types[type.id.text] != null) {
+        const decls: Array<Array<t.Id>> = [];
+        for (let i = 0; i < ctx.builtins.types[type.id.text]; i++) {
+            decls.push([]);
+        }
+        options.push({
+            vbls: decls,
+            ref: { type: 'builtin', name: type.id.text },
+        });
+    }
+
     if (!options.length) {
         return {
-            type: 'NotFound',
+            type: 'TNotFound',
             text: type.id.text,
             location: type.location,
         };
@@ -121,7 +132,7 @@ export const typeTypeRef = (ctx: Context, type: TypeRef): t.Type => {
     const typeVbls = options[0].vbls.map(
         (subTypes, i): t.Type => {
             if (vbls.length <= i) {
-                return { type: 'Hole', location: type.location };
+                return { type: 'THole', location: type.location };
             }
             if (!subTypes.length) {
                 return vbls[i];

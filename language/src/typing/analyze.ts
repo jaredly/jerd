@@ -449,9 +449,9 @@ export const allLiteral = (env: Env, type: Type): boolean => {
     switch (type.type) {
         case 'var':
             return false;
-        case 'Hole':
+        case 'THole':
         case 'InvalidTypeApplication':
-        case 'NotFound':
+        case 'TNotFound':
         case 'NotASubType':
         case 'Ambiguous':
             return false;

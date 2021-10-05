@@ -13,7 +13,7 @@ import {
     BinOp_inner,
     Identifier,
 } from '../parsing/parser-new';
-import { hashObject, idFromName } from '../typing/env';
+import { hashObject, idFromName, idName } from '../typing/env';
 import { getOpLevel, organizeDeep } from '../typing/terms/ops';
 import * as typed from '../typing/types';
 import * as preset from '../typing/preset';
@@ -101,6 +101,16 @@ types: {
 */
 
 export const ctxToEnv = (ctx: Context): typed.Env => {
+    const idNames: { [key: string]: string } = {};
+    const addNames = (names: { [key: string]: Array<typed.Id> }) => {
+        Object.keys(names).forEach((name) =>
+            names[name].forEach((id) => (idNames[idName(id)] = name)),
+        );
+    };
+    addNames(ctx.library.types.names);
+    addNames(ctx.library.terms.names);
+    addNames(ctx.library.effects.names);
+    addNames(ctx.library.decorators.names);
     return {
         depth: 0,
         term: {
@@ -118,7 +128,7 @@ export const ctxToEnv = (ctx: Context): typed.Env => {
             effectNames: {}, // ctx.library.effects.names,
             effects: {}, // ctx.library.effects.defns,
             exportedTerms: {},
-            idNames: {},
+            idNames,
             metaData: {},
             names: {},
             recordGroups: ctx.library.types.constructors.idToNames,

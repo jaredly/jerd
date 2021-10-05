@@ -1142,12 +1142,12 @@ export type NotASubType = {
     decorators?: Decorators;
 };
 export type TypeHole = {
-    type: 'Hole';
+    type: 'THole';
     location: Location;
     decorators?: Decorators;
 };
 export type TypeNotFound = {
-    type: 'NotFound';
+    type: 'TNotFound';
     location: Location;
     decorators?: Decorators;
     text: string;

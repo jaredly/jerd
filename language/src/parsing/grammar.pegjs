@@ -492,7 +492,7 @@ MaybeQuotedIdentifier = text:IdTextOrString hash:IdHash? {
 IdText = $(!"enum" [0-9a-zA-Z_]+)
 IdTextOrString = IdText / String
 IdHash = $SymHash / $OpHash / $BuiltinHash
-SymHash = $("#" ":" [0-9]+) $OpHash
+SymHash = $("#" ":" [0-9]+) $OpHash?
 OpHash = $("#" [0-9a-zA-Z]+)+
 BuiltinHash = $("#" "builtin")
 
