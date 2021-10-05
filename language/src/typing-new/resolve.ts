@@ -12,6 +12,47 @@ export type ResolvedType =
 export const resolveTypeSym = (ctx: Context, unique: number) =>
     ctx.bindings.types.find((b) => b.sym.unique === unique);
 
+export const resolveEffectId = (
+    ctx: Context,
+    id: Identifier,
+): t.EffectRef | null => {
+    if (id.hash) {
+        const idOrSym = parseIdOrSym(id.hash);
+        if (idOrSym?.type === 'sym') {
+            const unique = idOrSym.unique;
+            const binding = ctx.bindings.effects.find(
+                (ef) => ef.sym.unique === unique,
+            );
+            if (binding) {
+                return {
+                    type: 'var',
+                    sym: binding.sym,
+                    location: id.location,
+                };
+            }
+        }
+        if (idOrSym?.type === 'id') {
+            const found = ctx.library.effects.defns[idName(idOrSym.id)];
+            if (found) {
+                return {
+                    type: 'ref',
+                    ref: { type: 'user', id: idOrSym.id },
+                    location: id.location,
+                };
+            }
+        }
+    }
+    const ids = ctx.library.effects.names[id.text];
+    if (ids) {
+        return {
+            type: 'ref',
+            location: id.location,
+            ref: { type: 'user', id: ids[0] },
+        };
+    }
+    return null;
+};
+
 export const resolveTypeId = (
     ctx: Context,
     id: Identifier,
@@ -55,15 +96,6 @@ export const resolveType = (
         return null;
     }
 };
-
-// START HERE:
-// OOoooooooh ok folks
-// So if you specified /too many/ type variables, we wrap it in an 'extra type variables' dealio
-// but if you didn't specify /enough/, then we can just fill in with type holes.
-// BUT let's talk about fallthrough behavior.
-// if you have the wrong number of type variables for this one, but the right for another...
-// Yeah, I think we want another "options" setup. So we can go through and see what matches.
-// And if nothing does, we take the top one and jimmy it up.
 
 export const resolveValue = (
     ctx: Context,
