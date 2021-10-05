@@ -3,7 +3,7 @@ import { jsx } from '@emotion/react';
 import { LocatedError } from '@jerd/language/src/typing/errors';
 import { typeFile } from '@jerd/language/src/typing/typeFile';
 import * as React from 'react';
-import { State } from '../App';
+import { State } from '../State';
 import { tryParse } from '../initialEnvWithPlugins';
 import { stateToString } from '../persistence';
 

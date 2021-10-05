@@ -24,7 +24,7 @@ import { debugExpr } from '../../language/src/printing/irDebugPrinter';
 import { printToAttributedText } from '../../language/src/printing/printer';
 import { idName } from '../../language/src/typing/env';
 import { Env, Id } from '../../language/src/typing/types';
-import { State } from './App';
+import { State } from './State';
 import { compileGLSL } from './display/OpenGL';
 import { renderAttributedText } from './Cell/Render';
 

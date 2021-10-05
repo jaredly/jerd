@@ -15,7 +15,7 @@ import { Env, idsEqual, ToplevelT } from '@jerd/language/src/typing/types';
 // - import/export environment
 // - um probably some refactoring commands? idk
 import * as React from 'react';
-import { Indices } from '../App';
+import { Indices } from '../State';
 import { renderAttributedText } from '../Cell/Render';
 import { Content } from '../State';
 

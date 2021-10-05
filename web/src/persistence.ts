@@ -1,4 +1,4 @@
-import { Index, Indices, State } from './App';
+import { Index, Indices, State } from './State';
 
 import {
     allLiteral,

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { State, Workspace as WorkspaceT } from '../App';
+import { State, Workspace as WorkspaceT } from '../State';
 import {
     Action,
     activeWorkspace,

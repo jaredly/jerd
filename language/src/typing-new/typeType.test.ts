@@ -32,6 +32,7 @@ import {
     findTypeErrors,
     newContext,
     rawSnapshotSerializer,
+    showTypeErrors,
     typeToString,
 } from './test-utils';
 import { typeType } from './typeType';
@@ -295,14 +296,3 @@ describe('typeType', () => {
         });
     });
 });
-
-export const showTypeErrors = (ctx: Context, res: Type) => {
-    return findTypeErrors(res)
-        .map(
-            (err) =>
-                `${showType(ctxToEnv(ctx), err)} at ${showLocation(
-                    err.location,
-                )}`,
-        )
-        .join('\n');
-};

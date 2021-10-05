@@ -28,7 +28,7 @@ import {
     TopContent,
 } from '../State';
 import { runTerm } from '../eval';
-import { HistoryUpdate, Workspace } from '../App';
+import { HistoryUpdate, Workspace } from '../State';
 import {
     Env,
     GlobalEnv,
@@ -52,6 +52,7 @@ import { printToString } from '../../../language/src/printing/printer';
 import { toplevelToPretty } from '../../../language/src/printing/printTsLike';
 import { RenderResult } from './RenderResult';
 import { showLocation } from '@jerd/language/src/typing/typeExpr';
+import { LocatedError } from '@jerd/language/src/typing/errors';
 
 // hrmmmm can I move the selection dealio up a level? Should I? hmm I do like each cell managing its own cursor, tbh.
 
@@ -462,10 +463,7 @@ const CellView_ = ({
         >
             {body}
             {typeResult.type === 'error' ? (
-                <div>
-                    ERR
-                    {typeResult.err.message} {showLocation(typeResult.err.loc)}
-                </div>
+                <div>{showError(typeResult.err)}</div>
             ) : null}
             {termAndValue ? (
                 <RenderResult
@@ -491,6 +489,18 @@ const CellView_ = ({
             ) : null}
         </CellWrapper>
     );
+};
+
+const showError = (err: Error) => {
+    if (err instanceof LocatedError) {
+        return (
+            <span>
+                ERR
+                {err.message} {showLocation(err.loc)}
+            </span>
+        );
+    }
+    return <span>Non-located error {err.message}</span>;
 };
 
 // const contentId =

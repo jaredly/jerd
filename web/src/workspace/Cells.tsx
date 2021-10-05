@@ -7,7 +7,7 @@ import { idName } from '@jerd/language/src/typing/env';
 import { MovePosition } from '../Cell/Cell';
 import { Cell, Content, Display, EvalEnv, RenderPlugins } from '../State';
 import { runTerm } from '../eval';
-import { HistoryUpdate, State, Workspace } from '../App';
+import { HistoryUpdate, State, Workspace } from '../State';
 import { Env, Id, nullLocation } from '@jerd/language/src/typing/types';
 import { WorkspacePicker } from './WorkspacePicker';
 import { sortCells } from './Workspace';

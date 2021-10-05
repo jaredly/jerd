@@ -1,6 +1,6 @@
 import { hashObject, idFromName, idName } from '@jerd/language/src/typing/env';
 import { Cell, EvalEnv } from '../State';
-import { HistoryItem, State, Workspace } from '../App';
+import { HistoryItem, State, Workspace } from '../State';
 import {
     Env,
     Id,

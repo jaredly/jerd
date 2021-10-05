@@ -6,7 +6,7 @@ import {
     HistoryUpdate,
     State,
     Workspace as WorkspaceT,
-} from '../App';
+} from '../State';
 import Cells, {
     activeWorkspace,
     blankCell,

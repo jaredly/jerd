@@ -2,7 +2,7 @@
 import { jsx } from '@emotion/react';
 // The app
 import * as React from 'react';
-import { State } from '../App';
+import { State } from '../State';
 import { Action, genId, modActiveWorkspace } from './Cells';
 
 export const WorkspacePicker = ({
