@@ -146,6 +146,13 @@ const processExpression = (
                     if (found && el.type === 'literal') {
                         return;
                     }
+                    if (
+                        found &&
+                        el.type === 'optional' &&
+                        el.expression.type === 'literal'
+                    ) {
+                        return;
+                    }
                     const vbl = t.memberExpression(
                         ctx.vbl,
                         t.numericLiteral(i),

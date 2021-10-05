@@ -571,7 +571,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     return {
       type: "ArrayLiteral",
       location: myLocation(),
-      ann: ann ? ann[4] : ann,
+      ann: ann ? ann[2] : ann,
       items
     };
   };
@@ -10679,7 +10679,7 @@ export type RecordLiteralItem = {
 export type ArrayLiteral = {
   type: "ArrayLiteral";
   location: Location;
-  ann: (string | null) | null;
+  ann: Type | null;
   items: ArrayItems | null;
 };
 

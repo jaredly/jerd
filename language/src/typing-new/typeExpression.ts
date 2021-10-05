@@ -4,6 +4,7 @@ import { Term, Type, typesEqual } from '../typing/types';
 import { parseIdOrSym } from './hashes';
 import { reGroupOps, typeGroup } from './ops';
 import { resolveNamedValue, resolveValue } from './resolve';
+import { typeArrayLiteral } from './typeArrayLiteral';
 import { Context } from './typeFile';
 
 export const typeIdentifier = (
@@ -72,7 +73,7 @@ export const typeExpression = (
             if (grouped.type !== 'GroupedOp') {
                 return typeExpression(ctx, grouped, expected);
             }
-            return typeGroup(ctx, grouped, expected);
+            return wrapExpected(typeGroup(ctx, grouped, expected), expected);
         }
         case 'WithUnary': {
             if (term.op != null) {
@@ -92,6 +93,38 @@ export const typeExpression = (
             );
         }
         case 'Int':
+            // If it might expect an int, go with that
+            if (
+                expected.some(
+                    (t) =>
+                        t.type === 'ref' &&
+                        t.ref.type === 'builtin' &&
+                        t.ref.name === 'int',
+                )
+            ) {
+                return {
+                    type: 'int',
+                    location: term.location,
+                    is: preset.int,
+                    value: +term.contents,
+                };
+            }
+            // if it's expecting a float, we can do that too
+            if (
+                expected.some(
+                    (t) =>
+                        t.type === 'ref' &&
+                        t.ref.type === 'builtin' &&
+                        t.ref.name === 'float',
+                )
+            ) {
+                return {
+                    type: 'float',
+                    location: term.location,
+                    is: preset.float,
+                    value: +term.contents,
+                };
+            }
             return wrapExpected(
                 {
                     type: 'int',
@@ -101,6 +134,8 @@ export const typeExpression = (
                 },
                 expected,
             );
+        case 'ArrayLiteral':
+            return typeArrayLiteral(ctx, term, expected);
     }
     throw new Error('no absub: ' + term.type);
 };

@@ -488,6 +488,13 @@ export const typePair = (
         return attributeHole(ctx, op.op, left, location, right, expectedTypes);
     }
 
+    // if (left.type === 'Int') {
+    //     // I don't love the idea of hacking this up
+    //     // but maybe it's fine. This is really more of a little convenience, right?
+    //     // And honestly, maybe it's fine to say "the left one wins".
+    //     // It's predictable.
+    // }
+
     const lefts = options.map((opts) => opts.left);
 
     const larg = typeUnaryOrGroup(ctx, left, lefts);

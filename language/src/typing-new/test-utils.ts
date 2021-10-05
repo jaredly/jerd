@@ -40,6 +40,15 @@ declare global {
     }
 }
 
+export const parseExpression = (ctx: Context, raw: string) => {
+    const parsed = parseTyped(raw);
+    const top = parsed.tops!.items[0].top;
+    if (top.type !== 'ToplevelExpression') {
+        return expect(false).toBe(true);
+    }
+    return typeExpression(ctx, top.expr, []);
+};
+
 export const customMatchers: jest.ExpectExtendMap = {
     toNotHaveErrorsT(value, ctx) {
         if (

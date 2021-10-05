@@ -26,15 +26,17 @@ import { showLocation } from '../typing/typeExpr';
 import { transformTerm } from '../typing/auto-transform';
 import { showType } from '../typing/unify';
 import {
+    customMatchers,
     errorSerilaizer,
     findErrors,
     newContext,
+    parseExpression,
     rawSnapshotSerializer,
     warningsSerializer,
 } from './test-utils';
 
+expect.extend(customMatchers);
 expect.addSnapshotSerializer(rawSnapshotSerializer);
-
 expect.addSnapshotSerializer(errorSerilaizer);
 expect.addSnapshotSerializer(warningsSerializer);
 
@@ -49,6 +51,19 @@ const groups = (w: Expression | GroupedOp, i: number): any =>
               w.left,
               i + 1,
           )} ${w.items.map((n) => groups(n.right, i + 1)).join(' ')}${r(i)}`;
+
+const simpleCtx = () => {
+    const { ctx, slash } = addSimpleRecord(newContext());
+
+    let slashImpl;
+    [ctx.library, slashImpl] = addTerm(
+        ctx.library,
+        preset.recordLiteral(slash, [fakeIntOp]),
+        'slash',
+    );
+
+    return { ctx, slash, slashImpl };
+};
 
 describe('just parse & group', () => {
     it('ok', () => {
@@ -121,15 +136,6 @@ const fakeAnyOp = preset.lambdaLiteral(
     [{ unique, subTypes: [] }],
 );
 
-export const parseExpression = (ctx: Context, raw: string) => {
-    const parsed = parseTyped(raw);
-    const top = parsed.tops!.items[0].top;
-    if (top.type !== 'ToplevelExpression') {
-        return expect(false).toBe(true);
-    }
-    return typeExpression(ctx, top.expr, []);
-};
-
 describe('non-generic examples', () => {
     it('local definition', () => {
         const { ctx, slash } = simpleCtx();
@@ -197,9 +203,22 @@ describe('non-generic examples', () => {
 
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
+        expect(res).toNotHaveErrors(ctx);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
             `2 /#ae81c704#d28f8708#0 3`,
         );
+        const res1 = parseExpression(ctx, `2.0 / 3.0`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(res1).toNotHaveErrors(ctx);
+        expect(termToString(ctx, res1)).toMatchInlineSnapshot(
+            `2.0 /#0fe058bc#69c30a31#0 3.0`,
+        );
+        // Auto-convert the second one...
+        const res3 = parseExpression(ctx, `2.0 / 3`);
+        expect(termToString(ctx, res3)).toMatchInlineSnapshot(
+            `2.0 /#0fe058bc#69c30a31#0 3.0`,
+        );
+        expect(res3).toNotHaveErrors(ctx);
     });
 
     it('toplevel definition, impl for a record that extends the operator type', () => {
@@ -256,19 +275,6 @@ const addSimpleRecord = (ctx: Context) => {
     );
 
     return { ctx, slash };
-};
-
-const simpleCtx = () => {
-    const { ctx, slash } = addSimpleRecord(newContext());
-
-    let slashImpl;
-    [ctx.library, slashImpl] = addTerm(
-        ctx.library,
-        preset.recordLiteral(slash, [fakeIntOp]),
-        'slash',
-    );
-
-    return { ctx, slash, slashImpl };
 };
 
 describe('failures', () => {
