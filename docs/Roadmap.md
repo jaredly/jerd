@@ -10,6 +10,13 @@ Like:
 - and such, idk.
 
 
+Have a function that is: Library -> TXT and TXT -> Library
+- [ ] GlobalEnv -> Context & Context -> GlobalEnv
+- [ ] preserve whatever metadata I want
+- [ ] maybe that's it?
+- [ ] 
+
+
 
 ## TYPE SYSTEM REWRITE
 

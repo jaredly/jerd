@@ -7,7 +7,7 @@ import {
     RecordDef,
     DecoratorDef,
 } from '../typing/types';
-import { NamedDefns, ConstructorNames } from './typeFile';
+import { NamedDefns, ConstructorNames } from './Context';
 
 /*
 

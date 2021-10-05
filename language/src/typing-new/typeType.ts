@@ -1,5 +1,5 @@
 import { Identifier, Type, TypeRef, TypeVbl } from '../parsing/parser-new';
-import { Bindings, Context } from './typeFile';
+import { Bindings, Context } from './Context';
 import * as t from '../typing/types';
 import { parseIdOrSym, parseSym } from './hashes';
 import { resolveEffectId, resolveType, resolveTypeId } from './resolve';

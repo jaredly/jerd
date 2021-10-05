@@ -1,7 +1,7 @@
 import { idName } from '../typing/env';
 import { Id, idsEqual, Type } from '../typing/types';
 import { Library } from './Library';
-import { Context } from './typeFile';
+import { Context } from './Context';
 
 export const hasSubType = (ctx: Context, type: Type, id: Id) => {
     if (type.type === 'var') {

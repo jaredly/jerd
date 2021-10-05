@@ -17,7 +17,8 @@ import {
 } from '../typing/types';
 import * as preset from '../typing/preset';
 import { GroupedOp, reGroupOps } from './ops';
-import { Context, ctxToEnv, NamedDefns } from './typeFile';
+import { ctxToEnv } from './migrate';
+import { Context, NamedDefns } from './Context';
 import { typeExpression } from './typeExpression';
 import { addEffect, addRecord, addTerm } from './Library';
 import { printToString } from '../printing/printer';

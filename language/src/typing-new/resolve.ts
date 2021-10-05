@@ -1,5 +1,5 @@
 import { IdOrSym, parseIdOrSym } from './hashes';
-import { Context } from './typeFile';
+import { Context } from './Context';
 import { Library } from './Library';
 import * as t from '../typing/types';
 import { Identifier, Location } from '../parsing/parser-new';

@@ -5,7 +5,7 @@ import { parseIdOrSym } from './hashes';
 import { reGroupOps, typeGroup } from './ops';
 import { resolveNamedValue, resolveValue } from './resolve';
 import { typeArrayLiteral } from './typeArrayLiteral';
-import { Context } from './typeFile';
+import { Context } from './Context';
 
 export const typeIdentifier = (
     ctx: Context,

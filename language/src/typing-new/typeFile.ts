@@ -7,139 +7,21 @@ import {
     File,
     Toplevel,
     WithUnary,
-    Location,
     WithSuffix,
     Apsub,
     BinOp_inner,
     Identifier,
 } from '../parsing/parser-new';
-import { hashObject, idFromName, idName } from '../typing/env';
+import { hashObject, idFromName } from '../typing/env';
 import { getOpLevel, organizeDeep } from '../typing/terms/ops';
 import * as typed from '../typing/types';
 import * as preset from '../typing/preset';
 import { Term, Type } from '../typing/types';
 import { reGroupOps, typeGroup } from './ops';
-import { Library } from './Library';
 import { parseIdOrSym } from './hashes';
 import { resolveNamedValue, resolveValue } from './resolve';
 import { typeExpression } from './typeExpression';
-
-export type Bindings = {
-    unique: { current: number };
-    self: null | { type: typed.Type; name: string };
-    values: Array<{
-        location: Location;
-        sym: typed.Symbol;
-        type: typed.Type;
-    }>;
-    types: Array<{
-        location: Location;
-        sym: typed.Symbol;
-        subTypes: Array<typed.Id>;
-    }>;
-    effects: Array<{ location: Location; sym: typed.Symbol }>;
-};
-
-export type Context = {
-    library: Library;
-    builtins: {
-        terms: {
-            [key: string]: typed.Type;
-        };
-        types: {
-            [key: string]: number; // number of type variables accepted.
-        };
-    };
-    bindings: Bindings;
-    warnings: Array<{ location: Location; text: string }>;
-};
-
-export type ConstructorNames = {
-    names: { [key: string]: Array<{ id: typed.Id; idx: number }> };
-    idToNames: { [key: string]: Array<string> };
-};
-
-export type NamedDefns<Defn> = {
-    // this is a cache of the other?
-    // let's just keep one around. we can reconstruct the other.
-    names: { [key: string]: Array<typed.Id> };
-    defns: { [key: string]: Defn };
-    // MetaData, is attached to ... a single hash. right.
-    // And the things it keeps track of are:
-    // - like commit info? author + date, makes sense
-    // - but also things that the user wants to associate
-    //   like documentation maybe? probably.
-    // - `docs?: Id`
-    // - and unit tests, I think? unless we want to point the
-    //   arrow from the other side, and say "this term is a test"
-    //   of this other thing
-    //   and anyway, only terms can have tests, right? so
-    //   it wouldn't make sense to pop it in here.
-    // buuut
-    // what if we just have `docs` be flexible enough that
-    // it can represent unit tests?
-    // ok, so what are we going to say is our documentation format?
-    // some kind of extended markdown is popular. but I'd want
-    // it to be a much simplified version of markdown
-    // because we can do nice things like produce documentation
-    // with a pure expression.
-};
-
-/*
-Ok, clean slate. How does this database work?
-
-Let's lean into `toplevel`s.
-
-types: {
-	nameToId: {[key: string]: Array<Id>},
-	idToType: {
-		[key: string]: TypeDefn,
-	}
-}
-
-
-*/
-
-export const ctxToEnv = (ctx: Context): typed.Env => {
-    const idNames: { [key: string]: string } = {};
-    const addNames = (names: { [key: string]: Array<typed.Id> }) => {
-        Object.keys(names).forEach((name) =>
-            names[name].forEach((id) => (idNames[idName(id)] = name)),
-        );
-    };
-    addNames(ctx.library.types.names);
-    addNames(ctx.library.terms.names);
-    addNames(ctx.library.effects.names);
-    addNames(ctx.library.decorators.names);
-    return {
-        depth: 0,
-        term: {
-            localNames: {},
-            nextTraceId: 0,
-        },
-        global: {
-            attributeNames: ctx.library.types.constructors.names,
-            builtinTypes: {},
-            builtins: {},
-            decoratorNames: ctx.library.decorators.names,
-            decorators: ctx.library.decorators.defns,
-            effectConstrNames: ctx.library.effects.constructors.idToNames,
-            effectConstructors: {}, // ctx.library.effects.constructors.names,
-            effectNames: {}, // ctx.library.effects.names,
-            effects: {}, // ctx.library.effects.defns,
-            exportedTerms: {},
-            idNames,
-            metaData: {},
-            names: {},
-            recordGroups: ctx.library.types.constructors.idToNames,
-            rng: () => 0.0,
-            terms: ctx.library.terms.defns,
-            typeNames: ctx.library.types.names,
-            types: ctx.library.types.defns,
-        },
-        local: typed.newLocal(),
-    };
-};
+import { Context } from './Context';
 
 export const typeToplevel = (
     ctx: Context,

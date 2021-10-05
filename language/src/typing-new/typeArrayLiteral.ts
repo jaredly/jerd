@@ -2,7 +2,7 @@ import { ArrayLiteral } from '../parsing/parser-new';
 import * as preset from '../typing/preset';
 import { arrayType } from '../typing/typeExpr';
 import { ArraySpread, Term, Type } from '../typing/types';
-import { Context } from './typeFile';
+import { Context } from './Context';
 import { typeType } from './typeType';
 import { typeExpression, wrapExpected } from './typeExpression';
 
