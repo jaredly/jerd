@@ -169,6 +169,12 @@ describe('typeType', () => {
         );
         expect(res).toNotHaveErrorsT(ctx);
         expect(typeToString(ctx, parseType(ctx, printed))).toEqual(printed);
+
+        expect(showTypeErrors(ctx, parseType(ctx, `ok<() => int, int>`)))
+            .toMatchInlineSnapshot(`
+            [not a subtype: () ={}> int#builtin of (base#59f7c4d4) at 1:13-1:22
+            [not a subtype: int#builtin of (base#59f7c4d4) at 1:24-1:27
+        `);
     });
 
     it('should work for a lambda', () => {
