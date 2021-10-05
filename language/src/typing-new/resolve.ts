@@ -1,9 +1,9 @@
-import { IdOrSym } from './hashes';
+import { IdOrSym, parseIdOrSym } from './hashes';
 import { Context } from './typeFile';
 import { Library } from './Library';
 import * as t from '../typing/types';
-import { Location } from '../parsing/parser-new';
-import { idName } from '../typing/env';
+import { Identifier, Location } from '../parsing/parser-new';
+import { idFromName, idName } from '../typing/env';
 
 export type ResolvedType =
     | { type: 'id'; id: t.Id; typeVbls: Array<t.TypeVblDecl> }
@@ -11,6 +11,21 @@ export type ResolvedType =
 
 export const resolveTypeSym = (ctx: Context, unique: number) =>
     ctx.bindings.types.find((b) => b.sym.unique === unique);
+
+export const resolveTypeId = (
+    ctx: Context,
+    id: Identifier,
+): t.Id | undefined => {
+    if (id.hash) {
+        const ido = idFromName(id.hash.slice(1));
+        if (ctx.library.types.defns[idName(ido)]) {
+            return ido;
+        }
+    }
+    if (ctx.library.types.names[id.text]) {
+        return ctx.library.types.names[id.text][0];
+    }
+};
 
 export const resolveType = (
     ctx: Context,

@@ -20,6 +20,14 @@ export const parseOpHash = (hash: string) => {
     };
 };
 
+export const parseSym = (hash: string | null): number | null => {
+    if (hash?.startsWith(':')) {
+        const num = +hash.slice(1);
+        return isNaN(num) ? null : num;
+    }
+    return null;
+};
+
 export const parseIdOrSym = (hash: string): IdOrSym | null => {
     if (hash.startsWith(':')) {
         const num = +hash.slice(1);

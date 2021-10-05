@@ -1136,9 +1136,10 @@ export type ErrorType =
     | TypeHole;
 export type NotASubType = {
     type: 'NotASubType';
-    ref: TypeRef;
-    decorators?: Decorators;
+    subTypes: Array<Id>;
     inner: Type;
+    location: Location;
+    decorators?: Decorators;
 };
 export type TypeHole = {
     type: 'Hole';

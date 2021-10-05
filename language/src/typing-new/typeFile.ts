@@ -24,8 +24,23 @@ import { parseIdOrSym } from './hashes';
 import { resolveNamedValue, resolveValue } from './resolve';
 import { typeExpression } from './typeExpression';
 
-export type Context = {
+export type Bindings = {
     unique: { current: number };
+    self: null | { type: typed.Type; name: string };
+    values: Array<{
+        location: Location;
+        sym: typed.Symbol;
+        type: typed.Type;
+    }>;
+    types: Array<{
+        location: Location;
+        sym: typed.Symbol;
+        subTypes: Array<typed.Id>;
+    }>;
+    effects: Array<{ location: Location; sym: typed.Symbol }>;
+};
+
+export type Context = {
     library: Library;
     builtins: {
         terms: {
@@ -35,19 +50,7 @@ export type Context = {
             [key: string]: number; // number of type variables accepted.
         };
     };
-    bindings: {
-        self: null | { type: typed.Type; name: string };
-        values: Array<{
-            location: Location;
-            sym: typed.Symbol;
-            type: typed.Type;
-        }>;
-        types: Array<{
-            location: Location;
-            sym: typed.Symbol;
-            subTypes: Array<typed.Id>;
-        }>;
-    };
+    bindings: Bindings;
     warnings: Array<{ location: Location; text: string }>;
 };
 
