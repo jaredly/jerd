@@ -40,6 +40,26 @@ declare global {
     }
 }
 
+export const showTermErrors = (ctx: Context, res: Term) => {
+    return findErrors(res)
+        .map(
+            (err) =>
+                `${termToString(ctx, err)} at ${showLocation(err.location)}`,
+        )
+        .join('\n');
+};
+
+export const showTypeErrors = (ctx: Context, res: Type) => {
+    return findTypeErrors(res)
+        .map(
+            (err) =>
+                `${showType(ctxToEnv(ctx), err)} at ${showLocation(
+                    err.location,
+                )}`,
+        )
+        .join('\n');
+};
+
 export const parseExpression = (ctx: Context, raw: string) => {
     const parsed = parseTyped(raw);
     const top = parsed.tops!.items[0].top;
