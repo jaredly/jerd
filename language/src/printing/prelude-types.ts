@@ -264,7 +264,7 @@ type t_5114fc66 = {
 
 /**
 ```
-type Ord#74b229e4<A#:0, B#:1> = {
+@unique(3) type Ord#74b229e4<A#:0, B#:1> = {
     "<": (A#:0, B#:1) ={}> bool#builtin,
     ">": (A#:0, B#:1) ={}> bool#builtin,
     "<=": (A#:0, B#:1) ={}> bool#builtin,
@@ -282,7 +282,7 @@ type t_74b229e4<T_0, T_1> = {
 
 /**
 ```
-type Neg#616f559e<A#:0, B#:1> = {
+@unique(3) type Neg#616f559e<A#:0, B#:1> = {
     "-": (A#:0) ={}> B#:1,
 }
 ```
@@ -294,7 +294,7 @@ type t_616f559e<T_0, T_1> = {
 
 /**
 ```
-type Div#3b763160<A#:0, B#:1, C#:2> = {
+@unique(2) type Div#3b763160<A#:0, B#:1, C#:2> = {
     "/": (A#:0, B#:1) ={}> C#:2,
 }
 ```
@@ -306,7 +306,7 @@ type t_3b763160<T_0, T_1, T_2> = {
 
 /**
 ```
-type Mul#02cc25c4<A#:0, B#:1, C#:2> = {
+@unique(1) type Mul#02cc25c4<A#:0, B#:1, C#:2> = {
     "*": (A#:0, B#:1) ={}> C#:2,
 }
 ```
@@ -318,7 +318,7 @@ type t_02cc25c4<T_0, T_1, T_2> = {
 
 /**
 ```
-type AddSub#3d436b7e<A#:0, B#:1, C#:2> = {
+@unique(0) type AddSub#3d436b7e<A#:0, B#:1, C#:2> = {
     "+": (A#:0, B#:1) ={}> C#:2,
     "-": (A#:0, B#:1) ={}> C#:2,
 }
@@ -350,7 +350,7 @@ type t_205100f4 = {
 
 /**
 ```
-type Eq#51ea2a36<T#:0> = {
+@unique(0.5383562320075749) type Eq#51ea2a36<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
@@ -362,7 +362,7 @@ type t_51ea2a36<T_0> = {
 
 /**
 ```
-type ToInt#4caf4b64<T#:0> = {
+@unique(0.14972816008023876) type ToInt#4caf4b64<T#:0> = {
     int: (T#:0) ={}> int#builtin,
 }
 ```
@@ -374,7 +374,7 @@ type t_4caf4b64<T_0> = {
 
 /**
 ```
-type ToFloat#07dae1a4<T#:0> = {
+@unique(0.8408403012585762) type ToFloat#07dae1a4<T#:0> = {
     float: (T#:0) ={}> float#builtin,
 }
 ```
@@ -386,7 +386,7 @@ type t_07dae1a4<T_0> = {
 
 /**
 ```
-type ToStr#64aac473<T#:0> = {
+@unique(0.5661807692527293) type ToStr#64aac473<T#:0> = {
     str: (T#:0) ={}> string#builtin,
 }
 ```
@@ -398,7 +398,7 @@ type t_64aac473<T_0> = {
 
 /**
 ```
-type Some#Some<T#:10000> = {
+@unique(0) type Some#Some<T#:10000> = {
     contents: T#:10000,
 }
 ```
@@ -410,7 +410,7 @@ type t_Some<T_10000> = {
 
 /**
 ```
-type None#None = {}
+@unique(1) type None#None = {}
 ```
 */
 type t_None = {
@@ -419,7 +419,7 @@ type t_None = {
 
 /**
 ```
-type As#As<T#:10000, Y#:10001> = {
+@unique(2) type As#As<T#:10000, Y#:10001> = {
     as: (T#:10000) ={}> Y#:10001,
 }
 ```
@@ -517,3 +517,4 @@ export const rgba_id = "5dd5ed8e";
 export const hsl_id = "21a93a54";
 export const hsla_id = "4784cfd4";
 export const title_id = "1b6d573e";
+export const display_id = "62c51cb0";
