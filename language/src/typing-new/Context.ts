@@ -63,10 +63,11 @@ export type Upgrade<Payload> = {
     author?: string;
     created: number;
     message?: string;
+    target: typed.Id;
     payload: Payload;
 };
 
-export type NamedDefns<Defn, UpgradePayload> = {
+export type NamedDefns<Defn> = {
     // this is a cache of the other?
     // let's just keep one around. we can reconstruct the other.
     names: { [key: string]: Array<typed.Id> };
@@ -74,7 +75,6 @@ export type NamedDefns<Defn, UpgradePayload> = {
         [key: string]: {
             defn: Defn;
             meta: MetaData;
-            upgrades: Array<Upgrade<UpgradePayload>>;
         };
     };
     // Ok, so let's actually think about the upgrade story.
