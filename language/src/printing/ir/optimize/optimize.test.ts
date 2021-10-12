@@ -211,18 +211,18 @@ describe('glsl in concert', () => {
         );
 
         expect(result).toMatchInlineSnapshot(`
-            const expr0_lambda#🍕: (float) => float = (
-                pos#:0: float,
-            ): float => 23 + pos#:0
+const expr0_lambda#🦑👨‍👧‍👦🙍‍♂️: (float) => float = (
+    pos#:0: float,
+): float => 23 + pos#:0
 
-            const estimateNormal_specialization#🤽: () => float = (): float => expr0_lambda#🍕(
-                1.23,
-            )
+const estimateNormal_specialization#🐯🥶🚓😃: () => float = (): float => expr0_lambda#🦑👨‍👧‍👦🙍‍♂️(
+    1.23,
+)
 
-            const expr0#🏺🧇🥧😃: (float) => float = (
-                coord#:4: float,
-            ): float => estimateNormal_specialization#🤽() + coord#:4 + 23
-        `);
+const expr0#🏺🧇🥧😃: (float) => float = (
+    coord#:4: float,
+): float => estimateNormal_specialization#🐯🥶🚓😃() + coord#:4 + 23
+`);
 
         expectValidGlsl(result);
     });
@@ -266,24 +266,24 @@ describe('glsl in concert', () => {
         );
 
         expect(result).toMatchInlineSnapshot(`
-            const expr0_lambda#🥜🏂🤨: (int) => float = (
-                pos#:0: int,
-            ): float => 23
+const expr0_lambda#🍽️👩‍👧💐: (int) => float = (
+    pos#:0: int,
+): float => 23
 
-            const callIt_specialization#🧿: (int) => float = (
-                eye#:1: int,
-            ): float => expr0_lambda#🥜🏂🤨(eye#:1)
+const callIt_specialization#🕐🕜🧟‍♀️😃: (int) => float = (
+    eye#:1: int,
+): float => expr0_lambda#🍽️👩‍👧💐(eye#:1)
 
-            const estimateNormal_specialization#🌕🐗⛹️‍♀️: () => float = (): float => expr0_lambda#🥜🏂🤨(
-                1,
-            )
+const estimateNormal_specialization#💯: () => float = (): float => expr0_lambda#🍽️👩‍👧💐(
+    1,
+)
 
-            const expr0#😙🦗💆😃: (float) => float = (
-                coord#:2: float,
-            ): float => estimateNormal_specialization#🌕🐗⛹️‍♀️() + callIt_specialization#🧿(
-                1000,
-            ) + coord#:2
-        `);
+const expr0#😙🦗💆😃: (float) => float = (
+    coord#:2: float,
+): float => estimateNormal_specialization#💯() + callIt_specialization#🕐🕜🧟‍♀️😃(
+    1000,
+) + coord#:2
+`);
 
         result.inOrder.forEach((k) => {
             result.irTerms[k].expr = runOpt(
@@ -303,24 +303,24 @@ describe('glsl in concert', () => {
         //     optimizeRepeatedly([removeUnusedVariables, flattenImmediateCalls2]),
         // );
         expect(result).toMatchInlineSnapshot(`
-            const expr0_lambda#🥜🏂🤨: (int) => float = (
-                pos#:0: int,
-            ): float => 23
+const expr0_lambda#🍽️👩‍👧💐: (int) => float = (
+    pos#:0: int,
+): float => 23
 
-            const callIt_specialization#🧿: (int) => float = (
-                eye#:1: int,
-            ): float => expr0_lambda#🥜🏂🤨(eye#:1)
+const callIt_specialization#🕐🕜🧟‍♀️😃: (int) => float = (
+    eye#:1: int,
+): float => expr0_lambda#🍽️👩‍👧💐(eye#:1)
 
-            const estimateNormal_specialization#🌕🐗⛹️‍♀️: () => float = (): float => expr0_lambda#🥜🏂🤨(
-                1,
-            )
+const estimateNormal_specialization#💯: () => float = (): float => expr0_lambda#🍽️👩‍👧💐(
+    1,
+)
 
-            const expr0#😙🦗💆😃: (float) => float = (
-                coord#:2: float,
-            ): float => estimateNormal_specialization#🌕🐗⛹️‍♀️() + callIt_specialization#🧿(
-                1000,
-            ) + coord#:2
-        `);
+const expr0#😙🦗💆😃: (float) => float = (
+    coord#:2: float,
+): float => estimateNormal_specialization#💯() + callIt_specialization#🕐🕜🧟‍♀️😃(
+    1000,
+) + coord#:2
+`);
 
         expectValidGlsl(result);
     });
@@ -355,24 +355,24 @@ describe('glsl in concert', () => {
         );
 
         expect(result).toMatchInlineSnapshot(`
-            const expr0_lambda#🌬️🧀👨‍🔬: (float) => float = (
-                pos#:0: float,
-            ): float => pos#:0 + 2.3
+const expr0_lambda#💦: (float) => float = (
+    pos#:0: float,
+): float => pos#:0 + 2.3
 
-            const callIt_specialization#♥️🤸‍♀️👺😃: (float) => float = (
-                eye#:1: float,
-            ): float => expr0_lambda#🌬️🧀👨‍🔬(eye#:1)
+const callIt_specialization#🚘🙅🥢😃: (float) => float = (
+    eye#:1: float,
+): float => expr0_lambda#💦(eye#:1)
 
-            const estimateNormal_specialization#🤾‍♂️🤺🎖️: () => float = (): float => expr0_lambda#🌬️🧀👨‍🔬(
-                2.3 + 1,
-            ) + 1.2
+const estimateNormal_specialization#🕓🍂🚗😃: () => float = (): float => expr0_lambda#💦(
+    2.3 + 1,
+) + 1.2
 
-            const expr0#⛷️: (float) => float = (
-                coord#:2: float,
-            ): float => estimateNormal_specialization#🤾‍♂️🤺🎖️() - callIt_specialization#♥️🤸‍♀️👺😃(
-                0.1 + 2.3,
-            )
-        `);
+const expr0#⛷️: (float) => float = (
+    coord#:2: float,
+): float => estimateNormal_specialization#🕓🍂🚗😃() - callIt_specialization#🚘🙅🥢😃(
+    0.1 + 2.3,
+)
+`);
 
         expectValidGlsl(result);
     });

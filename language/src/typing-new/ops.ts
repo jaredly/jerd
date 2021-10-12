@@ -328,7 +328,7 @@ export const resolveAttribute = (
         warn(`Attribute type ${idName(tid)} doesn't exist`);
         return null;
     }
-    if (decl.type === 'Enum') {
+    if (decl.defn.type === 'Enum') {
         warn(`Attribute type ${idName(tid)} is an enum, not a record`);
         return null;
     }
@@ -386,7 +386,7 @@ export const resolveAttribute = (
         }
     }
 
-    if (attr > decl.items.length) {
+    if (attr > decl.defn.items.length) {
         warn(`Attribute index out of range ${attr}`);
         return null;
     }
@@ -396,7 +396,7 @@ export const resolveAttribute = (
         location,
         idx: attr,
         inferred: false,
-        is: decl.items[attr],
+        is: decl.defn.items[attr],
         ref: { type: 'user', id: tid },
         target: base,
         refTypeVbls,
@@ -671,7 +671,7 @@ function findBinopImplementorsForRecordTypes(
 ): Array<Option> {
     const options: Array<Option> = [];
     potentials.forEach(({ idx, id }) => {
-        const decl = ctx.library.types.defns[idName(id)];
+        const { defn: decl } = ctx.library.types.defns[idName(id)];
         if (decl.type !== 'Record' || idx >= decl.items.length) {
             return;
         }
@@ -723,7 +723,7 @@ function findBinopImplementorsForRecordTypes(
         });
         const supers = ctx.library.types.superTypes[idName(id)];
         Object.keys(ctx.library.terms.defns).forEach((idRaw) => {
-            const is = ctx.library.terms.defns[idRaw].is;
+            const is = ctx.library.terms.defns[idRaw].defn.is;
             if (is.type === 'ref' && is.ref.type === 'user') {
                 const option = optionForValue(
                     ctx,
@@ -757,7 +757,7 @@ const optionForValue = (
     location: Location,
     target: t.Term,
 ): undefined | Option => {
-    const myDecl = ctx.library.types.defns[idName(type.ref.id)];
+    const { defn: myDecl } = ctx.library.types.defns[idName(type.ref.id)];
     if (myDecl.type !== 'Record') {
         return;
     }

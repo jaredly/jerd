@@ -15,7 +15,7 @@ export const hasSubType = (ctx: Context, type: Type, id: Id) => {
             if (idsEqual(id, sid)) {
                 return true;
             }
-            const decl = ctx.library.types.defns[idName(sid)];
+            const { defn: decl } = ctx.library.types.defns[idName(sid)];
             if (decl.type !== 'Record') {
                 return false;
             }
@@ -31,7 +31,7 @@ export const hasSubType = (ctx: Context, type: Type, id: Id) => {
     if (idsEqual(type.ref.id, id)) {
         return true;
     }
-    const decl = ctx.library.types.defns[idName(type.ref.id)];
+    const { defn: decl } = ctx.library.types.defns[idName(type.ref.id)];
     if (decl.type === 'Enum') {
         return false;
     }
@@ -42,7 +42,7 @@ export const hasSubType = (ctx: Context, type: Type, id: Id) => {
 export const getAllSubTypes = (lib: Library, extend: Array<Id>): Array<Id> => {
     return ([] as Array<Id>).concat(
         ...extend.map((id) => {
-            const defn = lib.types.defns[idName(id)];
+            const { defn } = lib.types.defns[idName(id)];
             if (defn.type !== 'Record') {
                 return [];
             }

@@ -129,19 +129,19 @@ describe('flattenImmediateCalls', () => {
 
         // Before
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#🥎: int = ((): int => {
-                const x#:0: int = 10;
-                const z#:2: int = x#:0 + 14;
-                if true {
-                    const y#:1: int = 42;
-                    const a#:3: int = x#:0 + z#:2;
-                    x#:0 = y#:1;
-                } else {
-                    x#:0 = 4;
-                };
-                return x#:0 + z#:2;
-            })()
-        `);
+const unnamed#👩‍👧‍👦🤯👨😃: int = ((): int => {
+    const x#:0: int = 10;
+    const z#:2: int = x#:0 + 14;
+    if true {
+        const y#:1: int = 42;
+        const a#:3: int = x#:0 + z#:2;
+        x#:0 = y#:1;
+    } else {
+        x#:0 = 4;
+    };
+    return x#:0 + z#:2;
+})()
+`);
 
         expectDefined(expr, [x, y, z], []);
 
@@ -149,35 +149,35 @@ describe('flattenImmediateCalls', () => {
 
         // After
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#🦎: int = ((): int => {
-                const x#:0: int = 10;
-                const z#:2: int = 10 + 14;
-                if true {
-                    const y#:1: int = 42;
-                    const a#:3: int = 10 + z#:2;
-                    x#:0 = 42;
-                } else {
-                    x#:0 = 4;
-                };
-                return x#:0 + z#:2;
-            })()
-        `);
+const unnamed#🦍👨‍⚕️💃: int = ((): int => {
+    const x#:0: int = 10;
+    const z#:2: int = 10 + 14;
+    if true {
+        const y#:1: int = 42;
+        const a#:3: int = 10 + z#:2;
+        x#:0 = 42;
+    } else {
+        x#:0 = 4;
+    };
+    return x#:0 + z#:2;
+})()
+`);
 
         expr = runOpt(env, expr, removeUnusedVariables);
 
         // After
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#🛶🏬🧂😃: int = ((): int => {
-                const x#:0: int = 10;
-                const z#:2: int = 10 + 14;
-                if true {
-                    x#:0 = 42;
-                } else {
-                    x#:0 = 4;
-                };
-                return x#:0 + z#:2;
-            })()
-        `);
+const unnamed#🧐: int = ((): int => {
+    const x#:0: int = 10;
+    const z#:2: int = 10 + 14;
+    if true {
+        x#:0 = 42;
+    } else {
+        x#:0 = 4;
+    };
+    return x#:0 + z#:2;
+})()
+`);
 
         expr = runOpt(
             env,
@@ -190,17 +190,17 @@ describe('flattenImmediateCalls', () => {
 
         // After
         expect(resultForExpr(env, expr)).toMatchInlineSnapshot(`
-            const unnamed#🛶🏬🧂😃: int = ((): int => {
-                const x#:0: int = 10;
-                const z#:2: int = 10 + 14;
-                if true {
-                    x#:0 = 42;
-                } else {
-                    x#:0 = 4;
-                };
-                return x#:0 + z#:2;
-            })()
-        `);
+const unnamed#🧐: int = ((): int => {
+    const x#:0: int = 10;
+    const z#:2: int = 10 + 14;
+    if true {
+        x#:0 = 42;
+    } else {
+        x#:0 = 4;
+    };
+    return x#:0 + z#:2;
+})()
+`);
 
         expectDefined(expr, [x, z], [y]);
     });

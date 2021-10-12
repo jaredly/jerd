@@ -95,7 +95,7 @@ export const typeTypeRef = (ctx: Context, type: TypeRef): t.Type => {
         const decl = ctx.library.types.defns[idName(id)];
         options.push({
             ref: { type: 'user', id },
-            vbls: decl.typeVbls.map((v) => v.subTypes),
+            vbls: decl.defn.typeVbls.map((v) => v.subTypes),
         });
     }
 

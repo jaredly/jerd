@@ -98,7 +98,7 @@ export const resolveType = (
             return {
                 type: 'id',
                 id: idOrSym.id,
-                typeVbls: type.typeVbls,
+                typeVbls: type.defn.typeVbls,
             };
         }
         return null;
@@ -128,7 +128,7 @@ export const resolveValue = (
         if (term != null) {
             return {
                 type: 'ref',
-                is: term.is,
+                is: term.defn.is,
                 location,
                 ref: { type: 'user', id: idOrSym.id },
             };
@@ -163,13 +163,13 @@ export const resolveNamedValue = (
         const term = ctx.library.terms.defns[idName(id)];
         if (
             expectedTypes.length &&
-            !expectedTypes.some((et) => t.typesEqual(term.is, et))
+            !expectedTypes.some((et) => t.typesEqual(term.defn.is, et))
         ) {
             continue;
         }
         return {
             type: 'ref',
-            is: term.is,
+            is: term.defn.is,
             location,
             ref: { type: 'user', id },
         };
