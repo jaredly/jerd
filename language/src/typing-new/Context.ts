@@ -56,6 +56,7 @@ export type MetaData = {
     created: number;
     author?: string;
     basedOn?: typed.Id;
+    supercededBy?: typed.Id;
     deprecated?: number;
 };
 

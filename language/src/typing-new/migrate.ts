@@ -1,6 +1,6 @@
 import { idName } from '../typing/env';
 import { Id, GlobalEnv, EffectDef, Env, newLocal } from '../typing/types';
-import { Context } from './Context';
+import { Context, NamedDefns } from './Context';
 
 const converEffectConstructors = (
     input: Context['library']['effects']['constructors']['names'],
@@ -29,16 +29,28 @@ const convertEffects = (effects: { [key: string]: EffectDef }) => {
 };
 
 export const ctxToGlobalEnv = (ctx: Context): GlobalEnv => {
-    const idNames: { [key: string]: string } = {};
-    const addNames = (names: { [key: string]: Array<Id> }) => {
-        Object.keys(names).forEach((name) =>
-            names[name].forEach((id) => (idNames[idName(id)] = name)),
+    const idNames: GlobalEnv['idNames'] = {};
+    const metaData: GlobalEnv['metaData'] = {};
+    const processNamed = <T>(named: NamedDefns<T>) => {
+        Object.keys(named.defns).forEach((k) => {
+            const meta = named.defns[k].meta;
+            metaData[k] = {
+                createdMs: meta.created,
+                tags: [],
+                supersededBy: meta.supercededBy
+                    ? idName(meta.supercededBy)
+                    : undefined,
+                basedOn: meta.basedOn ? idName(meta.basedOn) : undefined,
+            };
+        });
+        Object.keys(named.names).forEach((name) =>
+            named.names[name].forEach((id) => (idNames[idName(id)] = name)),
         );
     };
-    addNames(ctx.library.types.names);
-    addNames(ctx.library.terms.names);
-    addNames(ctx.library.effects.names);
-    addNames(ctx.library.decorators.names);
+    processNamed(ctx.library.types);
+    processNamed(ctx.library.terms);
+    processNamed(ctx.library.effects);
+    processNamed(ctx.library.decorators);
     return {
         attributeNames: ctx.library.types.constructors.names,
         builtinTypes: ctx.builtins.types,
@@ -55,7 +67,7 @@ export const ctxToGlobalEnv = (ctx: Context): GlobalEnv => {
         ),
         exportedTerms: {},
         idNames,
-        metaData: {},
+        metaData,
         names: ctx.library.terms.names,
         recordGroups: ctx.library.types.constructors.idToNames,
         rng: () => 0.0,
