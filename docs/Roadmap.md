@@ -11,17 +11,22 @@ Like:
 
 
 Have a function that is: Library -> TXT and TXT -> Library
-- [ ] GlobalEnv -> Library
+- [x] GlobalEnv -> Context
   - [x] preserve metadata!
-- [ ] Library -> GlobalEnv
-- do a test that I can go forward and back
-- [ ] maybe that's it?
+- [x] Context -> GlobalEnv
+- [x] do a test that I can go forward and back
 - [ ] text -> Library function
 - [ ] and a Library -> text function
-- [ ] add annotations for metadatas
+  - [ ] add annotations for metadatas
+  - [ ] figure out what to do with glsl_builtin (a stripDecorator and addDecorator functions?)
+      that would change the hash of the term...🤔
 - [ ] verify that round-tripping GlobalEnv -> Txt -> GlobalEnv produces the same hash.
 
 
+WHY THIS?
+- so I can migrate my web env after changing some things about how the typed tree is setup.
+- it'll be great.
+- which will make writing the new type checker more fun as well.
 
 ## TYPE SYSTEM REWRITE
 

@@ -1,7 +1,8 @@
 {
+    const whatsit = 12;
     let allComments: Array<[IFileRange, string]> = [];
     let idx = 0;
-    function myLocation(): Location {
+    function myLocation(): IFileRange & {idx: number} {
         return {...location(), idx: idx++}
     }
 }
@@ -36,7 +37,7 @@ Statement = Define / Expression
 // Decorators! For doing macro-y things probably?
 // Also for some builtin magics
 
-Decorator = "@" id:Identifier typeVbls:TypeVblsApply?  args:("(" _ CommaDecoratorArg? _ ")")? {
+Decorator = "@" id:DottedIdentifier typeVbls:TypeVblsApply?  args:("(" _ CommaDecoratorArg? _ ")")? {
     return {type: 'Decorator', id, typeVbls: typeVbls || [], args: args ? (args[2] || []) : [], location: myLocation()}
 }
 DecoratorArg = DecType / DecPat / DecExpr
@@ -166,9 +167,9 @@ Decorated = decorators_drop:(Decorator __)* wrapped:WithSuffix {
 }
 WithSuffix = target:Apsub suffixes_drop:Suffix* {
     if (suffixes_drop.length) {
-        return {type: 'WithSuffix', target, suffixes, location: myLocation()}
+        return {type: 'WithSuffix', target, suffixes: suffixes_drop, location: myLocation()}
     }
-    return sub
+    return target
 }
 
 Suffix = ApplySuffix / AttributeSuffix / IndexSuffix / AsSuffix
@@ -487,8 +488,11 @@ IdentifierWithoutHash = text:IdText {
     return {type: "id", text, location: myLocation(), }}
 Identifier = text:IdText hash:IdHash? {
     return {type: "id", text, location: myLocation(), hash}}
+DottedIdentifier = text:DottedIdText hash:IdHash? {
+    return {type: "id", text, location: myLocation(), hash}}
 MaybeQuotedIdentifier = text:IdTextOrString hash:IdHash? {
     return {type: "id", text: text.type === 'string' ? text.text : text, location: myLocation(), hash}}
+DottedIdText = $(IdText ("." IdText)*)
 IdText = $(!"enum" [0-9a-zA-Z_]+)
 IdTextOrString = IdText / String
 IdHash = $SymHash / $OpHash / $BuiltinHash
