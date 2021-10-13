@@ -205,6 +205,7 @@ export const findErrors = (term: Term | null | void) => {
 
 export const namedDefns = <T>(): NamedDefns<T> => ({ defns: {}, names: {} });
 export const newContext = (): Context => ({
+    rng: () => 0.0,
     warnings: [],
     builtins: { terms: {}, types: {} },
     bindings: {
