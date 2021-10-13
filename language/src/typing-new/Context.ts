@@ -18,6 +18,7 @@ types: {
 */
 
 export type Context = {
+    rng: () => number;
     library: Library;
     builtins: {
         terms: {
@@ -30,6 +31,14 @@ export type Context = {
     bindings: Bindings;
     warnings: Array<{ location: Location; text: string }>;
 };
+
+export const emptyBindings = (): Bindings => ({
+    unique: { current: 0 },
+    self: null,
+    values: [],
+    types: [],
+    effects: [],
+});
 
 export type Bindings = {
     unique: { current: number };
@@ -58,6 +67,10 @@ export type MetaData = {
     basedOn?: typed.Id;
     supercededBy?: typed.Id;
     deprecated?: number;
+    /** @deprecated this is just while we're transitioning folks */
+    tags?: Array<string>;
+    /** @deprecated let's normalize this */
+    supercedes?: typed.Id;
 };
 
 export type Upgrade<Payload> = {

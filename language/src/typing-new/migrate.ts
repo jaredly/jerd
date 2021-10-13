@@ -1,6 +1,15 @@
-import { idName } from '../typing/env';
-import { Id, GlobalEnv, EffectDef, Env, newLocal } from '../typing/types';
-import { Context, NamedDefns } from './Context';
+import { idFromName, idName } from '../typing/env';
+import {
+    Id,
+    GlobalEnv,
+    EffectDef,
+    Env,
+    newLocal,
+    nullLocation,
+    MetaData as TMetaData,
+    getAllSubTypes,
+} from '../typing/types';
+import { Context, emptyBindings, MetaData, NamedDefns } from './Context';
 
 const converEffectConstructors = (
     input: Context['library']['effects']['constructors']['names'],
@@ -28,20 +37,112 @@ const convertEffects = (effects: { [key: string]: EffectDef }) => {
     return output;
 };
 
+const emptyMeta: MetaData = { created: 0 };
+
+const convertMeta = (meta: TMetaData | null): MetaData =>
+    meta
+        ? {
+              created: meta.createdMs,
+              supercededBy: meta.supersededBy
+                  ? idFromName(meta.supersededBy)
+                  : undefined,
+              basedOn: meta.basedOn ? idFromName(meta.basedOn) : undefined,
+              author: meta.author,
+              tags: meta.tags.length ? meta.tags : undefined,
+              supercedes: meta.supersedes
+                  ? idFromName(meta.supersedes)
+                  : undefined,
+          }
+        : emptyMeta;
+
+export const globalEnvToCtx = (env: GlobalEnv): Context => {
+    const types: Context['library']['types'] = {
+        constructors: {
+            names: env.attributeNames,
+            idToNames: env.recordGroups,
+        },
+        defns: mapObj(env.types, (defn, k) => ({
+            defn,
+            meta: convertMeta(env.metaData[k]),
+        })),
+        names: env.typeNames,
+        // Soooo yes this is denormalization, is it fine? idk.
+        superTypes: mapObj(env.types, (defn, k) => {
+            if (defn.type === 'Record') {
+                return getAllSubTypes(env.types, defn.extends);
+            }
+        }),
+    };
+    const terms: Context['library']['terms'] = {
+        defns: mapObj(env.terms, (term, k) => ({
+            meta: convertMeta(env.metaData[k]),
+            defn: term,
+        })),
+        names: env.names,
+    };
+    const effects: Context['library']['effects'] = {
+        defns: mapObj(env.effects, (constructors, k) => ({
+            meta: convertMeta(env.metaData[k]),
+            defn: {
+                constrs: constructors,
+                location: nullLocation,
+                type: 'EffectDef',
+            },
+        })),
+        names: mapObj(env.effectNames, (k) => k.map(idFromName)),
+        constructors: {
+            names: mapObj(env.effectConstructors, (k) => [
+                { id: idFromName(k.idName), idx: k.idx },
+            ]),
+            idToNames: env.effectConstrNames,
+        },
+    };
+    const decorators: Context['library']['decorators'] = {
+        defns: mapObj(env.decorators, (defn, k) => ({
+            defn,
+            meta: convertMeta(env.metaData[k]),
+        })),
+        names: env.decoratorNames,
+    };
+    return {
+        rng: env.rng,
+        bindings: emptyBindings(),
+        builtins: {
+            types: env.builtinTypes,
+            terms: env.builtins,
+        },
+        library: {
+            types,
+            terms,
+            effects,
+            decorators,
+        },
+        warnings: [],
+    };
+};
+
 export const ctxToGlobalEnv = (ctx: Context): GlobalEnv => {
     const idNames: GlobalEnv['idNames'] = {};
     const metaData: GlobalEnv['metaData'] = {};
     const processNamed = <T>(named: NamedDefns<T>) => {
         Object.keys(named.defns).forEach((k) => {
             const meta = named.defns[k].meta;
+            if (meta === emptyMeta) {
+                return;
+            }
             metaData[k] = {
                 createdMs: meta.created,
-                tags: [],
-                supersededBy: meta.supercededBy
-                    ? idName(meta.supercededBy)
-                    : undefined,
-                basedOn: meta.basedOn ? idName(meta.basedOn) : undefined,
+                tags: meta.tags ? meta.tags : [],
             };
+            if (meta.supercededBy) {
+                metaData[k].supersededBy = idName(meta.supercededBy);
+            }
+            if (meta.basedOn) {
+                metaData[k].basedOn = idName(meta.basedOn);
+            }
+            if (meta.supercedes) {
+                metaData[k].supersedes = idName(meta.supercedes);
+            }
         });
         Object.keys(named.names).forEach((name) =>
             named.names[name].forEach((id) => (idNames[idName(id)] = name)),
@@ -70,7 +171,7 @@ export const ctxToGlobalEnv = (ctx: Context): GlobalEnv => {
         metaData,
         names: ctx.library.terms.names,
         recordGroups: ctx.library.types.constructors.idToNames,
-        rng: () => 0.0,
+        rng: ctx.rng,
         terms: mapObj(ctx.library.terms.defns, (d) => d.defn),
         typeNames: ctx.library.types.names,
         types: mapObj(ctx.library.types.defns, (d) => d.defn),
@@ -79,10 +180,15 @@ export const ctxToGlobalEnv = (ctx: Context): GlobalEnv => {
 
 export const mapObj = <A, B>(
     a: { [key: string]: A },
-    fn: (input: A) => B,
+    fn: (input: A, key: string) => B | undefined,
 ): { [key: string]: B } => {
     const res: { [key: string]: B } = {};
-    Object.keys(a).forEach((k) => (res[k] = fn(a[k])));
+    Object.keys(a).forEach((k) => {
+        const value = fn(a[k], k);
+        if (value !== undefined) {
+            res[k] = value;
+        }
+    });
     return res;
 };
 

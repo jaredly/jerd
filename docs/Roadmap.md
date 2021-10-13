@@ -11,10 +11,15 @@ Like:
 
 
 Have a function that is: Library -> TXT and TXT -> Library
-- [ ] GlobalEnv -> Context & Context -> GlobalEnv
-- [ ] preserve whatever metadata I want
+- [ ] GlobalEnv -> Library
+  - [x] preserve metadata!
+- [ ] Library -> GlobalEnv
+- do a test that I can go forward and back
 - [ ] maybe that's it?
-- [ ] 
+- [ ] text -> Library function
+- [ ] and a Library -> text function
+- [ ] add annotations for metadatas
+- [ ] verify that round-tripping GlobalEnv -> Txt -> GlobalEnv produces the same hash.
 
 
 
