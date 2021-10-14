@@ -160,7 +160,7 @@ if (cmd === 'jd-to-json') {
 
     // const { expressions, env } = typeFile(parsed, initialEnv, infile);
     console.log('Hash of parsed global', hashObject(env.global));
-    fs.writeFileSync(outfile, JSON.stringify(env, null, 2));
+    fs.writeFileSync(outfile, JSON.stringify({ env }, null, 2));
 }
 
 if (cmd === 'json-check') {
