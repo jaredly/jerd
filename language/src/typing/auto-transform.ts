@@ -1476,7 +1476,7 @@ export const transformType = <Ctx>(node: Type, visitor: Visitor<Ctx>, ctx: Ctx):
 
 // not a type Contents
 
-export const transformRecordBase = <Ctx>(node: RecordBase<any>, visitor: Visitor<Ctx>, ctx: Ctx): RecordBase => {
+export const transformRecordBase = <Ctx>(node: RecordBase<any>, visitor: Visitor<Ctx>, ctx: Ctx): RecordBase<any> => {
         if (!node) {
             throw new Error('No RecordBase provided');
         }
