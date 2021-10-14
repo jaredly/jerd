@@ -372,12 +372,14 @@ export const ctxToSyntax = (ctx: Context): string => {
     const termTypes: { [key: string]: true } = {};
 
     const allDeps: { [key: string]: Array<Id> } = {};
+    const topDeps: { [key: string]: { [key: string]: [Ctx, Reference] } } = {};
 
     const idToTop: { [key: string]: TopRef } = {};
 
     allTops.forEach((top) => {
         idToTop[idName(top.id)] = top;
         const dependencies = topDependencies(ctx.library, top);
+        topDeps[idName(top.id)] = dependencies;
         const ids: Array<Id> = (allDeps[idName(top.id)] = []);
         Object.keys(dependencies).forEach((k) => {
             const [c, r] = dependencies[k];
@@ -411,7 +413,18 @@ export const ctxToSyntax = (ctx: Context): string => {
             }
         }
 
-        result.push(topToPretty(ctx, env, namesForIds, top));
+        const deps = topDeps[k];
+
+        result.push(
+            items([
+                items([
+                    atom('// '),
+                    ...Object.keys(deps).map((k) => atom(k + ' ')),
+                    atom('\n'),
+                ]),
+                topToPretty(ctx, env, namesForIds, top),
+            ]),
+        );
     });
 
     console.log(Object.keys(termTypes).join(','));

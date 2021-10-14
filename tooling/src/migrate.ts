@@ -4,6 +4,8 @@ import fs from 'fs';
 import {
     Env,
     GlobalEnv,
+    Id,
+    idsEqual,
     newWithGlobal,
     Type,
 } from '@jerd/language/src/typing/types';
@@ -19,6 +21,7 @@ import {
 import {
     addToplevelToEnv,
     hashObject,
+    idFromName,
     idName,
     typeToplevelT,
 } from '../../language/src/typing/env';
@@ -98,6 +101,18 @@ if (cmd === 'json-to-jd') {
     fs.writeFileSync(outfile, printEnv(data));
 }
 
+const specifiedToplevelId = (top: Toplevel): Id | null => {
+    switch (top.type) {
+        case 'define':
+        case 'StructDef':
+        case 'EnumDef':
+        case 'DecoratorDef':
+        case 'effect':
+            return top.id.hash ? idFromName(top.id.hash.slice(1)) : null;
+    }
+    return null;
+};
+
 if (cmd === 'jd-to-json') {
     const tsBuiltins = loadBuiltins();
     const typedBuiltins: { [key: string]: Type } = {};
@@ -122,6 +137,10 @@ if (cmd === 'jd-to-json') {
         env = res.env;
         if (meta != null) {
             env.global.metaData[idName(res.id)] = convertMetaBack(meta);
+        }
+        const specified = specifiedToplevelId(inner);
+        if (specified && !idsEqual(res.id, specified)) {
+            console.log(`Different`, idName(specified), idName(toplevel.id));
         }
     });
 

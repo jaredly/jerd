@@ -960,6 +960,14 @@ export type EnumDef = {
     decorators?: Decorators;
 };
 
+// oooh parsing ambiguity
+// tuple return type
+// (): (a, b) => a
+// function return type
+// (): (a, b) => a => b
+// but I neeed a way to indicate that this is a tuple
+// or that the other is a lambda.
+
 export type TypeDef = RecordDef | EnumDef;
 export type RecordDef = {
     type: 'Record';

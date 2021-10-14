@@ -1,4 +1,4 @@
-import {Term, Location, Loc, Type, TypeVblDecl, Id, Decorators, Decorator, DecoratorArg, Pattern, Symbol, TypeReference, Reference, UserReference, RecordPatternItem, Literal, Boolean, EffectRef, ErrorType, TypeHole, RecordSubType, SwitchCase, LambdaType, AmbiguousType, Case, LiteralWithTemplateString, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
+import {Term, Location, Loc, Type, TypeVblDecl, Id, Decorators, Decorator, DecoratorArg, Pattern, Symbol, TypeReference, Reference, UserReference, RecordPatternItem, Literal, Boolean, EffectRef, ErrorType, TypeHole, RecordBase, RecordSubType, SwitchCase, LambdaType, AmbiguousType, Case, LiteralWithTemplateString, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
 
 export type Visitor<Ctx> = {
     Term?: (node: Term, ctx: Ctx) => null | false | Term | [Term | null, Ctx]
@@ -55,6 +55,8 @@ export const transformLocation = <Ctx>(node: Location, visitor: Visitor<Ctx>, ct
     }
 
 // no transformer for Id
+
+// not a type Array
 
 // no transformer for Symbol
 
@@ -1472,6 +1474,75 @@ export const transformType = <Ctx>(node: Type, visitor: Visitor<Ctx>, ctx: Ctx):
         
     }
 
+// not a type Contents
+
+export const transformRecordBase = <Ctx>(node: RecordBase<any>, visitor: Visitor<Ctx>, ctx: Ctx): RecordBase => {
+        if (!node) {
+            throw new Error('No RecordBase provided');
+        }
+        
+        let changed0 = false;
+        
+        let updatedNode = node;
+        switch (node.type) {
+            case 'Concrete': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$spread = null;
+        const updatedNode$0node$spread$current = updatedNode$0specified.spread;
+        if (updatedNode$0node$spread$current != null) {
+            
+                const updatedNode$0node$spread$2$ = transformTerm(updatedNode$0node$spread$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$spread$2$ !== updatedNode$0node$spread$current;
+            updatedNode$0node$spread = updatedNode$0node$spread$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, spread: updatedNode$0node$spread};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
+            case 'Variable': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$spread = transformTerm(updatedNode$0specified.spread, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$spread !== updatedNode$0specified.spread;
+
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, spread: updatedNode$0node$spread, location: updatedNode$0node$location};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+        }
+        return updatedNode;
+    }
+
 export const transformRecordSubType = <Ctx>(node: RecordSubType, visitor: Visitor<Ctx>, ctx: Ctx): RecordSubType => {
         if (!node) {
             throw new Error('No RecordSubType provided');
@@ -2110,6 +2181,10 @@ export const transformTerm = <Ctx>(node: Term, visitor: Visitor<Ctx>, ctx: Ctx):
             {
                 let changed2 = false;
                 
+                const updatedNode$0node$base = transformRecordBase(updatedNode$0specified.base, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$base !== updatedNode$0specified.base;
+
+                
                 const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
                 changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
 
@@ -2148,7 +2223,7 @@ export const transformTerm = <Ctx>(node: Term, visitor: Visitor<Ctx>, ctx: Ctx):
         }
         
                 if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, subTypes: updatedNode$0node$subTypes, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    updatedNode$0node =  {...updatedNode$0node, base: updatedNode$0node$base, is: updatedNode$0node$is, subTypes: updatedNode$0node$subTypes, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
                     changed1 = true;
                 }
             }

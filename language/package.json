@@ -41,7 +41,7 @@
     },
     "dependencies": {
         "@babel/generator": "^7.14.1",
-        "@babel/traverse": "^7.12.13",
+        "@babel/traverse": "^7.15.4",
         "@babel/types": "^7.12.13",
         "assert": "^2.0.0",
         "chalk": "^4.1.0",

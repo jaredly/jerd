@@ -421,7 +421,7 @@ LambdaType = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:CommaTypeWithName
 CommaEffects =
     first:Identifier rest:(_ "," _ Identifier)* _ ","? {return [first, ...rest.map((r: any) => r[3])]}
 
-TupleType = "(" first:Type rest:(_ "," _ Type)+ ")" {
+TupleType = "(" first:Type rest:(_ "," _ Type)+ ","? _ ")" {
     const types = [first].concat(rest.map((r: any) => r[3]));
     return {
         type: 'tuple',
