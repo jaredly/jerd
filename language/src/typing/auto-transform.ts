@@ -16,7 +16,13 @@ export type Visitor<Ctx> = {
     Reference?: (node: Reference, ctx: Ctx) => null | false | Reference | [Reference | null, Ctx]
                 ReferencePost?: (node: Reference, ctx: Ctx) => null | Reference,
     EffectRef?: (node: EffectRef, ctx: Ctx) => null | false | EffectRef | [EffectRef | null, Ctx]
-                EffectRefPost?: (node: EffectRef, ctx: Ctx) => null | EffectRef
+                EffectRefPost?: (node: EffectRef, ctx: Ctx) => null | EffectRef,
+    UserTypeReference?: (node: UserTypeReference, ctx: Ctx) => null | false | UserTypeReference | [UserTypeReference | null, Ctx]
+                UserTypeReferencePost?: (node: UserTypeReference, ctx: Ctx) => null | UserTypeReference,
+    UserReference?: (node: UserReference, ctx: Ctx) => null | false | UserReference | [UserReference | null, Ctx]
+                UserReferencePost?: (node: UserReference, ctx: Ctx) => null | UserReference,
+    Decorator?: (node: Decorator, ctx: Ctx) => null | false | Decorator | [Decorator | null, Ctx]
+                DecoratorPost?: (node: Decorator, ctx: Ctx) => null | Decorator
 }
 // not a type Loc
 
@@ -60,7 +66,39 @@ export const transformLocation = <Ctx>(node: Location, visitor: Visitor<Ctx>, ct
 
 // no transformer for Symbol
 
-// no transformer for UserReference
+export const transformUserReference = <Ctx>(node: UserReference, visitor: Visitor<Ctx>, ctx: Ctx): UserReference => {
+        if (!node) {
+            throw new Error('No UserReference provided');
+        }
+        
+        const transformed = visitor.UserReference ? visitor.UserReference(node, ctx) : null;
+        if (transformed === false) {
+            return node;
+        }
+        if (transformed != null) {
+            if (Array.isArray(transformed)) {
+                ctx = transformed[1];
+                if (transformed[0] != null) {
+                    node = transformed[0];
+                }
+            } else {
+                node = transformed;
+            }
+        }
+        
+        let changed0 = false;
+        const updatedNode = node;
+        
+        node = updatedNode;
+        if (visitor.UserReferencePost) {
+            const transformed = visitor.UserReferencePost(node, ctx);
+            if (transformed != null) {
+                node = transformed;
+            }
+        }
+        return node;
+        
+    }
 
 export const transformReference = <Ctx>(node: Reference, visitor: Visitor<Ctx>, ctx: Ctx): Reference => {
         if (!node) {
@@ -161,6 +199,10 @@ export const transformRecordPatternItem = <Ctx>(node: RecordPatternItem, visitor
             {
                 let changed1 = false;
                 
+                const updatedNode$ref = transformUserReference(node.ref, visitor, ctx);
+                changed1 = changed1 || updatedNode$ref !== node.ref;
+
+                
                 const updatedNode$location = transformLocation(node.location, visitor, ctx);
                 changed1 = changed1 || updatedNode$location !== node.location;
 
@@ -183,7 +225,7 @@ export const transformRecordPatternItem = <Ctx>(node: RecordPatternItem, visitor
         }
         
                 if (changed1) {
-                    updatedNode =  {...updatedNode, location: updatedNode$location, pattern: updatedNode$pattern, is: updatedNode$is, decorators: updatedNode$decorators};
+                    updatedNode =  {...updatedNode, ref: updatedNode$ref, location: updatedNode$location, pattern: updatedNode$pattern, is: updatedNode$is, decorators: updatedNode$decorators};
                     changed0 = true;
                 }
             }
@@ -786,6 +828,21 @@ export const transformDecorator = <Ctx>(node: Decorator, visitor: Visitor<Ctx>, 
             throw new Error('No Decorator provided');
         }
         
+        const transformed = visitor.Decorator ? visitor.Decorator(node, ctx) : null;
+        if (transformed === false) {
+            return node;
+        }
+        if (transformed != null) {
+            if (Array.isArray(transformed)) {
+                ctx = transformed[1];
+                if (transformed[0] != null) {
+                    node = transformed[0];
+                }
+            } else {
+                node = transformed;
+            }
+        }
+        
         let changed0 = false;
         
             let updatedNode = node;
@@ -831,7 +888,16 @@ export const transformDecorator = <Ctx>(node: Decorator, visitor: Visitor<Ctx>, 
                 }
             }
             
-        return updatedNode;
+        
+        node = updatedNode;
+        if (visitor.DecoratorPost) {
+            const transformed = visitor.DecoratorPost(node, ctx);
+            if (transformed != null) {
+                node = transformed;
+            }
+        }
+        return node;
+        
     }
 
 export const transformDecorators = <Ctx>(node: Decorators, visitor: Visitor<Ctx>, ctx: Ctx): Decorators => {
@@ -1491,6 +1557,10 @@ export const transformRecordBaseConcrete = <Ctx>(node: RecordBaseConcrete, visit
             {
                 let changed2 = false;
                 
+                const updatedNode$0node$ref = transformUserReference(updatedNode$0specified.ref, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$ref !== updatedNode$0specified.ref;
+
+                
                 let updatedNode$0node$rows = updatedNode$0specified.rows;
                 {
                     let changed3 = false;
@@ -1529,7 +1599,7 @@ export const transformRecordBaseConcrete = <Ctx>(node: RecordBaseConcrete, visit
         }
         
                 if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, rows: updatedNode$0node$rows, location: updatedNode$0node$location, spread: updatedNode$0node$spread};
+                    updatedNode$0node =  {...updatedNode$0node, ref: updatedNode$0node$ref, rows: updatedNode$0node$rows, location: updatedNode$0node$location, spread: updatedNode$0node$spread};
                     changed1 = true;
                 }
             }
@@ -3671,11 +3741,30 @@ export const transformUserTypeReference = <Ctx>(node: UserTypeReference, visitor
             throw new Error('No UserTypeReference provided');
         }
         
+        const transformed = visitor.UserTypeReference ? visitor.UserTypeReference(node, ctx) : null;
+        if (transformed === false) {
+            return node;
+        }
+        if (transformed != null) {
+            if (Array.isArray(transformed)) {
+                ctx = transformed[1];
+                if (transformed[0] != null) {
+                    node = transformed[0];
+                }
+            } else {
+                node = transformed;
+            }
+        }
+        
         let changed0 = false;
         
             let updatedNode = node;
             {
                 let changed1 = false;
+                
+                const updatedNode$ref = transformUserReference(node.ref, visitor, ctx);
+                changed1 = changed1 || updatedNode$ref !== node.ref;
+
                 
                 const updatedNode$location = transformLocation(node.location, visitor, ctx);
                 changed1 = changed1 || updatedNode$location !== node.location;
@@ -3708,12 +3797,21 @@ export const transformUserTypeReference = <Ctx>(node: UserTypeReference, visitor
         }
         
                 if (changed1) {
-                    updatedNode =  {...updatedNode, location: updatedNode$location, typeVbls: updatedNode$typeVbls, decorators: updatedNode$decorators};
+                    updatedNode =  {...updatedNode, ref: updatedNode$ref, location: updatedNode$location, typeVbls: updatedNode$typeVbls, decorators: updatedNode$decorators};
                     changed0 = true;
                 }
             }
             
-        return updatedNode;
+        
+        node = updatedNode;
+        if (visitor.UserTypeReferencePost) {
+            const transformed = visitor.UserTypeReferencePost(node, ctx);
+            if (transformed != null) {
+                node = transformed;
+            }
+        }
+        return node;
+        
     }
 
 export const transformEnumDef = <Ctx>(node: EnumDef, visitor: Visitor<Ctx>, ctx: Ctx): EnumDef => {

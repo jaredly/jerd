@@ -615,7 +615,7 @@ export const resolveType = (env: Env, id: Identifier): Array<Id> => {
     if (id.hash != null) {
         const rawId = id.hash.slice(1);
         if (!env.global.types[rawId]) {
-            throw new Error(`Unknown type hash ${rawId}`);
+            throw new LocatedError(id.location, `Unknown type hash ${rawId}`);
         }
         return [idFromName(rawId)];
     }

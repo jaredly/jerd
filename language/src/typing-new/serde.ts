@@ -20,6 +20,7 @@ import {
     Visitor,
 } from '../typing/auto-transform';
 import { idFromName, idName } from '../typing/env';
+import { refName } from '../typing/typePattern';
 import {
     Env,
     Id,
@@ -44,8 +45,10 @@ export type TopRef = {
     type: 'Define' | 'Decorator' | 'Type' | 'Effect';
 };
 
-const getNamesForIds = <T>(namedDefns: NamedDefns<T>) => {
-    const namesForIds: { [idName: string]: Array<string> } = {};
+const getNamesForIds = <T>(
+    namedDefns: NamedDefns<T>,
+    namesForIds: { [idName: string]: Array<string> },
+) => {
     Object.keys(namedDefns.names).forEach((name) => {
         namedDefns.names[name].forEach((id) => {
             if (!namesForIds[idName(id)]) {
@@ -55,21 +58,20 @@ const getNamesForIds = <T>(namedDefns: NamedDefns<T>) => {
             }
         });
     });
-    return namesForIds;
 };
 
-const toplevelDefines = (lib: Library): Array<ToplevelDefine> => {
-    const namesForIds = getNamesForIds(lib.terms);
-    // hmm no metadata here ...
-    return Object.keys(lib.terms.defns).map((k) => ({
-        type: 'Define',
-        id: idFromName(k),
-        location: lib.terms.defns[k].defn.location,
-        name: namesForIds[k][0] || 'unnamed',
-        term: lib.terms.defns[k].defn,
-        tags: lib.terms.defns[k].meta.tags,
-    }));
-};
+// const toplevelDefines = (lib: Library): Array<ToplevelDefine> => {
+//     const namesForIds = getNamesForIds(lib.terms);
+//     // hmm no metadata here ...
+//     return Object.keys(lib.terms.defns).map((k) => ({
+//         type: 'Define',
+//         id: idFromName(k),
+//         location: lib.terms.defns[k].defn.location,
+//         name: namesForIds[k][0] || 'unnamed',
+//         term: lib.terms.defns[k].defn,
+//         tags: lib.terms.defns[k].meta.tags,
+//     }));
+// };
 
 const topDefls = <T>(
     namedDefns: NamedDefns<T>,
@@ -244,11 +246,26 @@ const topDependencies = (lib: Library, top: TopRef) => {
             transformTerm(lib.terms.defns[idName(top.id)].defn, visitor, null);
             break;
         case 'Type':
-            transformTypeDef(
-                lib.types.defns[idName(top.id)].defn,
-                visitor,
-                null,
-            );
+            const defn = lib.types.defns[idName(top.id)].defn;
+            transformTypeDef(defn, visitor, null);
+            if (defn.type === 'Record') {
+                defn.extends.forEach(
+                    (id) =>
+                        (collection[refName({ type: 'user', id })] = [
+                            ['Type', 'ref'],
+                            { type: 'user', id },
+                        ]),
+                );
+            }
+            if (defn.type === 'Enum') {
+                defn.extends.forEach(
+                    ({ ref: { id } }) =>
+                        (collection[refName({ type: 'user', id })] = [
+                            ['Type', 'ref'],
+                            { type: 'user', id },
+                        ]),
+                );
+            }
             break;
         case 'Effect':
             transformEffectDef(
@@ -352,7 +369,11 @@ export const ctxToSyntax = (ctx: Context): string => {
     const result: Array<PP> = [];
 
     const env = ctxToEnv(ctx);
-    const namesForIds = getNamesForIds(ctx.library.terms);
+    const namesForIds: { [idName: string]: Array<string> } = {};
+    getNamesForIds(ctx.library.terms, namesForIds);
+    getNamesForIds(ctx.library.types, namesForIds);
+    getNamesForIds(ctx.library.decorators, namesForIds);
+    getNamesForIds(ctx.library.effects, namesForIds);
 
     const allTops = allTopLevels(ctx.library);
     // const allDeps: { [id: string]: string } = {};

@@ -502,9 +502,9 @@ visitorTypes.forEach((name) => (transformers[name] = makeTransformer(name)));
 //     });
 // }
 
-const prelude = `import {${Object.keys(transformerStatus).join(
-    ', ',
-)}} from './types';
+const prelude = `import {${Object.keys(transformerStatus)
+    .filter((k) => k !== 'Array')
+    .join(', ')}} from './types';
 
 export type Visitor<Ctx> = {
     ${visitorTypes

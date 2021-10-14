@@ -31,6 +31,8 @@ import { loadBuiltins } from '@jerd/language/src/printing/loadBuiltins';
 import { parse, Toplevel } from '@jerd/language/src/parsing/parser';
 import { typeFile } from '@jerd/language/src/typing/typeFile';
 import { addLocationIndices } from '@jerd/language/src/typing/analyze';
+import { LocatedError } from '@jerd/language/src/typing/errors';
+import { showLocation } from '@jerd/language/src/typing/typeExpr';
 
 const [_, __, cmd, infile, outfile] = process.argv;
 
@@ -130,17 +132,29 @@ if (cmd === 'jd-to-json') {
 
     parsed.forEach((top) => {
         const { meta, inner } = stripMetaDecorators(top);
-        let toplevel = addLocationIndices(
-            typeToplevelT(newWithGlobal(env.global), inner, null),
-        );
-        const res = addToplevelToEnv(env, toplevel);
-        env = res.env;
-        if (meta != null) {
-            env.global.metaData[idName(res.id)] = convertMetaBack(meta);
-        }
-        const specified = specifiedToplevelId(inner);
-        if (specified && !idsEqual(res.id, specified)) {
-            console.log(`Different`, idName(specified), idName(toplevel.id));
+        try {
+            let toplevel = addLocationIndices(
+                typeToplevelT(newWithGlobal(env.global), inner, null),
+            );
+            const res = addToplevelToEnv(env, toplevel);
+            env = res.env;
+            if (meta != null) {
+                env.global.metaData[idName(res.id)] = convertMetaBack(meta);
+            }
+            const specified = specifiedToplevelId(inner);
+            if (specified && !idsEqual(res.id, specified)) {
+                console.log(
+                    `Different`,
+                    idName(specified),
+                    idName(toplevel.id),
+                );
+            }
+        } catch (err) {
+            if (err instanceof LocatedError) {
+                console.error(showLocation(err.loc));
+                console.error(err.getMessage());
+            }
+            throw err;
         }
     });
 

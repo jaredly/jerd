@@ -1,6 +1,22 @@
 
 ## EDITOR DUMP
 
+- [ ] tuple type parsing ambiguity! ugh this is annoying.
+- [x] the auto-transformer ... still doesn't work ... for the type variable bit ... apparently. like we're not dealing with Array<Term | null> for the RecordBase.
+- [ ] don't output `Array` as a type we're importing folks.
+
+
+
+
+
+
+
+
+
+
+
+
+
 OK so this is all well and fun,
 but I seriously need a way to DUMP the editor state into text,
 so I can re-parse it with some things being very different.
