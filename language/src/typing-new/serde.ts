@@ -1,3 +1,4 @@
+import { DecoratorArg, Toplevel } from '../parsing/parser';
 import { args, atom, id, items, PP, printToString } from '../printing/printer';
 import {
     declarationToPretty,
@@ -30,6 +31,7 @@ import {
     ToplevelDefine,
     ToplevelT,
     TypeDef,
+    MetaData as TMetaData,
     UserReference,
 } from '../typing/types';
 import { Context, MetaData, NamedDefns } from './Context';
@@ -94,6 +96,88 @@ const allTopLevels = (lib: Library): Array<TopRef> => {
 // or I mean people can always specify hash, and these will be
 // #builtin
 
+export const parseMetaId = (args: Array<DecoratorArg>): Id => {
+    if (args.length !== 1) {
+        throw new Error(`expected 1 arg, got ${args.length}`);
+    }
+    const arg = args[0];
+    if (arg.type !== 'Expr') {
+        throw new Error(`expected expr`);
+    }
+    if (arg.expr.type !== 'id') {
+        throw new Error(`expected id`);
+    }
+    if (!arg.expr.hash) {
+        throw new Error(`no hash`);
+    }
+    return idFromName(arg.expr.hash);
+};
+
+export const parseMetaInt = (args: Array<DecoratorArg>): number => {
+    if (args.length !== 1) {
+        throw new Error(`expected 1 arg, got ${args.length}`);
+    }
+    const arg = args[0];
+    if (arg.type !== 'Expr') {
+        throw new Error(`expected expr`);
+    }
+    if (arg.expr.type !== 'int') {
+        throw new Error(`expected int`);
+    }
+    return arg.expr.value;
+};
+
+export const stripMetaDecorators = (
+    top: Toplevel,
+): { meta: MetaData | null; inner: Toplevel } => {
+    let inner = top;
+    if (inner.type === 'Decorated') {
+        const meta: MetaData = {
+            created: 0,
+            tags: [],
+        };
+        let { decorators } = inner;
+        let modified = false;
+        decorators = decorators.filter((dec) => {
+            if (dec.id.hash === '#builtin') {
+                switch (dec.id.text) {
+                    case 'basedOn':
+                        meta.basedOn = parseMetaId(dec.args);
+                        modified = true;
+                        break;
+                    case 'supercedes':
+                        meta.supercedes = parseMetaId(dec.args);
+                        modified = true;
+                        break;
+                    case 'createdAt':
+                        meta.created = parseMetaInt(dec.args);
+                        modified = true;
+                        break;
+                    case 'deprecated':
+                        // throw folks
+                        meta.deprecated = parseMetaInt(dec.args);
+                        modified = true;
+                        break;
+                }
+                return false;
+            }
+            if (dec.id.hash === '#tag') {
+                meta.tags!.push(dec.id.text);
+                modified = true;
+                return false;
+            }
+            return true;
+        });
+        if (decorators.length) {
+            inner = { ...inner, decorators };
+        } else {
+            inner = inner.wrapped;
+        }
+        return { meta: modified ? meta : null, inner };
+    }
+    return { meta: null, inner };
+};
+
 export const metaDecorators = (
     env: Env,
     meta: MetaData,
@@ -106,8 +190,14 @@ export const metaDecorators = (
                 atom('@'),
                 id(name, 'builtin', 'decorator'),
                 args([contents]),
+                atom('\n'),
             ]),
         );
+    if (meta.tags) {
+        meta.tags.forEach((tag) => {
+            metas.push(atom(`@${tag}#tag\n`));
+        });
+    }
     dec('createdAt', atom(meta.created.toString()));
     if (meta.author) {
         dec('author', atom(meta.author));
@@ -133,7 +223,6 @@ export const metaDecorators = (
     if (meta.deprecated != null) {
         dec('deprecated', atom(meta.deprecated.toString()));
     }
-    metas.push(atom('\n'));
     return metas;
 };
 

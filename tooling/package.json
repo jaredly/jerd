@@ -11,7 +11,7 @@
         "start": "env NODE_OPTIONS=--stack-trace-limit=100 node --enable-source-maps bootstrap.js ../language/src/typing/types.ts ../language/src/typing/auto-transform.ts Term,Pattern,Let,ToplevelT,Type,Location,Reference,EffectRef",
         "ir": "env NODE_OPTIONS=--stack-trace-limit=100 node --enable-source-maps bootstrap.js ../language/src/printing/ir/types.ts ../language/src/printing/ir/auto-transform.ts Expr,Pattern,Location,Stmt,Type",
         "migrate": "esbuild src/migrate.ts --platform=node --bundle | node - json-to-jd ~/Downloads/re-uploaded-n-stuff-strangeloop.json env.jd",
-        "compile:migrate": "esbuild src/migrate.ts --platform=node --bundle --outfile=migrate.js",
+        "compile:migrate": "esbuild src/migrate.ts --sourcemap --platform=node --bundle --outfile=migrate.js",
         "sn": "jest -u"
     },
     "jest": {

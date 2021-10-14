@@ -1,18 +1,33 @@
 // Migrating stuff
 
 import fs from 'fs';
-import { Env, GlobalEnv, Type } from '@jerd/language/src/typing/types';
 import {
+    Env,
+    GlobalEnv,
+    newWithGlobal,
+    Type,
+} from '@jerd/language/src/typing/types';
+import {
+    convertMetaBack,
     ctxToGlobalEnv,
     globalEnvToCtx,
 } from '@jerd/language/src/typing-new/migrate';
-import { ctxToSyntax } from '@jerd/language/src/typing-new/serde';
-import { hashObject } from '../../language/src/typing/env';
+import {
+    ctxToSyntax,
+    stripMetaDecorators,
+} from '@jerd/language/src/typing-new/serde';
+import {
+    addToplevelToEnv,
+    hashObject,
+    idName,
+    typeToplevelT,
+} from '../../language/src/typing/env';
 import { State } from '@jerd/web/src/State';
 import { presetEnv } from '@jerd/language/src/typing/preset';
 import { loadBuiltins } from '@jerd/language/src/printing/loadBuiltins';
 import { parse, Toplevel } from '@jerd/language/src/parsing/parser';
 import { typeFile } from '@jerd/language/src/typing/typeFile';
+import { addLocationIndices } from '@jerd/language/src/typing/analyze';
 
 const [_, __, cmd, infile, outfile] = process.argv;
 
@@ -93,12 +108,24 @@ if (cmd === 'jd-to-json') {
         }
     });
 
-    const initialEnv = presetEnv(typedBuiltins);
+    let env = presetEnv(typedBuiltins);
 
     const raw = fs.readFileSync(infile, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
-    const { expressions, env } = typeFile(parsed, initialEnv, infile);
+    parsed.forEach((top) => {
+        const { meta, inner } = stripMetaDecorators(top);
+        let toplevel = addLocationIndices(
+            typeToplevelT(newWithGlobal(env.global), inner, null),
+        );
+        const res = addToplevelToEnv(env, toplevel);
+        env = res.env;
+        if (meta != null) {
+            env.global.metaData[idName(res.id)] = convertMetaBack(meta);
+        }
+    });
+
+    // const { expressions, env } = typeFile(parsed, initialEnv, infile);
     console.log('Hash of parsed global', hashObject(env.global));
     fs.writeFileSync(outfile, JSON.stringify(env, null, 2));
 }

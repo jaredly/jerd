@@ -177,6 +177,7 @@ export const typeToplevelT = (
                         }
                     }
                     if (decorators.length !== ffi.length) {
+                        console.log(decorators);
                         throw new Error(`Unhandled decorators`);
                     }
                     // env = typeTypeDefn(env, item.wrapped, tag, unum);

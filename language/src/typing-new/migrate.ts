@@ -39,7 +39,7 @@ const convertEffects = (effects: { [key: string]: EffectDef }) => {
 
 const emptyMeta: MetaData = { created: 0 };
 
-const convertMeta = (meta: TMetaData | null): MetaData =>
+export const convertMeta = (meta: TMetaData | null): MetaData =>
     meta
         ? {
               created: meta.createdMs,
@@ -122,6 +122,23 @@ export const globalEnvToCtx = (env: GlobalEnv): Context => {
     };
 };
 
+export const convertMetaBack = (meta: MetaData): TMetaData => {
+    const metaData: TMetaData = {
+        createdMs: meta.created,
+        tags: meta.tags ? meta.tags : [],
+    };
+    // if (meta.supercededBy) {
+    //     metaData[k].supersededBy = idName(meta.supercededBy);
+    // }
+    if (meta.basedOn) {
+        metaData.basedOn = idName(meta.basedOn);
+    }
+    if (meta.supercedes) {
+        metaData.supersedes = idName(meta.supercedes);
+    }
+    return metaData;
+};
+
 export const ctxToGlobalEnv = (ctx: Context): GlobalEnv => {
     const idNames: GlobalEnv['idNames'] = {};
     const metaData: GlobalEnv['metaData'] = {};
@@ -131,19 +148,7 @@ export const ctxToGlobalEnv = (ctx: Context): GlobalEnv => {
             if (meta === emptyMeta) {
                 return;
             }
-            metaData[k] = {
-                createdMs: meta.created,
-                tags: meta.tags ? meta.tags : [],
-            };
-            // if (meta.supercededBy) {
-            //     metaData[k].supersededBy = idName(meta.supercededBy);
-            // }
-            if (meta.basedOn) {
-                metaData[k].basedOn = idName(meta.basedOn);
-            }
-            if (meta.supercedes) {
-                metaData[k].supersedes = idName(meta.supercedes);
-            }
+            metaData[k] = convertMetaBack(meta);
         });
         Object.keys(named.names).forEach((name) =>
             named.names[name].forEach((id) => (idNames[idName(id)] = name)),
