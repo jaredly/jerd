@@ -17,17 +17,27 @@ types: {
 
 */
 
+export type Builtins = {
+    terms: {
+        [key: string]: typed.Type;
+    };
+    types: {
+        [key: string]: number; // number of type variables accepted.
+    };
+    decorators: {
+        // name, args, target type if applicable. Do I need type arguments?
+        // maybe.
+        [key: string]: {
+            args: Array<typed.Type>;
+            target: null | typed.Type;
+        };
+    };
+};
+
 export type Context = {
     rng: () => number;
     library: Library;
-    builtins: {
-        terms: {
-            [key: string]: typed.Type;
-        };
-        types: {
-            [key: string]: number; // number of type variables accepted.
-        };
-    };
+    builtins: Builtins;
     bindings: Bindings;
     warnings: Array<{ location: Location; text: string }>;
 };

@@ -216,6 +216,7 @@ export type DecoratorDef = {
     unique: number;
     arguments: Array<DecoratorDefArg>;
     typeVbls: Array<TypeVblDecl>;
+    // typeargs is a weird name for this
     typeArgs: Array<{ sym: Symbol; location: Location }>;
     restArg: {
         argLocation: Location;
