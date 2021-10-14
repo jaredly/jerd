@@ -115,7 +115,7 @@ const specifiedToplevelId = (top: Toplevel): Id | null => {
     return null;
 };
 
-if (cmd === 'jd-to-json') {
+const parseJd = () => {
     const tsBuiltins = loadBuiltins();
     const typedBuiltins: { [key: string]: Type } = {};
     Object.keys(tsBuiltins).forEach((b) => {
@@ -133,6 +133,12 @@ if (cmd === 'jd-to-json') {
     parsed.forEach((top) => {
         const { meta, inner } = stripMetaDecorators(top);
         try {
+            if (
+                inner.type === 'StructDef' &&
+                ['#Some', '#None', '#As'].includes(inner.id.hash)
+            ) {
+                return;
+            }
             let toplevel = addLocationIndices(
                 typeToplevelT(newWithGlobal(env.global), inner, null),
             );
@@ -158,9 +164,21 @@ if (cmd === 'jd-to-json') {
         }
     });
 
+    return env;
+};
+
+if (cmd === 'jd-to-json') {
+    const env = parseJd();
+
     // const { expressions, env } = typeFile(parsed, initialEnv, infile);
     console.log('Hash of parsed global', hashObject(env.global));
     fs.writeFileSync(outfile, JSON.stringify({ env }, null, 2));
+}
+
+if (cmd === 'jd-check') {
+    const env = parseJd();
+
+    console.log('Hash of jd', hashObject(env.global));
 }
 
 if (cmd === 'json-check') {

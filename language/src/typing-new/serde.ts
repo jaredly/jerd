@@ -112,7 +112,7 @@ export const parseMetaId = (args: Array<DecoratorArg>): Id => {
     if (!arg.expr.hash) {
         throw new Error(`no hash`);
     }
-    return idFromName(arg.expr.hash);
+    return idFromName(arg.expr.hash.slice(1));
 };
 
 export const parseMetaInt = (args: Array<DecoratorArg>): number => {
@@ -419,6 +419,12 @@ export const ctxToSyntax = (ctx: Context): string => {
 
     sorted.forEach((k) => {
         const top = idToTop[k];
+        if (
+            top.type === 'Type' &&
+            ['Some', 'As', 'None'].includes(top.id.hash)
+        ) {
+            return;
+        }
 
         if (top.type === 'Define') {
             let found = false;
