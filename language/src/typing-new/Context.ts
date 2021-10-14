@@ -75,11 +75,11 @@ export type MetaData = {
     created: number;
     author?: string;
     basedOn?: typed.Id;
-    supercededBy?: typed.Id;
+    // supercededBy?: typed.Id;
     deprecated?: number;
     /** @deprecated this is just while we're transitioning folks */
     tags?: Array<string>;
-    /** @deprecated let's normalize this */
+    // /** @deprecated let's normalize this */
     supercedes?: typed.Id;
 };
 

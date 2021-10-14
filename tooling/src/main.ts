@@ -495,7 +495,7 @@ export type Visitor<Ctx> = {
     ${visitorTypes
         .map(
             (name) =>
-                `${name}?: (node: ${name}, ctx: Ctx) => null | false | ${name} | [${name}, Ctx]
+                `${name}?: (node: ${name}, ctx: Ctx) => null | false | ${name} | [${name} | null, Ctx]
                 ${name}Post?: (node: ${name}, ctx: Ctx) => null | ${name}`,
         )
         .join(',\n    ')}

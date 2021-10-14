@@ -43,9 +43,9 @@ const convertMeta = (meta: TMetaData | null): MetaData =>
     meta
         ? {
               created: meta.createdMs,
-              supercededBy: meta.supersededBy
-                  ? idFromName(meta.supersededBy)
-                  : undefined,
+              //   supercededBy: meta.supersededBy
+              //       ? idFromName(meta.supersededBy)
+              //       : undefined,
               basedOn: meta.basedOn ? idFromName(meta.basedOn) : undefined,
               author: meta.author,
               tags: meta.tags.length ? meta.tags : undefined,
@@ -110,6 +110,7 @@ export const globalEnvToCtx = (env: GlobalEnv): Context => {
         builtins: {
             types: env.builtinTypes,
             terms: env.builtins,
+            decorators: {},
         },
         library: {
             types,
@@ -134,9 +135,9 @@ export const ctxToGlobalEnv = (ctx: Context): GlobalEnv => {
                 createdMs: meta.created,
                 tags: meta.tags ? meta.tags : [],
             };
-            if (meta.supercededBy) {
-                metaData[k].supersededBy = idName(meta.supercededBy);
-            }
+            // if (meta.supercededBy) {
+            //     metaData[k].supersededBy = idName(meta.supercededBy);
+            // }
             if (meta.basedOn) {
                 metaData[k].basedOn = idName(meta.basedOn);
             }

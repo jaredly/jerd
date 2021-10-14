@@ -32,7 +32,7 @@ import {
     newWithGlobal,
     idsEqual,
     getAllSubTypes,
-    UserReference,
+    ToplevelDecorator,
 } from '../typing/types';
 import {
     PP,
@@ -56,96 +56,17 @@ export const toplevelToPretty = (
             glob.idNames[idName(toplevel.id)] = toplevel.name;
 
             return declarationToPretty(
-                selfEnv(
-                    newWithGlobal(glob),
-                    // { ...env, global: glob },
-                    {
-                        type: 'Term',
-                        name: toplevel.name,
-                        ann: toplevel.term.is,
-                    },
-                ),
+                selfEnv(newWithGlobal(glob), {
+                    type: 'Term',
+                    name: toplevel.name,
+                    ann: toplevel.term.is,
+                }),
                 toplevel.id,
                 toplevel.term,
             );
         }
         case 'Decorator': {
-            return items(
-                [
-                    hideUnique
-                        ? null
-                        : atom(
-                              `@unique(${JSON.stringify(
-                                  toplevel.defn.unique,
-                              )}) `,
-                          ),
-                    atom('decorator '),
-                    id(
-                        toplevel.name,
-                        idName(toplevel.id),
-                        'decorator-defn',
-                        toplevel.location,
-                    ),
-                    typeVblDeclsToPretty(env, toplevel.defn.typeVbls),
-                    toplevel.defn.arguments.length ||
-                    (toplevel.defn.restArg && toplevel.defn.restArg.type)
-                        ? args(
-                              toplevel.defn.arguments.map((arg) => {
-                                  return items(
-                                      [
-                                          id(
-                                              arg.argName,
-                                              '',
-                                              'decorator-arg',
-                                              arg.argLocation,
-                                          ),
-                                          ...(arg.type
-                                              ? [
-                                                    atom(': '),
-                                                    typeToPretty(env, arg.type),
-                                                ]
-                                              : []),
-                                      ],
-                                      undefined,
-                                      arg.location,
-                                  );
-                              }),
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              toplevel.defn.restArg
-                                  ? items([
-                                        id(
-                                            toplevel.defn.restArg.argName,
-                                            '',
-                                            'decorator-arg',
-                                            toplevel.defn.restArg.argLocation,
-                                        ),
-                                        ...(toplevel.defn.restArg.type
-                                            ? [
-                                                  atom(': '),
-                                                  typeToPretty(
-                                                      env,
-                                                      toplevel.defn.restArg
-                                                          .type,
-                                                  ),
-                                              ]
-                                            : []),
-                                    ])
-                                  : undefined,
-                          )
-                        : null,
-                    toplevel.defn.targetType
-                        ? items([
-                              atom(' '),
-                              typeToPretty(env, toplevel.defn.targetType),
-                          ])
-                        : null,
-                ],
-                undefined,
-                toplevel.location,
-            );
+            return decoratorToPretty(hideUnique, toplevel, env);
         }
         case 'Expression':
             return termToPretty(newWithGlobal(env.global), toplevel.term);
@@ -162,14 +83,6 @@ export const toplevelToPretty = (
                     name: idName(toplevel.id),
                     vbls: toplevel.def.typeVbls,
                 }),
-                // {
-                //     ...selfEnv(env, {
-                //         type: 'Type',
-                //         name: idName(toplevel.id),
-                //         vbls: toplevel.def.typeVbls,
-                //     }),
-                //     global: glob,
-                // },
                 toplevel.id,
                 toplevel.def,
                 hideUnique,
@@ -1153,6 +1066,84 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                     JSON.stringify(term),
             );
     }
+};
+
+export const decoratorToPretty = (
+    hideUnique: boolean,
+    toplevel: ToplevelDecorator,
+    env: Env,
+): PP => {
+    return items(
+        [
+            hideUnique
+                ? null
+                : atom(`@unique(${JSON.stringify(toplevel.defn.unique)}) `),
+            atom('decorator '),
+            id(
+                toplevel.name,
+                idName(toplevel.id),
+                'decorator-defn',
+                toplevel.location,
+            ),
+            typeVblDeclsToPretty(env, toplevel.defn.typeVbls),
+            toplevel.defn.arguments.length ||
+            (toplevel.defn.restArg && toplevel.defn.restArg.type)
+                ? args(
+                      toplevel.defn.arguments.map((arg) => {
+                          return items(
+                              [
+                                  id(
+                                      arg.argName,
+                                      '',
+                                      'decorator-arg',
+                                      arg.argLocation,
+                                  ),
+                                  ...(arg.type
+                                      ? [
+                                            atom(': '),
+                                            typeToPretty(env, arg.type),
+                                        ]
+                                      : []),
+                              ],
+                              undefined,
+                              arg.location,
+                          );
+                      }),
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      toplevel.defn.restArg
+                          ? items([
+                                id(
+                                    toplevel.defn.restArg.argName,
+                                    '',
+                                    'decorator-arg',
+                                    toplevel.defn.restArg.argLocation,
+                                ),
+                                ...(toplevel.defn.restArg.type
+                                    ? [
+                                          atom(': '),
+                                          typeToPretty(
+                                              env,
+                                              toplevel.defn.restArg.type,
+                                          ),
+                                      ]
+                                    : []),
+                            ])
+                          : undefined,
+                  )
+                : null,
+            toplevel.defn.targetType
+                ? items([
+                      atom(' '),
+                      typeToPretty(env, toplevel.defn.targetType),
+                  ])
+                : null,
+        ],
+        undefined,
+        toplevel.location,
+    );
 };
 
 function getDeprecatedBy(env: Env, ref: Reference) {
