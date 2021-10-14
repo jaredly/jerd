@@ -572,6 +572,9 @@ export type ConcreteBase<Contents> = {
 export type RecordBase<Contents> =
     | ConcreteBase<Contents>
     | { type: 'Variable'; var: Symbol; spread: Term; location: Location };
+export type RecordBaseConcrete =
+    | ConcreteBase<Term | null>
+    | { type: 'Variable'; var: Symbol; spread: Term; location: Location };
 
 export type RecordSubType = {
     covered: boolean;
@@ -580,7 +583,7 @@ export type RecordSubType = {
 };
 export type Record = {
     type: 'Record';
-    base: RecordBase<Term | null>;
+    base: RecordBaseConcrete;
     is: Type;
     // For each subtype, we might have members defined
     subTypes: {

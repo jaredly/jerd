@@ -1,4 +1,4 @@
-import {Term, Location, Loc, Type, TypeVblDecl, Id, Decorators, Decorator, DecoratorArg, Pattern, Symbol, TypeReference, Reference, UserReference, RecordPatternItem, Literal, Boolean, EffectRef, ErrorType, TypeHole, RecordBase, RecordSubType, SwitchCase, LambdaType, AmbiguousType, Case, LiteralWithTemplateString, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
+import {Term, Location, Loc, Type, TypeVblDecl, Id, Decorators, Decorator, DecoratorArg, Pattern, Symbol, TypeReference, Reference, UserReference, RecordPatternItem, Literal, Boolean, EffectRef, ErrorType, TypeHole, RecordBaseConcrete, RecordSubType, SwitchCase, LambdaType, AmbiguousType, Case, LiteralWithTemplateString, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
 
 export type Visitor<Ctx> = {
     Term?: (node: Term, ctx: Ctx) => null | false | Term | [Term | null, Ctx]
@@ -1474,11 +1474,9 @@ export const transformType = <Ctx>(node: Type, visitor: Visitor<Ctx>, ctx: Ctx):
         
     }
 
-// not a type Contents
-
-export const transformRecordBase = <Ctx>(node: RecordBase<any>, visitor: Visitor<Ctx>, ctx: Ctx): RecordBase<any> => {
+export const transformRecordBaseConcrete = <Ctx>(node: RecordBaseConcrete, visitor: Visitor<Ctx>, ctx: Ctx): RecordBaseConcrete => {
         if (!node) {
-            throw new Error('No RecordBase provided');
+            throw new Error('No RecordBaseConcrete provided');
         }
         
         let changed0 = false;
@@ -1492,6 +1490,30 @@ export const transformRecordBase = <Ctx>(node: RecordBase<any>, visitor: Visitor
             let updatedNode$0node = updatedNode$0specified;
             {
                 let changed2 = false;
+                
+                let updatedNode$0node$rows = updatedNode$0specified.rows;
+                {
+                    let changed3 = false;
+                    const arr2 = updatedNode$0specified.rows.map((updatedNode$0node$rows$item2) => {
+                        
+        let result = null;
+        const result$current = updatedNode$0node$rows$item2;
+        if (result$current != null) {
+            
+                const result$3$ = transformTerm(result$current, visitor, ctx);
+                changed3 = changed3 || result$3$ !== result$current;
+            result = result$3$;
+        }
+        
+                        return result
+                    })
+                    if (changed3) {
+                        updatedNode$0node$rows = arr2;
+                        changed2 = true;
+                    }
+                }
+                
+
                 
                 const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
                 changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
@@ -1507,7 +1529,7 @@ export const transformRecordBase = <Ctx>(node: RecordBase<any>, visitor: Visitor
         }
         
                 if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, spread: updatedNode$0node$spread};
+                    updatedNode$0node =  {...updatedNode$0node, rows: updatedNode$0node$rows, location: updatedNode$0node$location, spread: updatedNode$0node$spread};
                     changed1 = true;
                 }
             }
@@ -2181,7 +2203,7 @@ export const transformTerm = <Ctx>(node: Term, visitor: Visitor<Ctx>, ctx: Ctx):
             {
                 let changed2 = false;
                 
-                const updatedNode$0node$base = transformRecordBase(updatedNode$0specified.base, visitor, ctx);
+                const updatedNode$0node$base = transformRecordBaseConcrete(updatedNode$0specified.base, visitor, ctx);
                 changed2 = changed2 || updatedNode$0node$base !== updatedNode$0specified.base;
 
                 
