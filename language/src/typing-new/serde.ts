@@ -8,6 +8,7 @@ import {
     recordToPretty,
     refToPretty,
 } from '../printing/printTsLike';
+import { sortAllDeps } from '../typing/analyze';
 import {
     transformDecoratorDef,
     transformEffectDef,
@@ -263,7 +264,7 @@ export const ctxToSyntax = (ctx: Context): string => {
     const namesForIds = getNamesForIds(ctx.library.terms);
 
     const allTops = allTopLevels(ctx.library);
-    const allDeps: { [id: string]: string } = {};
+    // const allDeps: { [id: string]: string } = {};
     // NOW WE SORT
     // FIRST:
     // we need dependencies, from everything onto everything else.
@@ -279,25 +280,40 @@ export const ctxToSyntax = (ctx: Context): string => {
 
     const termTypes: { [key: string]: true } = {};
 
+    const allDeps: { [key: string]: Array<Id> } = {};
+
+    const idToTop: { [key: string]: TopRef } = {};
+
     allTops.forEach((top) => {
-        // console.log(top);
+        idToTop[idName(top.id)] = top;
         const dependencies = topDependencies(ctx.library, top);
+        const ids: Array<Id> = (allDeps[idName(top.id)] = []);
         Object.keys(dependencies).forEach((k) => {
-            const [c, _] = dependencies[k];
+            const [c, r] = dependencies[k];
+            if (r.type === 'user') {
+                ids.push(r.id);
+            }
             if (Array.isArray(c) && c[0] === 'Term') {
                 termTypes[c[1]] = true;
             }
         });
+    });
+
+    const sorted = sortAllDeps(allDeps);
+
+    sorted.forEach((k) => {
+        const top = idToTop[k];
+
         result.push(
-            items(
-                Object.keys(dependencies).map((k) =>
-                    items([
-                        atom('// ' + JSON.stringify(dependencies[k][0]) + ' '),
-                        refToPretty(env, dependencies[k][1], 'type'),
-                        atom('\n'),
-                    ]),
-                ),
-            ),
+            // items(
+            //     Object.keys(dependencies).map((k) =>
+            //         items([
+            //             atom('// ' + JSON.stringify(dependencies[k][0]) + ' '),
+            //             refToPretty(env, dependencies[k][1], 'type'),
+            //             atom('\n'),
+            //         ]),
+            //     ),
+            // ),
             topToPretty(ctx, env, namesForIds, top),
         );
     });
@@ -321,7 +337,8 @@ export const ctxToSyntax = (ctx: Context): string => {
     //         ]);
     //     }),
     // ];
+
     return result
-        .map((pp) => printToString(pp, 100, { hideIds: false }))
+        .map((pp) => printToString(pp, 200, { hideIds: false }))
         .join('\n\n');
 };
