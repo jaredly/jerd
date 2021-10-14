@@ -22,6 +22,8 @@ import { idFromName, idName } from '../typing/env';
 import {
     Env,
     Id,
+    isErrorTerm,
+    isErrorType,
     nullLocation,
     Reference,
     selfEnv,
@@ -301,44 +303,55 @@ export const ctxToSyntax = (ctx: Context): string => {
 
     const sorted = sortAllDeps(allDeps);
 
+    const removed: { [key: string]: true } = {};
+
     sorted.forEach((k) => {
         const top = idToTop[k];
 
-        result.push(
-            // items(
-            //     Object.keys(dependencies).map((k) =>
-            //         items([
-            //             atom('// ' + JSON.stringify(dependencies[k][0]) + ' '),
-            //             refToPretty(env, dependencies[k][1], 'type'),
-            //             atom('\n'),
-            //         ]),
-            //     ),
-            // ),
-            topToPretty(ctx, env, namesForIds, top),
-        );
+        if (top.type === 'Define') {
+            let found = false;
+            transformTerm(
+                ctx.library.terms.defns[k].defn,
+                containsErrorOrRemovedVisitor(() => (found = true), removed),
+                null,
+            );
+            if (found) {
+                removed[k] = true;
+                console.log('Removing', k);
+                return;
+            }
+        }
+
+        result.push(topToPretty(ctx, env, namesForIds, top));
     });
 
     console.log(Object.keys(termTypes).join(','));
-
-    // return [
-    //     ...Object.keys(ctx.library.terms.defns).map((k) => {
-    //         const term = ctx.library.terms.defns[k].defn;
-    //         return items([
-    //             ...metaDecorators(env, ctx.library.terms.defns[k].meta, 'term'),
-    //             declarationToPretty(
-    //                 selfEnv(env, {
-    //                     type: 'Term',
-    //                     name: namesForIds[k][0] || 'unnamed',
-    //                     ann: term.is,
-    //                 }),
-    //                 idFromName(k),
-    //                 term,
-    //             ),
-    //         ]);
-    //     }),
-    // ];
 
     return result
         .map((pp) => printToString(pp, 200, { hideIds: false }))
         .join('\n\n');
 };
+
+export const containsErrorOrRemovedVisitor = (
+    found: () => void,
+    removed: { [key: string]: true },
+): Visitor<null> => ({
+    Reference: (r) => {
+        if (r.type === 'user' && removed[idName(r.id)]) {
+            found();
+        }
+        return null;
+    },
+    Term: (t) => {
+        if (isErrorTerm(t)) {
+            found();
+        }
+        return null;
+    },
+    Type: (t) => {
+        if (isErrorType(t)) {
+            found();
+        }
+        return null;
+    },
+});

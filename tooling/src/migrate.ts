@@ -1,30 +1,30 @@
 // Migrating stuff
 
 import fs from 'fs';
-import { Env, GlobalEnv } from '@jerd/language/src/typing/types';
+import { Env, GlobalEnv, Type } from '@jerd/language/src/typing/types';
 import {
     ctxToGlobalEnv,
     globalEnvToCtx,
 } from '@jerd/language/src/typing-new/migrate';
 import { ctxToSyntax } from '@jerd/language/src/typing-new/serde';
 import { hashObject } from '../../language/src/typing/env';
+import { State } from '@jerd/web/src/State';
+import { presetEnv } from '@jerd/language/src/typing/preset';
+import { loadBuiltins } from '@jerd/language/src/printing/loadBuiltins';
+import { parse, Toplevel } from '@jerd/language/src/parsing/parser';
+import { typeFile } from '@jerd/language/src/typing/typeFile';
 
-const [_, __, infile] = process.argv;
-
-const raw = fs.readFileSync(infile, 'utf8');
-const data: GlobalEnv = { ...JSON.parse(raw).env.global, rng: () => 0.0 };
+const [_, __, cmd, infile, outfile] = process.argv;
 
 const printEnv = (env: GlobalEnv) => {
     const ctx = globalEnvToCtx(env);
     return ctxToSyntax(ctx);
 };
 
-fs.writeFileSync('env.jd', printEnv(data));
-
-const thereAndBackAgain = () => {
+const thereAndBackAgain = (data: GlobalEnv) => {
     const back = ctxToGlobalEnv(globalEnvToCtx(data));
     const again = ctxToGlobalEnv(globalEnvToCtx(back));
-    // console.log(hashObject(data), hashObject(back), hashObject(again));
+    console.log(hashObject(data), hashObject(back), hashObject(again));
     // fs.writeFileSync('first.json', JSON.stringify(data), 'utf8');
     // fs.writeFileSync('second.json', JSON.stringify(back), 'utf8');
 
@@ -75,3 +75,36 @@ const thereAndBackAgain = () => {
         console.log(`${path.join(':')}         ===>          ${message}`);
     });
 };
+
+if (cmd === 'json-to-jd') {
+    const raw = JSON.parse(fs.readFileSync(infile, 'utf8'));
+    const data: GlobalEnv = { ...raw.env.global, rng: () => 0.0 };
+
+    fs.writeFileSync(outfile, printEnv(data));
+}
+
+if (cmd === 'jd-to-json') {
+    const tsBuiltins = loadBuiltins();
+    const typedBuiltins: { [key: string]: Type } = {};
+    Object.keys(tsBuiltins).forEach((b) => {
+        const v = tsBuiltins[b];
+        if (v != null) {
+            typedBuiltins[b] = v;
+        }
+    });
+
+    const initialEnv = presetEnv(typedBuiltins);
+
+    const raw = fs.readFileSync(infile, 'utf8');
+    const parsed: Array<Toplevel> = parse(raw);
+
+    const { expressions, env } = typeFile(parsed, initialEnv, infile);
+    console.log('Hash of parsed global', hashObject(env.global));
+    fs.writeFileSync(outfile, JSON.stringify(env, null, 2));
+}
+
+if (cmd === 'json-check') {
+    const raw = JSON.parse(fs.readFileSync(infile, 'utf8'));
+    const data: GlobalEnv = { ...raw.env.global, rng: () => 0.0 };
+    thereAndBackAgain(data);
+}
