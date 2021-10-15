@@ -206,5 +206,7 @@ if (cmd === 'test') {
         hashObject(env.global),
         hashObject(again.global),
         hashObject(again2.global),
+        'repeat equal?',
+        back === back2,
     );
 }

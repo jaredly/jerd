@@ -227,16 +227,16 @@ export const metaDecorators = (
         );
     }
     if (meta.supercedes) {
-        dec(
-            'supercededs',
-            refToPretty(env, { type: 'user', id: meta.supercedes }, kind),
-        );
         if (!meta.basedOn) {
             dec(
                 'basedOn',
                 refToPretty(env, { type: 'user', id: meta.supercedes }, kind),
             );
         }
+        dec(
+            'supercedes',
+            refToPretty(env, { type: 'user', id: meta.supercedes }, kind),
+        );
     }
     if (meta.deprecated != null) {
         dec('deprecated', atom(meta.deprecated.toString()));

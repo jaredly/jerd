@@ -1,19 +1,20 @@
 
+@createdAt#builtin(1)
 effect Print {
 	print: (string) => void,
 };
 
+@createdAt#builtin(1)
 const awesome = 10;
 
+@createdAt#builtin(1)
 type What = {
 	what: () ={Print}> int = () ={Print}> awesome,
 };
 
+@createdAt#builtin(1)
 const thing = 20;
 
+@createdAt#builtin(1)
 @supercedes#builtin(thing)
 const thing = 30;
-
-// const other = awesome + thing;
-
-
