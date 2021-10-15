@@ -1,51 +1,10 @@
-import { Expression, Identifier } from '../parsing/parser-new';
+import { Expression } from '../parsing/parser-new';
 import * as preset from '../typing/preset';
 import { Term, Type, typesEqual } from '../typing/types';
-import { parseIdOrSym } from './hashes';
 import { reGroupOps, typeGroup } from './ops';
-import { resolveNamedValue, resolveValue } from './resolve';
 import { typeArrayLiteral } from './typeArrayLiteral';
 import { Context } from './Context';
-
-export const typeIdentifier = (
-    ctx: Context,
-    term: Identifier,
-    expected: Array<Type>,
-): Term => {
-    if (term.hash) {
-        const idOrSym = parseIdOrSym(term.hash.slice(1));
-        const resolved = idOrSym && resolveValue(ctx, idOrSym, term.location);
-        if (resolved) {
-            return resolved;
-        }
-        ctx.warnings.push({
-            location: term.location,
-            text: `Unable to resolve term hash ${term.hash}`,
-        });
-    }
-    const named = resolveNamedValue(ctx, term.text, term.location, expected);
-    if (named) {
-        return named;
-    }
-    if (expected.length) {
-        // Try resolving without an expected type
-        const got = resolveNamedValue(ctx, term.text, term.location, []);
-        if (got) {
-            return {
-                type: 'TypeError',
-                is: expected[0],
-                inner: got,
-                location: term.location,
-            };
-        }
-    }
-    return {
-        type: 'NotFound',
-        is: expected.length ? expected[0] : preset.void_,
-        location: term.location,
-        text: term.text,
-    };
-};
+import { typeIdentifier } from './typeIdentifier';
 
 export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
     if (expected.length && !expected.some((t) => typesEqual(t, term.is))) {
@@ -75,12 +34,12 @@ export const typeExpression = (
             }
             return wrapExpected(typeGroup(ctx, grouped, expected), expected);
         }
-        case 'WithUnary': {
-            if (term.op != null) {
-                throw new Error('no unary');
-            }
-            return typeExpression(ctx, term.inner, expected);
-        }
+        // case 'WithUnary': {
+        //     if (term.op != null) {
+        //         throw new Error('no unary');
+        //     }
+        //     return typeExpression(ctx, term.inner, expected);
+        // }
         case 'Float': {
             return wrapExpected(
                 {

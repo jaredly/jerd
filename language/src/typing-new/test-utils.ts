@@ -61,14 +61,18 @@ export const showTypeErrors = (ctx: Context, res: Type) => {
         .join('\n');
 };
 
-export const parseExpression = (ctx: Context, raw: string) => {
+export const parseExpression = (
+    ctx: Context,
+    raw: string,
+    expected: Array<Type> = [],
+) => {
     const parsed = parseTyped(raw);
     const top = parsed.tops!.items[0].top;
     if (top.type !== 'ToplevelExpression') {
         expect(false).toBe(true);
         throw new Error(`nope`);
     }
-    return typeExpression(ctx, top.expr, []);
+    return typeExpression(ctx, top.expr, expected);
 };
 
 export const customMatchers: jest.ExpectExtendMap = {
