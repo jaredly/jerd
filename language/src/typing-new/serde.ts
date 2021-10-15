@@ -8,6 +8,7 @@ import {
     enumToPretty,
     recordToPretty,
     refToPretty,
+    termToPretty,
 } from '../printing/printTsLike';
 import { sortAllDeps } from '../typing/analyze';
 import {
@@ -34,6 +35,7 @@ import {
     TypeDef,
     MetaData as TMetaData,
     UserReference,
+    GlobalEnv,
 } from '../typing/types';
 import { Context, MetaData, NamedDefns } from './Context';
 import { Ctx, dependenciesVisitor } from './dependencies';
@@ -98,11 +100,16 @@ const allTopLevels = (lib: Library): Array<TopRef> => {
 // or I mean people can always specify hash, and these will be
 // #builtin
 
-export const parseMetaId = (args: Array<DecoratorArg>): Id => {
+export const parseMetaId = (env: GlobalEnv, args: Array<DecoratorArg>): Id => {
     if (args.length !== 1) {
         throw new Error(`expected 1 arg, got ${args.length}`);
     }
     const arg = args[0];
+    if (arg.type === 'Type') {
+        if (arg.contnets.type !== 'TypeRef') {
+            throw new Error(`expected type ref`);
+        }
+    }
     if (arg.type !== 'Expr') {
         throw new Error(`expected expr`);
     }
@@ -110,7 +117,15 @@ export const parseMetaId = (args: Array<DecoratorArg>): Id => {
         throw new Error(`expected id`);
     }
     if (!arg.expr.hash) {
-        throw new Error(`no hash`);
+        const found = env.names[arg.expr.text];
+        if (!found) {
+            throw new Error(`term by name ${arg.expr.text} not found`);
+        }
+        return found[0];
+        // ok how to resolve
+        // how do we know if this is a type or a whatsit.
+        // oh I guess I have a thing for that.
+        // throw new Error(`no hash`);
     }
     return idFromName(arg.expr.hash.slice(1));
 };
@@ -130,6 +145,7 @@ export const parseMetaInt = (args: Array<DecoratorArg>): number => {
 };
 
 export const stripMetaDecorators = (
+    env: GlobalEnv,
     top: Toplevel,
 ): { meta: MetaData | null; inner: Toplevel } => {
     let inner = top;
@@ -144,11 +160,11 @@ export const stripMetaDecorators = (
             if (dec.id.hash === '#builtin') {
                 switch (dec.id.text) {
                     case 'basedOn':
-                        meta.basedOn = parseMetaId(dec.args);
+                        meta.basedOn = parseMetaId(env, dec.args);
                         modified = true;
                         break;
                     case 'supercedes':
-                        meta.supercedes = parseMetaId(dec.args);
+                        meta.supercedes = parseMetaId(env, dec.args);
                         modified = true;
                         break;
                     case 'createdAt':
@@ -237,16 +253,32 @@ const topDependencies = (lib: Library, top: TopRef) => {
     const collection: { [key: string]: [Ctx, Reference] } = {};
     const visitor = dependenciesVisitor(collection);
     switch (top.type) {
-        case 'Define':
+        case 'Define': {
             const found = lib.terms.defns[idName(top.id)];
             if (!found) {
                 console.log('NOP', top);
                 break;
             }
-            transformTerm(lib.terms.defns[idName(top.id)].defn, visitor, null);
+            transformTerm(found.defn, visitor, null);
+            if (found.meta.supercedes) {
+                const ref: UserReference = {
+                    type: 'user',
+                    id: found.meta.supercedes,
+                };
+                collection[idName(ref.id)] = [['Term', 'ref'], ref];
+            }
+            if (found.meta.basedOn) {
+                const ref: UserReference = {
+                    type: 'user',
+                    id: found.meta.basedOn,
+                };
+                collection[idName(ref.id)] = [['Term', 'ref'], ref];
+            }
             break;
-        case 'Type':
-            const defn = lib.types.defns[idName(top.id)].defn;
+        }
+        case 'Type': {
+            const found = lib.types.defns[idName(top.id)];
+            const defn = found.defn;
             transformTypeDef(defn, visitor, null);
             if (defn.type === 'Record') {
                 defn.extends.forEach(
@@ -266,7 +298,22 @@ const topDependencies = (lib: Library, top: TopRef) => {
                         ]),
                 );
             }
+            if (found.meta.supercedes) {
+                const ref: UserReference = {
+                    type: 'user',
+                    id: found.meta.supercedes,
+                };
+                collection[idName(ref.id)] = [['Type', 'ref'], ref];
+            }
+            if (found.meta.basedOn) {
+                const ref: UserReference = {
+                    type: 'user',
+                    id: found.meta.basedOn,
+                };
+                collection[idName(ref.id)] = [['Type', 'ref'], ref];
+            }
             break;
+        }
         case 'Effect':
             transformEffectDef(
                 lib.effects.defns[idName(top.id)].defn,
@@ -428,14 +475,19 @@ export const ctxToSyntax = (ctx: Context): string => {
 
         if (top.type === 'Define') {
             let found = false;
+            const defn = ctx.library.terms.defns[k].defn;
             transformTerm(
-                ctx.library.terms.defns[k].defn,
+                defn,
                 containsErrorOrRemovedVisitor(() => (found = true), removed),
                 null,
             );
             if (found) {
                 removed[k] = true;
-                console.log('Removing', k);
+                console.log(
+                    'Removing',
+                    k,
+                    printToString(termToPretty(env, defn), 100),
+                );
                 return;
             }
         }

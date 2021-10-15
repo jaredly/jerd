@@ -34,8 +34,6 @@ import { addLocationIndices } from '@jerd/language/src/typing/analyze';
 import { LocatedError } from '@jerd/language/src/typing/errors';
 import { showLocation } from '@jerd/language/src/typing/typeExpr';
 
-const [_, __, cmd, infile, outfile] = process.argv;
-
 const printEnv = (env: GlobalEnv) => {
     const ctx = globalEnvToCtx(env);
     return ctxToSyntax(ctx);
@@ -96,13 +94,6 @@ const thereAndBackAgain = (data: GlobalEnv) => {
     });
 };
 
-if (cmd === 'json-to-jd') {
-    const raw = JSON.parse(fs.readFileSync(infile, 'utf8'));
-    const data: GlobalEnv = { ...raw.env.global, rng: () => 0.0 };
-
-    fs.writeFileSync(outfile, printEnv(data));
-}
-
 const specifiedToplevelId = (top: Toplevel): Id | null => {
     switch (top.type) {
         case 'define':
@@ -115,7 +106,7 @@ const specifiedToplevelId = (top: Toplevel): Id | null => {
     return null;
 };
 
-const parseJd = () => {
+const parseJd = (raw: string) => {
     const tsBuiltins = loadBuiltins();
     const typedBuiltins: { [key: string]: Type } = {};
     Object.keys(tsBuiltins).forEach((b) => {
@@ -127,15 +118,14 @@ const parseJd = () => {
 
     let env = presetEnv(typedBuiltins);
 
-    const raw = fs.readFileSync(infile, 'utf8');
     const parsed: Array<Toplevel> = parse(raw);
 
     parsed.forEach((top) => {
-        const { meta, inner } = stripMetaDecorators(top);
+        const { meta, inner } = stripMetaDecorators(env.global, top);
         try {
             if (
                 inner.type === 'StructDef' &&
-                ['#Some', '#None', '#As'].includes(inner.id.hash)
+                ['#Some', '#None', '#As'].includes(inner.id.hash!)
             ) {
                 return;
             }
@@ -167,8 +157,19 @@ const parseJd = () => {
     return env;
 };
 
+const [_, __, cmd, infile, outfile] = process.argv;
+console.log(`Migrate ${cmd} ${infile} ${outfile}`);
+
+if (cmd === 'json-to-jd') {
+    const raw = JSON.parse(fs.readFileSync(infile, 'utf8'));
+    const data: GlobalEnv = { ...raw.env.global, rng: () => 0.0 };
+
+    fs.writeFileSync(outfile, printEnv(data));
+}
+
 if (cmd === 'jd-to-json') {
-    const env = parseJd();
+    const raw = fs.readFileSync(infile, 'utf8');
+    const env = parseJd(raw);
 
     // const { expressions, env } = typeFile(parsed, initialEnv, infile);
     console.log('Hash of parsed global', hashObject(env.global));
@@ -176,7 +177,8 @@ if (cmd === 'jd-to-json') {
 }
 
 if (cmd === 'jd-check') {
-    const env = parseJd();
+    const raw = fs.readFileSync(infile, 'utf8');
+    const env = parseJd(raw);
 
     console.log('Hash of jd', hashObject(env.global));
 }
@@ -185,4 +187,24 @@ if (cmd === 'json-check') {
     const raw = JSON.parse(fs.readFileSync(infile, 'utf8'));
     const data: GlobalEnv = { ...raw.env.global, rng: () => 0.0 };
     thereAndBackAgain(data);
+}
+
+if (cmd === 'test') {
+    const raw = fs.readFileSync(infile || 'examples/basic.jd', 'utf8');
+    const env = parseJd(raw);
+    const back = printEnv(env.global);
+    const again = parseJd(back);
+    const back2 = printEnv(again.global);
+    const again2 = parseJd(back2);
+    console.log(raw);
+    console.log('-----');
+    console.log(back);
+    console.log('-----');
+    console.log(back2);
+    console.log('-----');
+    console.log(
+        hashObject(env.global),
+        hashObject(again.global),
+        hashObject(again2.global),
+    );
 }

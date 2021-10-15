@@ -1,0 +1,25 @@
+// int 
+@createdAt#builtin(1634261334535)
+const awesome#6e9352f2 = 10
+
+// string void 
+@createdAt#builtin(0)
+effect Print#35f4b478 {
+    print: (string#builtin) => void#builtin,
+}
+
+// 35f4b478 int 6e9352f2 
+@createdAt#builtin(0)
+@unique(0.5661807692527293) type What#55361dda = {
+    what: () ={Print#35f4b478}> int#builtin = (): int#builtin ={Print#35f4b478}> awesome#6e9352f2,
+}
+
+// int 
+@createdAt#builtin(0)
+@supercededs#builtin(thing#6580d220)
+@basedOn#builtin(thing#6580d220)
+const thing#2bebdaee = 30
+
+// int 
+@createdAt#builtin(1634261334536)
+const thing#6580d220 = 20

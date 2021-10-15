@@ -1,0 +1,19 @@
+
+effect Print {
+	print: (string) => void,
+};
+
+const awesome = 10;
+
+type What = {
+	what: () ={Print}> int = () ={Print}> awesome,
+};
+
+const thing = 20;
+
+@supercedes#builtin(thing)
+const thing = 30;
+
+// const other = awesome + thing;
+
+
