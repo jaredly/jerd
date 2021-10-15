@@ -736,7 +736,6 @@ export const typeRecordDefn = (
 
     return {
         type: 'Record',
-        awesome: 'sauce',
         unique: ffiTag ? 0 : unique != null ? unique : env.global.rng(),
         typeVbls,
         location,

@@ -12,8 +12,10 @@ happens
 if the hashes change
 my good folks.
 
+- [x] handle some hashes changing
 
-
+NOW
+we're back to the beginning.
 
 
 
@@ -36,12 +38,12 @@ Have a function that is: Library -> TXT and TXT -> Library
   - [x] preserve metadata!
 - [x] Context -> GlobalEnv
 - [x] do a test that I can go forward and back
-- [ ] text -> Library function
-- [ ] and a Library -> text function
-  - [ ] add annotations for metadatas
-  - [ ] figure out what to do with glsl_builtin (a stripDecorator and addDecorator functions?)
+- [x] text -> Library function
+- [x] and a Library -> text function
+  - [x] add annotations for metadatas
+  - [x] figure out what to do with glsl_builtin (a stripDecorator and addDecorator functions?)
       that would change the hash of the term...🤔
-- [ ] verify that round-tripping GlobalEnv -> Txt -> GlobalEnv produces the same hash.
+- [x] verify that round-tripping GlobalEnv -> Txt -> GlobalEnv produces the same hash.
 
 
 WHY THIS?
@@ -71,7 +73,7 @@ OPS TESTS
 - [x] autogen transformers of the typed ast types
 - [ ] Write the whole type checker
   - [x] organize binops
-  - [ ] decide how to make a maximally recovering binop typer
+  - [x] decide how to make a maximally recovering binop typer
     - basically, even if they specified a hash, if it errors and something else doesn't, pick the something else I think...
 - [ ] profit
 
