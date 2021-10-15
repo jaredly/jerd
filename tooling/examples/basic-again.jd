@@ -1,0 +1,55 @@
+// int string 
+@createdAt#builtin(2)
+@unique(0.8408403012585762) type Something#28794e80 = {
+    one: int#builtin,
+    two: string#builtin = "yes",
+}
+
+// int 
+@createdAt#builtin(1)
+const awesome#6e9352f2 = 10
+
+// string void 
+@createdAt#builtin(1)
+effect Print#35f4b478 {
+    print: (string#builtin) => void#builtin,
+}
+
+// float user:28794e80 
+@createdAt#builtin(3)
+@unique(0.14972816008023876) type OtherThing#71b42ce4 = {
+    ...Something#28794e80,
+    three: float#builtin,
+}
+
+// int 
+@createdAt#builtin(1)
+const thing#6580d220 = 20
+
+// 35f4b478 int 6e9352f2 
+@createdAt#builtin(1)
+@unique(0.5661807692527293) type What#55361dda = {
+    what: () ={Print#35f4b478}> int#builtin = (): int#builtin ={Print#35f4b478}> awesome#6e9352f2,
+}
+
+// int 
+@createdAt#builtin(1)
+const awesome3#ca849740 = 310
+
+// 71b42ce4 float int string 
+@createdAt#builtin(0)
+const yes#6f763288 = OtherThing#71b42ce4{one#28794e80#0: 2, two#28794e80#1: "three", three#71b42ce4#0: 4.0}
+
+// int 6580d220 
+@createdAt#builtin(1)
+@basedOn#builtin(thing#6580d220)
+@supercedes#builtin(thing#6580d220)
+const thing#2bebdaee = 30
+
+// int 
+@createdAt#builtin(1)
+const awesome2#23e1789e = 210
+
+// int 
+@createdAt#builtin(1)
+const awesome4#1199f022 = 410
