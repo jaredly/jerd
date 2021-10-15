@@ -3,8 +3,9 @@
 
 - [ ] tuple type parsing ambiguity! ugh this is annoying.
 - [x] the auto-transformer ... still doesn't work ... for the type variable bit ... apparently. like we're not dealing with Array<Term | null> for the RecordBase.
-- [ ] don't output `Array` as a type we're importing folks.
-
+- [x] don't output `Array` as a type we're importing folks.
+- [x] account for basedOn when calculating dependencies
+- [x] get repeatable envs and printed jds from the migrate script
 
 
 

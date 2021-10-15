@@ -655,6 +655,6 @@ export const specializeForArrayWhatsits = (
     };
 
     const res = transformExpr(expr, transform) as LambdaExpr;
-    console.log('res', res.is.args[0]);
+    // console.log('res', res.is.args[0]);
     return res;
 };
