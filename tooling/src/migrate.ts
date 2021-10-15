@@ -102,6 +102,8 @@ const specifiedToplevelId = (top: Toplevel): Id | null => {
         case 'DecoratorDef':
         case 'effect':
             return top.id.hash ? idFromName(top.id.hash.slice(1)) : null;
+        case 'Decorated':
+            return specifiedToplevelId(top.wrapped);
     }
     return null;
 };
@@ -142,6 +144,7 @@ const parseJd = (raw: string) => {
             }
             const specified = specifiedToplevelId(inner);
             if (specified && !idsEqual(res.id, specified)) {
+                env.global.idRemap[idName(specified)] = res.id;
                 console.log(
                     `Different`,
                     idName(specified),

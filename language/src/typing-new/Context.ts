@@ -37,6 +37,7 @@ export type Builtins = {
 export type Context = {
     rng: () => number;
     library: Library;
+    idRemap: { [key: string]: typed.Id };
     builtins: Builtins;
     bindings: Bindings;
     warnings: Array<{ location: Location; text: string }>;

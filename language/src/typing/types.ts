@@ -104,6 +104,7 @@ export type TypeMapping = { [idName: string]: TypeDef };
 
 export type GlobalEnv = {
     rng: () => number;
+    idRemap: { [key: string]: Id };
     names: { [humanName: string]: Array<Id> };
     idNames: { [idName: string]: string };
     terms: { [idName: string]: Term };
@@ -264,6 +265,7 @@ export const newEnv = (self: Self | null, seed: string = 'seed'): Env => ({
     depth: 0,
     global: {
         rng: defaultRng(seed),
+        idRemap: {},
         names: {},
         idNames: {},
         exportedTerms: {},
@@ -323,6 +325,7 @@ export const newWithGlobal = (env: GlobalEnv): Env => ({
 export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
     return {
         rng: env.rng,
+        idRemap: { ...env.idRemap },
         attributeNames: { ...env.attributeNames },
         recordGroups: { ...env.recordGroups },
         exportedTerms: { ...env.exportedTerms },

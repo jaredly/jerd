@@ -63,11 +63,16 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     } else {
         let id: Id;
         if (expr.id.hash) {
-            const hash = expr.id.hash.slice(1);
+            let hash = expr.id.hash.slice(1);
             id = idFromName(hash);
             // console.log(expr.id.hash);
             if (!env.global.types[hash]) {
-                throw new Error(`No type with id ${hash}`);
+                if (env.global.idRemap[hash]) {
+                    id = env.global.idRemap[hash];
+                    hash = idName(id);
+                } else {
+                    throw new Error(`No type with id ${hash}`);
+                }
             }
         } else {
             const ids = env.global.typeNames[expr.id.text];

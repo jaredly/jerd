@@ -613,9 +613,16 @@ export const refName = (ref: Reference) =>
 
 export const resolveType = (env: Env, id: Identifier): Array<Id> => {
     if (id.hash != null) {
-        const rawId = id.hash.slice(1);
+        let rawId = id.hash.slice(1);
         if (!env.global.types[rawId]) {
-            throw new LocatedError(id.location, `Unknown type hash ${rawId}`);
+            if (env.global.idRemap[rawId]) {
+                rawId = idName(env.global.idRemap[rawId]);
+            } else {
+                throw new LocatedError(
+                    id.location,
+                    `Unknown type hash ${rawId}`,
+                );
+            }
         }
         return [idFromName(rawId)];
     }
@@ -729,6 +736,7 @@ export const typeRecordDefn = (
 
     return {
         type: 'Record',
+        awesome: 'sauce',
         unique: ffiTag ? 0 : unique != null ? unique : env.global.rng(),
         typeVbls,
         location,
@@ -1251,23 +1259,30 @@ export const resolveIdentifier = (
         }
 
         if (!env.global.terms[first]) {
-            if (env.global.types[first]) {
-                const id = idFromName(first);
-                const t = env.global.types[idName(id)];
-                if (t.type === 'Record' && !hasRequiredItems(env.global, t)) {
-                    return plainRecord(env.global, id, location);
-                }
-            }
-
-            const starts = Object.keys(env.global.terms).filter((k) =>
-                k.startsWith(first),
-            );
-            if (starts.length) {
-                first = starts[0];
+            if (env.global.idRemap[first]) {
+                first = idName(env.global.idRemap[first]);
             } else {
-                throw new Error(
-                    `Unknown hash ${hash} ${showLocation(location)}`,
+                if (env.global.types[first]) {
+                    const id = idFromName(first);
+                    const t = env.global.types[idName(id)];
+                    if (
+                        t.type === 'Record' &&
+                        !hasRequiredItems(env.global, t)
+                    ) {
+                        return plainRecord(env.global, id, location);
+                    }
+                }
+
+                const starts = Object.keys(env.global.terms).filter((k) =>
+                    k.startsWith(first),
                 );
+                if (starts.length) {
+                    first = starts[0];
+                } else {
+                    throw new Error(
+                        `Unknown hash ${hash} ${showLocation(location)}`,
+                    );
+                }
             }
         }
         const id = idFromName(first);

@@ -207,6 +207,7 @@ export const namedDefns = <T>(): NamedDefns<T> => ({ defns: {}, names: {} });
 export const newContext = (): Context => ({
     rng: () => 0.0,
     warnings: [],
+    idRemap: {},
     builtins: { terms: {}, types: {}, decorators: {} },
     bindings: {
         unique: { current: 0 },
