@@ -280,21 +280,12 @@ const topDependencies = (lib: Library, top: TopRef) => {
             const found = lib.types.defns[idName(top.id)];
             const defn = found.defn;
             transformTypeDef(defn, visitor, null);
-            if (defn.type === 'Record') {
+            if (defn.type === 'Record' || defn.type === 'Enum') {
                 defn.extends.forEach(
-                    (id) =>
-                        (collection[refName({ type: 'user', id })] = [
+                    (ref) =>
+                        (collection[refName(ref.ref)] = [
                             ['Type', 'ref'],
-                            { type: 'user', id },
-                        ]),
-                );
-            }
-            if (defn.type === 'Enum') {
-                defn.extends.forEach(
-                    ({ ref: { id } }) =>
-                        (collection[refName({ type: 'user', id })] = [
-                            ['Type', 'ref'],
-                            { type: 'user', id },
+                            ref.ref,
                         ]),
                 );
             }

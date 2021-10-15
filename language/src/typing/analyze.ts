@@ -473,18 +473,7 @@ export const allLiteral = (env: Env, type: Type): boolean => {
                     null,
                     type.ref.id.hash,
                 );
-                if (
-                    rec.extends.some(
-                        (id) =>
-                            !allLiteral(env, {
-                                type: 'ref',
-                                ref: { type: 'user', id },
-                                location: nullLocation,
-                                typeVbls: [],
-                                // effectVbls: [],
-                            }),
-                    )
-                ) {
+                if (rec.extends.some((ref) => !allLiteral(env, ref))) {
                     return false;
                 }
                 return !rec.items.some((t) => !allLiteral(env, t));
@@ -680,7 +669,7 @@ export const populateTypeDependencyMap = (
             }
             // ir.RecordDef
             const d = types[k];
-            tDeps.push(...d.typeDef.extends);
+            tDeps.push(...d.typeDef.extends.map((t) => t.ref.id));
             d.typeDef.items.forEach((item) => {
                 if (item.type === 'ref' && item.ref.type === 'user') {
                     tDeps.push(item.ref.id);
@@ -688,7 +677,7 @@ export const populateTypeDependencyMap = (
             });
         } else {
             if (typeDef.type === 'Record') {
-                tDeps.push(...typeDef.extends);
+                tDeps.push(...typeDef.extends.map((t) => t.ref.id));
                 typeDef.items.forEach((item) => {
                     if (item.type === 'ref' && item.ref.type === 'user') {
                         tDeps.push(item.ref.id);

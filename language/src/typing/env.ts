@@ -693,7 +693,7 @@ export const typeRecordDefn = (
         }
         return res;
     });
-    const extenders = (record.items.filter(
+    const extenders: Array<UserTypeReference> = (record.items.filter(
         (r) => r.type === 'Spread',
     ) as Array<RecordSpread>)
         // TODO: only allow ffi to spread into ffi, etc.
@@ -730,7 +730,12 @@ export const typeRecordDefn = (
                     );
                 });
             }
-            return t;
+            return {
+                type: 'ref',
+                ref: { type: 'user', id: t },
+                typeVbls: [],
+                location: r.constr.location,
+            };
         });
     // const defa
 
@@ -1408,7 +1413,10 @@ const hasRequiredItems = (env: GlobalEnv, defn: RecordDef): boolean => {
     if (!defn.extends.length) {
         return false;
     }
-    const allSubTypes = getAllSubTypes(env.types, defn.extends);
+    const allSubTypes = getAllSubTypes(
+        env.types,
+        defn.extends.map((t) => t.ref.id),
+    );
     const together = allDefaults(env, defn, allSubTypes);
     return allSubTypes.some((id) =>
         env.types[idName(id)].items.some(
@@ -1424,7 +1432,10 @@ export const allDefaults = (
 ) => {
     const together = { ...defn.defaults };
     if (!allSubTypes) {
-        allSubTypes = getAllSubTypes(env.types, defn.extends);
+        allSubTypes = getAllSubTypes(
+            env.types,
+            defn.extends.map((t) => t.ref.id),
+        );
     }
     allSubTypes.forEach((id) => {
         const t = env.types[idName(id)] as RecordDef;
@@ -1459,7 +1470,10 @@ const plainRecord = (env: GlobalEnv, id: Id, location: Location): Term => {
             rows: Array<Term | null>;
         };
     } = {};
-    getAllSubTypes(env.types, t.extends).forEach((id) => {
+    getAllSubTypes(
+        env.types,
+        t.extends.map((t) => t.ref.id),
+    ).forEach((id) => {
         const t = env.types[idName(id)] as RecordDef;
         subTypes[idName(id)] = {
             spread: null,
@@ -1496,7 +1510,10 @@ export const hasSubType = (env: Env, type: Type, id: Id) => {
                 return true;
             }
             const t = env.global.types[idName(sid)] as RecordDef;
-            const allSubTypes = getAllSubTypes(env.global.types, t.extends);
+            const allSubTypes = getAllSubTypes(
+                env.global.types,
+                t.extends.map((t) => t.ref.id),
+            );
             if (allSubTypes.find((x) => idsEqual(id, x)) != null) {
                 return true;
             }
@@ -1509,6 +1526,9 @@ export const hasSubType = (env: Env, type: Type, id: Id) => {
         return true;
     }
     const t = env.global.types[idName(type.ref.id)] as RecordDef;
-    const allSubTypes = getAllSubTypes(env.global.types, t.extends);
+    const allSubTypes = getAllSubTypes(
+        env.global.types,
+        t.extends.map((t) => t.ref.id),
+    );
     return allSubTypes.find((x) => idsEqual(id, x)) != null;
 };

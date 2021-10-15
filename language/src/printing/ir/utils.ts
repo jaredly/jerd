@@ -235,7 +235,11 @@ export const recordDefFromTermType = (
         unique: defn.unique,
         location: defn.location,
         typeVbls: defn.typeVbls,
-        extends: defn.extends,
+        extends: defn.extends.map((t) => ({
+            ...t,
+            loc: t.location,
+            typeVbls: t.typeVbls.map((t) => typeFromTermType(env, opts, t)),
+        })),
         items: defn.items.map((t) => typeFromTermType(env, opts, t)),
         ffi: defn.ffi,
     };

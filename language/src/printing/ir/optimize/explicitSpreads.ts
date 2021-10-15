@@ -72,24 +72,25 @@ export const explicitSpreads = (ctx: Context, expr: Expr): Expr => {
                 const recordDef = env.global.types[
                     idName(base.ref.id)
                 ] as RecordDef;
-                getAllSubTypes(env.global.types, recordDef.extends).forEach(
-                    (sub) => {
-                        const sn = idName(sub);
-                        expr.subTypes[sn].rows.forEach((row, i) => {
-                            if (!row) {
-                                subTypes[sn].rows[i] = attribute(
-                                    env,
-                                    opts,
-                                    v,
-                                    { type: 'user', id: sub },
-                                    [],
-                                    i,
-                                    expr.loc,
-                                );
-                            }
-                        });
-                    },
-                );
+                getAllSubTypes(
+                    env.global.types,
+                    recordDef.extends.map((t) => t.ref.id),
+                ).forEach((sub) => {
+                    const sn = idName(sub);
+                    expr.subTypes[sn].rows.forEach((row, i) => {
+                        if (!row) {
+                            subTypes[sn].rows[i] = attribute(
+                                env,
+                                opts,
+                                v,
+                                { type: 'user', id: sub },
+                                [],
+                                i,
+                                expr.loc,
+                            );
+                        }
+                    });
+                });
             }
 
             Object.keys(subTypes).forEach((t) => {
@@ -125,30 +126,31 @@ export const explicitSpreads = (ctx: Context, expr: Expr): Expr => {
                         ),
                     };
                     const recordDef = env.global.types[t] as RecordDef;
-                    getAllSubTypes(env.global.types, recordDef.extends).forEach(
-                        (sub) => {
-                            const sn = idName(sub);
-                            expr.subTypes[sn].rows.forEach((row, i) => {
-                                if (!row) {
-                                    subTypes[sn].rows[i] = attribute(
-                                        env,
-                                        opts,
-                                        v!,
-                                        { type: 'user', id: sub },
-                                        [],
-                                        i,
-                                        expr.loc,
-                                    );
-                                }
-                            });
-                            // const d = env.global.types[idName(sub)] as RecordDef;
-                            // return d.items.map((type, i) => ({
-                            //     id: sub,
-                            //     i,
-                            //     type,
-                            // }));
-                        },
-                    );
+                    getAllSubTypes(
+                        env.global.types,
+                        recordDef.extends.map((t) => t.ref.id),
+                    ).forEach((sub) => {
+                        const sn = idName(sub);
+                        expr.subTypes[sn].rows.forEach((row, i) => {
+                            if (!row) {
+                                subTypes[sn].rows[i] = attribute(
+                                    env,
+                                    opts,
+                                    v!,
+                                    { type: 'user', id: sub },
+                                    [],
+                                    i,
+                                    expr.loc,
+                                );
+                            }
+                        });
+                        // const d = env.global.types[idName(sub)] as RecordDef;
+                        // return d.items.map((type, i) => ({
+                        //     id: sub,
+                        //     i,
+                        //     type,
+                        // }));
+                    });
                 }
             });
             items.push({

@@ -69,7 +69,10 @@ export const globalEnvToCtx = (env: GlobalEnv): Context => {
         // Soooo yes this is denormalization, is it fine? idk.
         superTypes: mapObj(env.types, (defn, k) => {
             if (defn.type === 'Record') {
-                return getAllSubTypes(env.types, defn.extends);
+                return getAllSubTypes(
+                    env.types,
+                    defn.extends.map((t) => t.ref.id),
+                );
             }
         }),
     };

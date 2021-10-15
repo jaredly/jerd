@@ -255,9 +255,9 @@ export const allRecordMembers = (env: Env, id: Id) => {
     return constr.items
         .map((item, i: number) => ({ id, item, i }))
         .concat(
-            ...constr.extends.map((id) =>
+            ...constr.extends.map((ref) =>
                 // um shouldn't this be recursive?
-                (env.global.types[idName(id)] as RecordDef).items.map(
+                (env.global.types[idName(ref.ref.id)] as RecordDef).items.map(
                     (item, i) => ({
                         id,
                         item,

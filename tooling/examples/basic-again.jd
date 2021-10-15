@@ -15,16 +15,16 @@ effect Print#35f4b478 {
     print: (string#builtin) => void#builtin,
 }
 
-// float user:28794e80 
-@createdAt#builtin(3)
-@unique(0.14972816008023876) type OtherThing#71b42ce4 = {
-    ...Something#28794e80,
-    three: float#builtin,
-}
-
 // int 
 @createdAt#builtin(1)
 const thing#6580d220 = 20
+
+// float user:28794e80 
+@createdAt#builtin(3)
+@unique(0.14972816008023876) type OtherThing#066e15da = {
+    ...Something#28794e80,
+    three: float#builtin,
+}
 
 // 35f4b478 int 6e9352f2 
 @createdAt#builtin(1)
@@ -36,15 +36,15 @@ const thing#6580d220 = 20
 @createdAt#builtin(1)
 const awesome3#ca849740 = 310
 
-// 71b42ce4 float int string 
-@createdAt#builtin(0)
-const yes#6f763288 = OtherThing#71b42ce4{one#28794e80#0: 2, two#28794e80#1: "three", three#71b42ce4#0: 4.0}
-
 // int 6580d220 
 @createdAt#builtin(1)
 @basedOn#builtin(thing#6580d220)
 @supercedes#builtin(thing#6580d220)
 const thing#2bebdaee = 30
+
+// 066e15da float int string 
+@createdAt#builtin(0)
+const yes#2af29f16 = OtherThing#066e15da{one#28794e80#0: 2, two#28794e80#1: "three", three#066e15da#0: 4.0}
 
 // int 
 @createdAt#builtin(1)

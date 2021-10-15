@@ -22,16 +22,6 @@
             }
           }
         ],
-        "what": [
-          {
-            "id": {
-              "hash": "55361dda",
-              "pos": 0,
-              "size": 1
-            },
-            "idx": 0
-          }
-        ],
         "one": [
           {
             "id": {
@@ -55,7 +45,17 @@
         "three": [
           {
             "id": {
-              "hash": "71b42ce4",
+              "hash": "066e15da",
+              "pos": 0,
+              "size": 1
+            },
+            "idx": 0
+          }
+        ],
+        "what": [
+          {
+            "id": {
+              "hash": "55361dda",
               "pos": 0,
               "size": 1
             },
@@ -70,15 +70,15 @@
         "Some": [
           "contents"
         ],
-        "55361dda": [
-          "what"
-        ],
         "28794e80": [
           "one",
           "two"
         ],
-        "71b42ce4": [
+        "066e15da": [
           "three"
+        ],
+        "55361dda": [
+          "what"
         ]
       }
     },
@@ -240,213 +240,6 @@
           "created": 0
         }
       },
-      "55361dda": {
-        "defn": {
-          "type": "Record",
-          "unique": 0.5661807692527293,
-          "typeVbls": [],
-          "location": {
-            "start": {
-              "offset": 268,
-              "line": 20,
-              "column": 1
-            },
-            "end": {
-              "offset": 331,
-              "line": 22,
-              "column": 2
-            },
-            "idx": 68
-          },
-          "effectVbls": [],
-          "ffi": null,
-          "extends": [],
-          "items": [
-            {
-              "type": "lambda",
-              "args": [],
-              "argNames": [],
-              "typeVbls": [],
-              "effectVbls": [],
-              "location": {
-                "start": {
-                  "offset": 289,
-                  "line": 21,
-                  "column": 8
-                },
-                "end": {
-                  "offset": 305,
-                  "line": 21,
-                  "column": 24
-                },
-                "idx": 61
-              },
-              "effects": [
-                {
-                  "type": "ref",
-                  "ref": {
-                    "type": "user",
-                    "id": {
-                      "hash": "35f4b478",
-                      "size": 1,
-                      "pos": 0
-                    }
-                  }
-                }
-              ],
-              "res": {
-                "type": "ref",
-                "ref": {
-                  "type": "builtin",
-                  "name": "int"
-                },
-                "location": {
-                  "start": {
-                    "offset": 302,
-                    "line": 21,
-                    "column": 21
-                  },
-                  "end": {
-                    "offset": 305,
-                    "line": 21,
-                    "column": 24
-                  },
-                  "idx": 60
-                },
-                "typeVbls": []
-              },
-              "rest": null
-            }
-          ],
-          "defaults": {
-            "0": {
-              "id": null,
-              "idx": 0,
-              "value": {
-                "type": "lambda",
-                "args": [],
-                "idLocations": [],
-                "body": {
-                  "type": "ref",
-                  "location": {
-                    "start": {
-                      "offset": 321,
-                      "line": 21,
-                      "column": 40
-                    },
-                    "end": {
-                      "offset": 328,
-                      "line": 21,
-                      "column": 47
-                    },
-                    "idx": 65
-                  },
-                  "is": {
-                    "type": "ref",
-                    "location": {
-                      "start": {
-                        "offset": 106,
-                        "line": 8,
-                        "column": 17
-                      },
-                      "end": {
-                        "offset": 108,
-                        "line": 8,
-                        "column": 19
-                      },
-                      "idx": 2
-                    },
-                    "ref": {
-                      "type": "builtin",
-                      "name": "int"
-                    },
-                    "typeVbls": []
-                  },
-                  "ref": {
-                    "type": "user",
-                    "id": {
-                      "hash": "6e9352f2",
-                      "size": 1,
-                      "pos": 0
-                    }
-                  }
-                },
-                "location": {
-                  "start": {
-                    "offset": 308,
-                    "line": 21,
-                    "column": 27
-                  },
-                  "end": {
-                    "offset": 328,
-                    "line": 21,
-                    "column": 47
-                  },
-                  "idx": 66
-                },
-                "is": {
-                  "type": "lambda",
-                  "location": {
-                    "start": {
-                      "offset": 308,
-                      "line": 21,
-                      "column": 27
-                    },
-                    "end": {
-                      "offset": 328,
-                      "line": 21,
-                      "column": 47
-                    },
-                    "idx": 66
-                  },
-                  "typeVbls": [],
-                  "effectVbls": [],
-                  "effects": [
-                    {
-                      "type": "ref",
-                      "ref": {
-                        "type": "user",
-                        "id": {
-                          "hash": "35f4b478",
-                          "size": 1,
-                          "pos": 0
-                        }
-                      }
-                    }
-                  ],
-                  "argNames": [],
-                  "args": [],
-                  "rest": null,
-                  "res": {
-                    "type": "ref",
-                    "location": {
-                      "start": {
-                        "offset": 106,
-                        "line": 8,
-                        "column": 17
-                      },
-                      "end": {
-                        "offset": 108,
-                        "line": 8,
-                        "column": 19
-                      },
-                      "idx": 2
-                    },
-                    "ref": {
-                      "type": "builtin",
-                      "name": "int"
-                    },
-                    "typeVbls": []
-                  }
-                }
-              }
-            }
-          }
-        },
-        "meta": {
-          "created": 1
-        }
-      },
       "28794e80": {
         "defn": {
           "type": "Record",
@@ -454,16 +247,16 @@
           "typeVbls": [],
           "location": {
             "start": {
-              "offset": 356,
-              "line": 25,
-              "column": 1
+              "offset": 65,
+              "line": 3,
+              "column": 29
             },
             "end": {
-              "offset": 408,
-              "line": 28,
+              "offset": 149,
+              "line": 6,
               "column": 2
             },
-            "idx": 82
+            "idx": 17
           },
           "effectVbls": [],
           "ffi": null,
@@ -477,16 +270,16 @@
               },
               "location": {
                 "start": {
-                  "offset": 381,
-                  "line": 26,
-                  "column": 7
-                },
-                "end": {
-                  "offset": 384,
-                  "line": 26,
+                  "offset": 102,
+                  "line": 4,
                   "column": 10
                 },
-                "idx": 77
+                "end": {
+                  "offset": 113,
+                  "line": 4,
+                  "column": 21
+                },
+                "idx": 12
               },
               "typeVbls": []
             },
@@ -498,16 +291,16 @@
               },
               "location": {
                 "start": {
-                  "offset": 392,
-                  "line": 27,
-                  "column": 7
+                  "offset": 124,
+                  "line": 5,
+                  "column": 10
                 },
                 "end": {
-                  "offset": 398,
-                  "line": 27,
-                  "column": 13
+                  "offset": 138,
+                  "line": 5,
+                  "column": 24
                 },
-                "idx": 79
+                "idx": 14
               },
               "typeVbls": []
             }
@@ -521,16 +314,16 @@
                 "text": "yes",
                 "location": {
                   "start": {
-                    "offset": 401,
-                    "line": 27,
-                    "column": 16
+                    "offset": 141,
+                    "line": 5,
+                    "column": 27
                   },
                   "end": {
-                    "offset": 406,
-                    "line": 27,
-                    "column": 21
+                    "offset": 146,
+                    "line": 5,
+                    "column": 32
                   },
-                  "idx": 80
+                  "idx": 15
                 },
                 "is": {
                   "type": "ref",
@@ -551,31 +344,51 @@
           "created": 2
         }
       },
-      "71b42ce4": {
+      "066e15da": {
         "defn": {
           "type": "Record",
           "unique": 0.14972816008023876,
           "typeVbls": [],
           "location": {
             "start": {
-              "offset": 432,
-              "line": 31,
-              "column": 1
+              "offset": 395,
+              "line": 20,
+              "column": 30
             },
             "end": {
-              "offset": 483,
-              "line": 34,
+              "offset": 478,
+              "line": 23,
               "column": 2
             },
-            "idx": 94
+            "idx": 59
           },
           "effectVbls": [],
           "ffi": null,
           "extends": [
             {
-              "hash": "28794e80",
-              "pos": 0,
-              "size": 1
+              "type": "ref",
+              "ref": {
+                "type": "user",
+                "id": {
+                  "hash": "28794e80",
+                  "size": 1,
+                  "pos": 0
+                }
+              },
+              "typeVbls": [],
+              "location": {
+                "start": {
+                  "offset": 431,
+                  "line": 21,
+                  "column": 8
+                },
+                "end": {
+                  "offset": 449,
+                  "line": 21,
+                  "column": 26
+                },
+                "idx": 55
+              }
             }
           ],
           "items": [
@@ -587,16 +400,16 @@
               },
               "location": {
                 "start": {
-                  "offset": 475,
-                  "line": 33,
-                  "column": 9
+                  "offset": 462,
+                  "line": 22,
+                  "column": 12
                 },
                 "end": {
-                  "offset": 480,
-                  "line": 33,
-                  "column": 14
+                  "offset": 475,
+                  "line": 22,
+                  "column": 25
                 },
-                "idx": 92
+                "idx": 57
               },
               "typeVbls": []
             }
@@ -604,6 +417,239 @@
         },
         "meta": {
           "created": 3
+        }
+      },
+      "55361dda": {
+        "defn": {
+          "type": "Record",
+          "unique": 0.5661807692527293,
+          "typeVbls": [],
+          "location": {
+            "start": {
+              "offset": 613,
+              "line": 31,
+              "column": 29
+            },
+            "end": {
+              "offset": 736,
+              "line": 33,
+              "column": 2
+            },
+            "idx": 93
+          },
+          "effectVbls": [],
+          "ffi": null,
+          "extends": [],
+          "items": [
+            {
+              "type": "lambda",
+              "args": [],
+              "argNames": [],
+              "typeVbls": [],
+              "effectVbls": [],
+              "location": {
+                "start": {
+                  "offset": 646,
+                  "line": 32,
+                  "column": 11
+                },
+                "end": {
+                  "offset": 679,
+                  "line": 32,
+                  "column": 44
+                },
+                "idx": 84
+              },
+              "effects": [
+                {
+                  "type": "ref",
+                  "location": {
+                    "start": {
+                      "offset": 651,
+                      "line": 32,
+                      "column": 16
+                    },
+                    "end": {
+                      "offset": 665,
+                      "line": 32,
+                      "column": 30
+                    },
+                    "idx": 81
+                  },
+                  "ref": {
+                    "type": "user",
+                    "id": {
+                      "hash": "35f4b478",
+                      "size": 1,
+                      "pos": 0
+                    }
+                  }
+                }
+              ],
+              "res": {
+                "type": "ref",
+                "ref": {
+                  "type": "builtin",
+                  "name": "int"
+                },
+                "location": {
+                  "start": {
+                    "offset": 668,
+                    "line": 32,
+                    "column": 33
+                  },
+                  "end": {
+                    "offset": 679,
+                    "line": 32,
+                    "column": 44
+                  },
+                  "idx": 83
+                },
+                "typeVbls": []
+              },
+              "rest": null
+            }
+          ],
+          "defaults": {
+            "0": {
+              "id": null,
+              "idx": 0,
+              "value": {
+                "type": "lambda",
+                "args": [],
+                "idLocations": [],
+                "body": {
+                  "type": "ref",
+                  "location": {
+                    "start": {
+                      "offset": 717,
+                      "line": 32,
+                      "column": 82
+                    },
+                    "end": {
+                      "offset": 733,
+                      "line": 32,
+                      "column": 98
+                    },
+                    "idx": 90
+                  },
+                  "ref": {
+                    "type": "user",
+                    "id": {
+                      "hash": "6e9352f2",
+                      "size": 1,
+                      "pos": 0
+                    }
+                  },
+                  "is": {
+                    "type": "ref",
+                    "location": {
+                      "start": {
+                        "offset": 206,
+                        "line": 10,
+                        "column": 26
+                      },
+                      "end": {
+                        "offset": 208,
+                        "line": 10,
+                        "column": 28
+                      },
+                      "idx": 2
+                    },
+                    "ref": {
+                      "type": "builtin",
+                      "name": "int"
+                    },
+                    "typeVbls": []
+                  }
+                },
+                "location": {
+                  "start": {
+                    "offset": 682,
+                    "line": 32,
+                    "column": 47
+                  },
+                  "end": {
+                    "offset": 733,
+                    "line": 32,
+                    "column": 98
+                  },
+                  "idx": 91
+                },
+                "is": {
+                  "type": "lambda",
+                  "location": {
+                    "start": {
+                      "offset": 682,
+                      "line": 32,
+                      "column": 47
+                    },
+                    "end": {
+                      "offset": 733,
+                      "line": 32,
+                      "column": 98
+                    },
+                    "idx": 91
+                  },
+                  "typeVbls": [],
+                  "effectVbls": [],
+                  "effects": [
+                    {
+                      "type": "ref",
+                      "location": {
+                        "start": {
+                          "offset": 700,
+                          "line": 32,
+                          "column": 65
+                        },
+                        "end": {
+                          "offset": 714,
+                          "line": 32,
+                          "column": 79
+                        },
+                        "idx": 87
+                      },
+                      "ref": {
+                        "type": "user",
+                        "id": {
+                          "hash": "35f4b478",
+                          "size": 1,
+                          "pos": 0
+                        }
+                      }
+                    }
+                  ],
+                  "argNames": [],
+                  "args": [],
+                  "rest": null,
+                  "res": {
+                    "type": "ref",
+                    "location": {
+                      "start": {
+                        "offset": 206,
+                        "line": 10,
+                        "column": 26
+                      },
+                      "end": {
+                        "offset": 208,
+                        "line": 10,
+                        "column": 28
+                      },
+                      "idx": 2
+                    },
+                    "ref": {
+                      "type": "builtin",
+                      "name": "int"
+                    },
+                    "typeVbls": []
+                  }
+                }
+              }
+            }
+          }
+        },
+        "meta": {
+          "created": 1
         }
       }
     },
@@ -629,13 +675,6 @@
           "size": 1
         }
       ],
-      "What": [
-        {
-          "hash": "55361dda",
-          "pos": 0,
-          "size": 1
-        }
-      ],
       "Something": [
         {
           "hash": "28794e80",
@@ -645,7 +684,14 @@
       ],
       "OtherThing": [
         {
-          "hash": "71b42ce4",
+          "hash": "066e15da",
+          "pos": 0,
+          "size": 1
+        }
+      ],
+      "What": [
+        {
+          "hash": "55361dda",
           "pos": 0,
           "size": 1
         }
@@ -655,15 +701,15 @@
       "As": [],
       "None": [],
       "Some": [],
-      "55361dda": [],
       "28794e80": [],
-      "71b42ce4": [
+      "066e15da": [
         {
           "hash": "28794e80",
-          "pos": 0,
-          "size": 1
+          "size": 1,
+          "pos": 0
         }
-      ]
+      ],
+      "55361dda": []
     }
   },
   "terms": {
@@ -677,14 +723,14 @@
           "value": 10,
           "location": {
             "start": {
-              "offset": 106,
-              "line": 8,
-              "column": 17
+              "offset": 206,
+              "line": 10,
+              "column": 26
             },
             "end": {
-              "offset": 108,
-              "line": 8,
-              "column": 19
+              "offset": 208,
+              "line": 10,
+              "column": 28
             },
             "idx": 1
           },
@@ -692,14 +738,14 @@
             "type": "ref",
             "location": {
               "start": {
-                "offset": 106,
-                "line": 8,
-                "column": 17
+                "offset": 206,
+                "line": 10,
+                "column": 26
               },
               "end": {
-                "offset": 108,
-                "line": 8,
-                "column": 19
+                "offset": 208,
+                "line": 10,
+                "column": 28
               },
               "idx": 2
             },
@@ -711,23 +757,23 @@
           }
         }
       },
-      "23e1789e": {
+      "6580d220": {
         "meta": {
           "created": 1
         },
         "defn": {
           "type": "int",
-          "value": 210,
+          "value": 20,
           "location": {
             "start": {
-              "offset": 150,
-              "line": 11,
-              "column": 18
+              "offset": 533,
+              "line": 27,
+              "column": 24
             },
             "end": {
-              "offset": 153,
-              "line": 11,
-              "column": 21
+              "offset": 535,
+              "line": 27,
+              "column": 26
             },
             "idx": 1
           },
@@ -735,14 +781,14 @@
             "type": "ref",
             "location": {
               "start": {
-                "offset": 150,
-                "line": 11,
-                "column": 18
+                "offset": 533,
+                "line": 27,
+                "column": 24
               },
               "end": {
-                "offset": 153,
-                "line": 11,
-                "column": 21
+                "offset": 535,
+                "line": 27,
+                "column": 26
               },
               "idx": 2
             },
@@ -763,14 +809,14 @@
           "value": 310,
           "location": {
             "start": {
-              "offset": 195,
-              "line": 14,
-              "column": 18
+              "offset": 794,
+              "line": 37,
+              "column": 27
             },
             "end": {
-              "offset": 198,
-              "line": 14,
-              "column": 21
+              "offset": 797,
+              "line": 37,
+              "column": 30
             },
             "idx": 1
           },
@@ -778,14 +824,14 @@
             "type": "ref",
             "location": {
               "start": {
-                "offset": 195,
-                "line": 14,
-                "column": 18
+                "offset": 794,
+                "line": 37,
+                "column": 27
               },
               "end": {
-                "offset": 198,
-                "line": 14,
-                "column": 21
+                "offset": 797,
+                "line": 37,
+                "column": 30
               },
               "idx": 2
             },
@@ -797,50 +843,7 @@
           }
         }
       },
-      "1199f022": {
-        "meta": {
-          "created": 1
-        },
-        "defn": {
-          "type": "int",
-          "value": 410,
-          "location": {
-            "start": {
-              "offset": 240,
-              "line": 17,
-              "column": 18
-            },
-            "end": {
-              "offset": 243,
-              "line": 17,
-              "column": 21
-            },
-            "idx": 1
-          },
-          "is": {
-            "type": "ref",
-            "location": {
-              "start": {
-                "offset": 240,
-                "line": 17,
-                "column": 18
-              },
-              "end": {
-                "offset": 243,
-                "line": 17,
-                "column": 21
-              },
-              "idx": 2
-            },
-            "ref": {
-              "type": "builtin",
-              "name": "int"
-            },
-            "typeVbls": []
-          }
-        }
-      },
-      "6f763288": {
+      "2af29f16": {
         "meta": {
           "created": 0
         },
@@ -848,14 +851,14 @@
           "type": "Record",
           "location": {
             "start": {
-              "offset": 519,
-              "line": 37,
-              "column": 13
+              "offset": 872,
+              "line": 41,
+              "column": 22
             },
             "end": {
-              "offset": 569,
+              "offset": 958,
               "line": 41,
-              "column": 2
+              "column": 108
             },
             "idx": 1
           },
@@ -866,14 +869,14 @@
                 "value": 4,
                 "location": {
                   "start": {
-                    "offset": 563,
-                    "line": 40,
-                    "column": 9
+                    "offset": 954,
+                    "line": 41,
+                    "column": 104
                   },
                   "end": {
-                    "offset": 566,
-                    "line": 40,
-                    "column": 12
+                    "offset": 957,
+                    "line": 41,
+                    "column": 107
                   },
                   "idx": 4
                 },
@@ -881,14 +884,14 @@
                   "type": "ref",
                   "location": {
                     "start": {
-                      "offset": 563,
-                      "line": 40,
-                      "column": 9
+                      "offset": 954,
+                      "line": 41,
+                      "column": 104
                     },
                     "end": {
-                      "offset": 566,
-                      "line": 40,
-                      "column": 12
+                      "offset": 957,
+                      "line": 41,
+                      "column": 107
                     },
                     "idx": 5
                   },
@@ -903,7 +906,7 @@
             "ref": {
               "type": "user",
               "id": {
-                "hash": "71b42ce4",
+                "hash": "066e15da",
                 "pos": 0,
                 "size": 1
               }
@@ -912,14 +915,14 @@
             "spread": null,
             "location": {
               "start": {
-                "offset": 519,
-                "line": 37,
-                "column": 13
+                "offset": 872,
+                "line": 41,
+                "column": 22
               },
               "end": {
-                "offset": 529,
-                "line": 37,
-                "column": 23
+                "offset": 891,
+                "line": 41,
+                "column": 41
               },
               "idx": 2
             }
@@ -929,21 +932,21 @@
             "ref": {
               "type": "user",
               "id": {
-                "hash": "71b42ce4",
+                "hash": "066e15da",
                 "pos": 0,
                 "size": 1
               }
             },
             "location": {
               "start": {
-                "offset": 519,
-                "line": 37,
-                "column": 13
+                "offset": 872,
+                "line": 41,
+                "column": 22
               },
               "end": {
-                "offset": 529,
-                "line": 37,
-                "column": 23
+                "offset": 891,
+                "line": 41,
+                "column": 41
               },
               "idx": 3
             },
@@ -959,14 +962,14 @@
                   "value": 2,
                   "location": {
                     "start": {
-                      "offset": 537,
-                      "line": 38,
-                      "column": 7
+                      "offset": 908,
+                      "line": 41,
+                      "column": 58
                     },
                     "end": {
-                      "offset": 538,
-                      "line": 38,
-                      "column": 8
+                      "offset": 909,
+                      "line": 41,
+                      "column": 59
                     },
                     "idx": 6
                   },
@@ -974,14 +977,14 @@
                     "type": "ref",
                     "location": {
                       "start": {
-                        "offset": 537,
-                        "line": 38,
-                        "column": 7
+                        "offset": 908,
+                        "line": 41,
+                        "column": 58
                       },
                       "end": {
-                        "offset": 538,
-                        "line": 38,
-                        "column": 8
+                        "offset": 909,
+                        "line": 41,
+                        "column": 59
                       },
                       "idx": 7
                     },
@@ -997,14 +1000,14 @@
                   "text": "three",
                   "location": {
                     "start": {
-                      "offset": 546,
-                      "line": 39,
-                      "column": 7
+                      "offset": 927,
+                      "line": 41,
+                      "column": 77
                     },
                     "end": {
-                      "offset": 553,
-                      "line": 39,
-                      "column": 14
+                      "offset": 934,
+                      "line": 41,
+                      "column": 84
                     },
                     "idx": 8
                   },
@@ -1026,52 +1029,14 @@
           }
         }
       },
-      "6580d220": {
-        "meta": {
-          "created": 1
-        },
-        "defn": {
-          "type": "int",
-          "value": 20,
-          "location": {
-            "start": {
-              "offset": 607,
-              "line": 44,
-              "column": 15
-            },
-            "end": {
-              "offset": 609,
-              "line": 44,
-              "column": 17
-            },
-            "idx": 1
-          },
-          "is": {
-            "type": "ref",
-            "location": {
-              "start": {
-                "offset": 607,
-                "line": 44,
-                "column": 15
-              },
-              "end": {
-                "offset": 609,
-                "line": 44,
-                "column": 17
-              },
-              "idx": 2
-            },
-            "ref": {
-              "type": "builtin",
-              "name": "int"
-            },
-            "typeVbls": []
-          }
-        }
-      },
       "2bebdaee": {
         "meta": {
           "created": 1,
+          "basedOn": {
+            "hash": "6580d220",
+            "size": 1,
+            "pos": 0
+          },
           "supercedes": {
             "hash": "6580d220",
             "size": 1,
@@ -1083,14 +1048,14 @@
           "value": 30,
           "location": {
             "start": {
-              "offset": 675,
-              "line": 48,
-              "column": 15
+              "offset": 1091,
+              "line": 47,
+              "column": 24
             },
             "end": {
-              "offset": 677,
-              "line": 48,
-              "column": 17
+              "offset": 1093,
+              "line": 47,
+              "column": 26
             },
             "idx": 1
           },
@@ -1098,14 +1063,100 @@
             "type": "ref",
             "location": {
               "start": {
-                "offset": 675,
-                "line": 48,
-                "column": 15
+                "offset": 1091,
+                "line": 47,
+                "column": 24
               },
               "end": {
-                "offset": 677,
-                "line": 48,
-                "column": 17
+                "offset": 1093,
+                "line": 47,
+                "column": 26
+              },
+              "idx": 2
+            },
+            "ref": {
+              "type": "builtin",
+              "name": "int"
+            },
+            "typeVbls": []
+          }
+        }
+      },
+      "23e1789e": {
+        "meta": {
+          "created": 1
+        },
+        "defn": {
+          "type": "int",
+          "value": 210,
+          "location": {
+            "start": {
+              "offset": 1151,
+              "line": 51,
+              "column": 27
+            },
+            "end": {
+              "offset": 1154,
+              "line": 51,
+              "column": 30
+            },
+            "idx": 1
+          },
+          "is": {
+            "type": "ref",
+            "location": {
+              "start": {
+                "offset": 1151,
+                "line": 51,
+                "column": 27
+              },
+              "end": {
+                "offset": 1154,
+                "line": 51,
+                "column": 30
+              },
+              "idx": 2
+            },
+            "ref": {
+              "type": "builtin",
+              "name": "int"
+            },
+            "typeVbls": []
+          }
+        }
+      },
+      "1199f022": {
+        "meta": {
+          "created": 1
+        },
+        "defn": {
+          "type": "int",
+          "value": 410,
+          "location": {
+            "start": {
+              "offset": 1212,
+              "line": 55,
+              "column": 27
+            },
+            "end": {
+              "offset": 1215,
+              "line": 55,
+              "column": 30
+            },
+            "idx": 1
+          },
+          "is": {
+            "type": "ref",
+            "location": {
+              "start": {
+                "offset": 1212,
+                "line": 55,
+                "column": 27
+              },
+              "end": {
+                "offset": 1215,
+                "line": 55,
+                "column": 30
               },
               "idx": 2
             },
@@ -1126,9 +1177,14 @@
           "pos": 0
         }
       ],
-      "awesome2": [
+      "thing": [
         {
-          "hash": "23e1789e",
+          "hash": "2bebdaee",
+          "size": 1,
+          "pos": 0
+        },
+        {
+          "hash": "6580d220",
           "size": 1,
           "pos": 0
         }
@@ -1140,28 +1196,23 @@
           "pos": 0
         }
       ],
+      "yes": [
+        {
+          "hash": "2af29f16",
+          "size": 1,
+          "pos": 0
+        }
+      ],
+      "awesome2": [
+        {
+          "hash": "23e1789e",
+          "size": 1,
+          "pos": 0
+        }
+      ],
       "awesome4": [
         {
           "hash": "1199f022",
-          "size": 1,
-          "pos": 0
-        }
-      ],
-      "yes": [
-        {
-          "hash": "6f763288",
-          "size": 1,
-          "pos": 0
-        }
-      ],
-      "thing": [
-        {
-          "hash": "2bebdaee",
-          "size": 1,
-          "pos": 0
-        },
-        {
-          "hash": "6580d220",
           "size": 1,
           "pos": 0
         }
@@ -1186,16 +1237,16 @@
                   },
                   "location": {
                     "start": {
-                      "offset": 47,
-                      "line": 4,
-                      "column": 10
+                      "offset": 284,
+                      "line": 15,
+                      "column": 13
                     },
                     "end": {
-                      "offset": 53,
-                      "line": 4,
-                      "column": 16
+                      "offset": 298,
+                      "line": 15,
+                      "column": 27
                     },
-                    "idx": 9
+                    "idx": 37
                   },
                   "typeVbls": []
                 }
@@ -1208,16 +1259,16 @@
                 },
                 "location": {
                   "start": {
-                    "offset": 58,
-                    "line": 4,
-                    "column": 21
+                    "offset": 303,
+                    "line": 15,
+                    "column": 32
                   },
                   "end": {
-                    "offset": 62,
-                    "line": 4,
-                    "column": 25
+                    "offset": 315,
+                    "line": 15,
+                    "column": 44
                   },
-                  "idx": 12
+                  "idx": 40
                 },
                 "typeVbls": []
               }

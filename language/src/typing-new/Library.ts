@@ -230,11 +230,17 @@ export const addRecord = (
             superTypes[nid] = superTypes[nid].concat([id]);
             const { defn } = lib.types.defns[nid];
             if (defn.type === 'Record' && defn.extends.length) {
-                addSupers(id, defn.extends);
+                addSupers(
+                    id,
+                    defn.extends.map((t) => t.ref.id),
+                );
             }
         });
     };
-    addSupers(id, record.extends);
+    addSupers(
+        id,
+        record.extends.map((t) => t.ref.id),
+    );
     return [
         {
             ...lib,

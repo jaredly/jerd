@@ -19,7 +19,10 @@ export const hasSubType = (ctx: Context, type: Type, id: Id) => {
             if (decl.type !== 'Record') {
                 return false;
             }
-            const allSubTypes = getAllSubTypes(ctx.library, decl.extends);
+            const allSubTypes = getAllSubTypes(
+                ctx.library,
+                decl.extends.map((t) => t.ref.id),
+            );
             if (allSubTypes.find((x) => idsEqual(id, x)) != null) {
                 return true;
             }
@@ -35,7 +38,10 @@ export const hasSubType = (ctx: Context, type: Type, id: Id) => {
     if (decl.type === 'Enum') {
         return false;
     }
-    const allSubTypes = getAllSubTypes(ctx.library, decl.extends);
+    const allSubTypes = getAllSubTypes(
+        ctx.library,
+        decl.extends.map((t) => t.ref.id),
+    );
     return allSubTypes.find((x) => idsEqual(id, x)) != null;
 };
 
@@ -46,7 +52,12 @@ export const getAllSubTypes = (lib: Library, extend: Array<Id>): Array<Id> => {
             if (defn.type !== 'Record') {
                 return [];
             }
-            return [id].concat(getAllSubTypes(lib, defn.extends));
+            return [id].concat(
+                getAllSubTypes(
+                    lib,
+                    defn.extends.map((t) => t.ref.id),
+                ),
+            );
         }),
     );
 };

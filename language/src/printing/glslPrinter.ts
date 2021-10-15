@@ -1664,7 +1664,10 @@ export const getAllRecordAttributes = (
     id: Id,
     constr: RecordDef,
 ): Array<RecordAttribute> => {
-    const subTypes = getAllSubTypes(env.global.types, constr.extends);
+    const subTypes = getAllSubTypes(
+        env.global.types,
+        constr.extends.map((t) => t.ref.id),
+    );
     return [
         ...constr.items.map((item, i) => ({ id, item, i })),
         ...([] as Array<RecordAttribute>).concat(
@@ -1688,7 +1691,10 @@ export const recordToGLSL = (
     irOpts: IOutputOptions,
     id: Id,
 ) => {
-    const subTypes = getAllSubTypes(env.global.types, constr.extends);
+    const subTypes = getAllSubTypes(
+        env.global.types,
+        constr.extends.map((t) => t.ref.id),
+    );
 
     return pp.items([
         atom('struct '),

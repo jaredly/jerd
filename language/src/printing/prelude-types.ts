@@ -96,13 +96,13 @@ type t_c81142a0<T_0> = {
 
 /**
 ```
-@ffi("Vec3") type Vec3#40e2c712 = {
+@ffi("Vec3") type Vec3#b79db448 = {
     ...Vec2#08f7c2ac,
     z: float#builtin,
 }
 ```
 */
-type t_40e2c712 = {
+type t_b79db448 = {
   type: "Vec3";
   z: number;
   x: number;
@@ -160,13 +160,13 @@ type t_6699da44<T_0> = t_c81142a0<T_0> | t_4f07d626<T_0> | t_aa4255d4<T_0> | t_1
 
 /**
 ```
-@ffi("Vec4") type Vec4#51a53bbe = {
-    ...Vec3#40e2c712,
+@ffi("Vec4") type Vec4#b1f05ae8 = {
+    ...Vec3#b79db448,
     w: float#builtin,
 }
 ```
 */
-type t_51a53bbe = {
+type t_b1f05ae8 = {
   type: "Vec4";
   w: number;
   z: number;
@@ -176,18 +176,18 @@ type t_51a53bbe = {
 
 /**
 ```
-@ffi("GLSLScene") type GLSLScene#3c562a6a<T#:0> = {
+@ffi("GLSLScene") type GLSLScene#6ba468c8<T#:0> = {
     initial: T#:0,
-    step: (GLSLEnv#2e2ed210<T#:0>, GLSLEnv#2e2ed210<T#:0>, Array#builtin<GLSLEvent#341b62ae>) ={}> T#:0,
-    render: (GLSLEnv#2e2ed210<T#:0>, Vec2#08f7c2ac) ={}> Vec4#51a53bbe,
+    step: (GLSLEnv#723f719e<T#:0>, GLSLEnv#723f719e<T#:0>, Array#builtin<GLSLEvent#341b62ae>) ={}> T#:0,
+    render: (GLSLEnv#723f719e<T#:0>, Vec2#08f7c2ac) ={}> Vec4#b1f05ae8,
 }
 ```
 */
-type t_3c562a6a<T_0> = {
+type t_6ba468c8<T_0> = {
   type: "GLSLScene";
   initial: T_0;
-  step: (arg_0: t_2e2ed210<T_0>, arg_1: t_2e2ed210<T_0>, arg_2: Array<t_341b62ae>) => T_0;
-  render: (arg_0: t_2e2ed210<T_0>, arg_1: t_08f7c2ac) => t_51a53bbe;
+  step: (arg_0: t_723f719e<T_0>, arg_1: t_723f719e<T_0>, arg_2: Array<t_341b62ae>) => T_0;
+  render: (arg_0: t_723f719e<T_0>, arg_1: t_08f7c2ac) => t_b1f05ae8;
 };
 
 /*enum GLSLEvent#341b62ae {
@@ -198,18 +198,18 @@ type t_341b62ae = t_594e03e4 | t_5bec04f0;
 
 /**
 ```
-@ffi("GLSLScene") type GLSLSceneOld#7ae79362<T#:0> = {
+@ffi("GLSLScene") type GLSLSceneOld#7904844f<T#:0> = {
     initial: T#:0,
-    step: (GLSLEnv#2e2ed210<T#:0>, GLSLEnv#2e2ed210<T#:0>) ={}> T#:0,
-    render: (GLSLEnv#2e2ed210<T#:0>, Vec2#08f7c2ac) ={}> Vec4#51a53bbe,
+    step: (GLSLEnv#723f719e<T#:0>, GLSLEnv#723f719e<T#:0>) ={}> T#:0,
+    render: (GLSLEnv#723f719e<T#:0>, Vec2#08f7c2ac) ={}> Vec4#b1f05ae8,
 }
 ```
 */
-type t_7ae79362<T_0> = {
+type t_7904844f<T_0> = {
   type: "GLSLScene";
   initial: T_0;
-  step: (arg_0: t_2e2ed210<T_0>, arg_1: t_2e2ed210<T_0>) => T_0;
-  render: (arg_0: t_2e2ed210<T_0>, arg_1: t_08f7c2ac) => t_51a53bbe;
+  step: (arg_0: t_723f719e<T_0>, arg_1: t_723f719e<T_0>) => T_0;
+  render: (arg_0: t_723f719e<T_0>, arg_1: t_08f7c2ac) => t_b1f05ae8;
 };
 
 /**
@@ -228,38 +228,56 @@ type t_41fb7941<T_0> = {
 
 /**
 ```
-@ffi("GLSLEnv") type GLSLEnv#2e2ed210<T#:0> = {
+@ffi("GLSLEnv") type GLSLEnv#723f719e<T#:0> = {
     state: T#:0,
     time: float#builtin,
     resolution: Vec2#08f7c2ac,
-    camera: Vec3#40e2c712,
+    camera: Vec3#b79db448,
     mouse: Vec2#08f7c2ac,
     mouseButton: int#builtin,
 }
 ```
 */
-type t_2e2ed210<T_0> = {
+type t_723f719e<T_0> = {
   type: "GLSLEnv";
   state: T_0;
   time: number;
   resolution: t_08f7c2ac;
-  camera: t_40e2c712;
+  camera: t_b79db448;
   mouse: t_08f7c2ac;
   mouseButton: number;
 };
 
 /**
 ```
-@ffi("GLSLBuffer1") type GLSLBuffer1#5114fc66 = {
-    fragment: (GLSLEnv#88074884, Vec2#08f7c2ac, sampler2D#builtin) ={}> Vec4#51a53bbe,
-    buffer0: (GLSLEnv#88074884, Vec2#08f7c2ac, sampler2D#builtin) ={}> Vec4#51a53bbe,
+@ffi("GLSLBuffer1") type GLSLBuffer1#1babb8a6 = {
+    fragment: (GLSLEnv#a25a17de, Vec2#08f7c2ac, sampler2D#builtin) ={}> Vec4#b1f05ae8,
+    buffer0: (GLSLEnv#a25a17de, Vec2#08f7c2ac, sampler2D#builtin) ={}> Vec4#b1f05ae8,
 }
 ```
 */
-type t_5114fc66 = {
+type t_1babb8a6 = {
   type: "GLSLBuffer1";
-  fragment: (arg_0: t_88074884, arg_1: t_08f7c2ac, arg_2: sampler2D) => t_51a53bbe;
-  buffer0: (arg_0: t_88074884, arg_1: t_08f7c2ac, arg_2: sampler2D) => t_51a53bbe;
+  fragment: (arg_0: t_a25a17de, arg_1: t_08f7c2ac, arg_2: sampler2D) => t_b1f05ae8;
+  buffer0: (arg_0: t_a25a17de, arg_1: t_08f7c2ac, arg_2: sampler2D) => t_b1f05ae8;
+};
+
+/**
+```
+@ffi("GLSLEnv") type GLSLEnv#a25a17de = {
+    time: float#builtin,
+    resolution: Vec2#08f7c2ac,
+    camera: Vec3#b79db448,
+    mouse: Vec2#08f7c2ac,
+}
+```
+*/
+type t_a25a17de = {
+  type: "GLSLEnv";
+  time: number;
+  resolution: t_08f7c2ac;
+  camera: t_b79db448;
+  mouse: t_08f7c2ac;
 };
 
 /**
@@ -332,20 +350,20 @@ type t_3d436b7e<T_0, T_1, T_2> = {
 
 /**
 ```
-@ffi("Mat4") type Mat4#205100f4 = {
-    r1: Vec4#51a53bbe,
-    r2: Vec4#51a53bbe,
-    r3: Vec4#51a53bbe,
-    r4: Vec4#51a53bbe,
+@ffi("Mat4") type Mat4#0d95d60e = {
+    r1: Vec4#b1f05ae8,
+    r2: Vec4#b1f05ae8,
+    r3: Vec4#b1f05ae8,
+    r4: Vec4#b1f05ae8,
 }
 ```
 */
-type t_205100f4 = {
+type t_0d95d60e = {
   type: "Mat4";
-  r1: t_51a53bbe;
-  r2: t_51a53bbe;
-  r3: t_51a53bbe;
-  r4: t_51a53bbe;
+  r1: t_b1f05ae8;
+  r2: t_b1f05ae8;
+  r3: t_b1f05ae8;
+  r4: t_b1f05ae8;
 };
 
 /**
@@ -428,24 +446,6 @@ type t_As<T_10000, T_10001> = {
   type: "As";
   hAs_0: (arg_0: T_10000) => T_10001;
 };
-
-/**
-```
-@ffi("GLSLEnv") type GLSLEnv#88074884 = {
-    time: float#builtin,
-    resolution: Vec2#08f7c2ac,
-    camera: Vec3#40e2c712,
-    mouse: Vec2#08f7c2ac,
-}
-```
-*/
-type t_88074884 = {
-  type: "GLSLEnv";
-  time: number;
-  resolution: t_08f7c2ac;
-  camera: t_40e2c712;
-  mouse: t_08f7c2ac;
-};
 export const As_id = "As";
 export type As<T0, T1> = t_As<T0, T1>;
 export const Some_id = "Some";
@@ -462,12 +462,12 @@ export const Eq_id = "51ea2a36";
 export type Eq<T0> = t_51ea2a36<T0>;
 export const Vec2_id = "08f7c2ac";
 export type Vec2 = t_08f7c2ac;
-export const Vec3_id = "40e2c712";
-export type Vec3 = t_40e2c712;
-export const Vec4_id = "51a53bbe";
-export type Vec4 = t_51a53bbe;
-export const Mat4_id = "205100f4";
-export type Mat4 = t_205100f4;
+export const Vec3_id = "b79db448";
+export type Vec3 = t_b79db448;
+export const Vec4_id = "b1f05ae8";
+export type Vec4 = t_b1f05ae8;
+export const Mat4_id = "0d95d60e";
+export type Mat4 = t_0d95d60e;
 export const AddSub_id = "3d436b7e";
 export type AddSub<T0, T1, T2> = t_3d436b7e<T0, T1, T2>;
 export const Mul_id = "02cc25c4";
@@ -478,12 +478,12 @@ export const Neg_id = "616f559e";
 export type Neg<T0, T1> = t_616f559e<T0, T1>;
 export const Ord_id = "74b229e4";
 export type Ord<T0, T1> = t_74b229e4<T0, T1>;
-export const GLSLEnv_id = "2e2ed210";
-export type GLSLEnv<T0> = t_2e2ed210<T0>;
-export const GLSLEnv$1_id = "88074884";
-export type GLSLEnv$1 = t_88074884;
-export const GLSLBuffer1_id = "5114fc66";
-export type GLSLBuffer1 = t_5114fc66;
+export const GLSLEnv_id = "723f719e";
+export type GLSLEnv<T0> = t_723f719e<T0>;
+export const GLSLEnv$1_id = "a25a17de";
+export type GLSLEnv$1 = t_a25a17de;
+export const GLSLBuffer1_id = "1babb8a6";
+export type GLSLBuffer1 = t_1babb8a6;
 export const Angle_id = "c81142a0";
 export type Angle<T0> = t_c81142a0<T0>;
 export const Int_id = "aa4255d4";
@@ -498,23 +498,23 @@ export const WidgetConfig_id = "6699da44";
 export type WidgetConfig<T0> = t_6699da44<T0>;
 export const Widget_id = "41fb7941";
 export type Widget<T0> = t_41fb7941<T0>;
-export const GLSLSceneOld_id = "7ae79362";
-export type GLSLSceneOld<T0> = t_7ae79362<T0>;
+export const GLSLSceneOld_id = "7904844f";
+export type GLSLSceneOld<T0> = t_7904844f<T0>;
 export const KeyEvent_id = "594e03e4";
 export type KeyEvent = t_594e03e4;
 export const MouseButton_id = "5bec04f0";
 export type MouseButton = t_5bec04f0;
 export const GLSLEvent_id = "341b62ae";
 export type GLSLEvent = t_341b62ae;
-export const GLSLScene_id = "3c562a6a";
-export type GLSLScene<T0> = t_3c562a6a<T0>;
+export const GLSLScene_id = "6ba468c8";
+export type GLSLScene<T0> = t_6ba468c8<T0>;
 export const alternates_id = "60eabfb0";
 export const slider_id = "72521b0a";
 export const slider$1_id = "b981a438";
 export const slider$2_id = "4e421b50";
-export const rgb_id = "54452054";
-export const rgba_id = "5dd5ed8e";
-export const hsl_id = "21a93a54";
-export const hsla_id = "4784cfd4";
+export const rgb_id = "ef68dc94";
+export const rgba_id = "532a336a";
+export const hsl_id = "74f2f8d1";
+export const hsla_id = "2830b0d0";
 export const title_id = "1b6d573e";
 export const display_id = "62c51cb0";

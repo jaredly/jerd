@@ -236,7 +236,7 @@ describe('non-generic examples', () => {
         let slash2;
         [ctx.library, slash2] = addRecord(
             ctx.library,
-            preset.recordDefn([preset.int], [slash]),
+            preset.recordDefn([preset.int], [preset.userTypeReference(slash)]),
             'slash2',
             ['what'],
         );

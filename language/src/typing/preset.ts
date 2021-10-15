@@ -21,12 +21,20 @@ import {
     RecordDef,
     RecordSubType,
     Lambda,
+    UserTypeReference,
 } from './types';
 
 export const builtinLocation: Location = {
     ...nullLocation,
     source: '<builtin>',
 };
+
+export const userTypeReference = (id: Id): UserTypeReference => ({
+    type: 'ref',
+    location: nullLocation,
+    ref: { type: 'user', id },
+    typeVbls: [],
+});
 
 export const builtinType = (
     name: string,
@@ -107,7 +115,7 @@ export const pureFunction = (
 
 export const recordDefn = (
     items: Array<Type>,
-    extenders: Array<Id> = [],
+    extenders: Array<UserTypeReference> = [],
     typeVbls: Array<TypeVblDecl> = [],
     location: Location = nullLocation,
     unique: number = 0,

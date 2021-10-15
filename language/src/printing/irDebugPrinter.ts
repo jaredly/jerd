@@ -427,12 +427,7 @@ export const debugTypeDef = (
         atom(' '),
         block(
             constr.extends
-                .map((id) =>
-                    items([
-                        atom('...'),
-                        idToDebug(env, id, true, constr.location),
-                    ]),
-                )
+                .map((ref) => items([atom('...'), debugType(env, ref)]))
                 .concat(
                     constr.items.map((t, i) =>
                         items([

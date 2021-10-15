@@ -559,7 +559,12 @@ export const getAllSubTypes = (
     return ([] as Array<Id>).concat(
         ...extend.map((id) =>
             [id].concat(
-                getAllSubTypes(types, (types[idName(id)] as RecordDef).extends),
+                getAllSubTypes(
+                    types,
+                    (types[idName(id)] as RecordDef).extends.map(
+                        (t) => t.ref.id,
+                    ),
+                ),
             ),
         ),
     );
@@ -981,7 +986,7 @@ export type RecordDef = {
     location: Location;
     typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
     effectVbls: Array<number>;
-    extends: Array<Id>;
+    extends: Array<UserTypeReference>;
     items: Array<Type>;
     ffi: { tag: string; names: Array<string> } | null;
     decorators?: Decorators;

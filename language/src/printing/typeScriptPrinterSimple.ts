@@ -1055,7 +1055,10 @@ export const typeDeclarations = (
             return;
         }
         const comment = printToString(recordToPretty(env, id, constr), 100);
-        const subTypes = getAllSubTypes(env.global.types, constr.extends);
+        const subTypes = getAllSubTypes(
+            env.global.types,
+            constr.extends.map((t) => t.ref.id),
+        );
         items.push(
             t.addComment(
                 t.tsTypeAliasDeclaration(

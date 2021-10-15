@@ -161,7 +161,7 @@ describe('typeType', () => {
         );
         [ctx.library] = addRecord(
             ctx.library,
-            preset.recordDefn([], [base]),
+            preset.recordDefn([], [preset.userTypeReference(base)]),
             'base2',
             [],
         );
@@ -236,7 +236,7 @@ describe('typeType', () => {
         );
         [ctx.library] = addRecord(
             ctx.library,
-            preset.recordDefn([], [base1]),
+            preset.recordDefn([], [preset.userTypeReference(base1)]),
             'Base2',
             [],
         );

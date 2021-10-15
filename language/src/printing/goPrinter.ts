@@ -270,7 +270,10 @@ export const recordToGo = (
     irOpts: IOutputOptions,
     id: Id,
 ) => {
-    const subTypes = getAllSubTypes(env.global.types, constr.extends);
+    const subTypes = getAllSubTypes(
+        env.global.types,
+        constr.extends.map((t) => t.ref.id),
+    );
 
     return pp.items([
         atom('type '),

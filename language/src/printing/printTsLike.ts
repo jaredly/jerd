@@ -233,7 +233,9 @@ export const recordToPretty = (
         block(
             recordDef.extends
                 .map((ex) => {
-                    const subTyeps = getAllSubTypes(env.global.types, [ex]);
+                    const subTyeps = getAllSubTypes(env.global.types, [
+                        ex.ref.id,
+                    ]);
                     const defaults = recordDef.defaults
                         ? Object.keys(recordDef.defaults)
                               .map((k) => recordDef.defaults![k])
@@ -247,7 +249,7 @@ export const recordToPretty = (
                         : [];
                     return items([
                         atom('...'),
-                        idToPretty(env, ex, 'record'),
+                        typeToPretty(env, ex),
                         defaults.length
                             ? args(
                                   defaults.map((item) =>
