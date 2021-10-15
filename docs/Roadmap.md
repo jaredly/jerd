@@ -7,6 +7,10 @@
 - [x] account for basedOn when calculating dependencies
 - [x] get repeatable envs and printed jds from the migrate script
 
+WHAT
+happens
+if the hashes change
+my good folks.
 
 
 

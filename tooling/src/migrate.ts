@@ -176,6 +176,15 @@ if (cmd === 'jd-to-json') {
     fs.writeFileSync(outfile, JSON.stringify({ env }, null, 2));
 }
 
+if (cmd === 'jd-to-ctx') {
+    const raw = fs.readFileSync(infile, 'utf8');
+    const env = parseJd(raw);
+    const library = globalEnvToCtx(env.global).library;
+
+    console.log('Hash of parsed library', hashObject(library));
+    fs.writeFileSync(outfile, JSON.stringify(library, null, 2));
+}
+
 if (cmd === 'jd-check') {
     const raw = fs.readFileSync(infile, 'utf8');
     const env = parseJd(raw);
