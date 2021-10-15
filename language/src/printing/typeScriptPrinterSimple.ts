@@ -706,6 +706,13 @@ export const recordAttributeName = (
     if (typeDefs && typeDefs[id]) {
         const t = typeDefs[id].typeDef;
         if (t.ffi) {
+            if (idx >= t.ffi.names.length) {
+                throw new Error(
+                    `idx greater than ffi names ${idx} : ${t.ffi.names.join(
+                        ', ',
+                    )}`,
+                );
+            }
             return t.ffi.names[idx];
         }
         if (typeof ref === 'string') {
@@ -715,6 +722,11 @@ export const recordAttributeName = (
     }
     const t = env.global.types[id] as RecordDef;
     if (t && t.ffi) {
+        if (idx >= t.ffi.names.length) {
+            throw new Error(
+                `idx greater than ffi names ${idx} : ${t.ffi.names.join(', ')}`,
+            );
+        }
         return t.ffi.names[idx];
     }
     if (typeof ref === 'string') {

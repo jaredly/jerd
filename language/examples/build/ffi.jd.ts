@@ -43,22 +43,22 @@ assertCall(StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0, "hi", "hi")
 assertCall(hash_da00b310.h51ea2a36_0, "hi", "hi");
 
 /*
-Box#adbd7cc8{x#c9939268#0: 1.0, y#c9939268#1: 1.0, w#adbd7cc8#0: 2.0, h#adbd7cc8#1: 2.0}.x#c9939268#0 
+Box#041c13d2{x#c9939268#0: 1.0, y#c9939268#1: 1.0, w#041c13d2#0: 2.0, h#041c13d2#1: 2.0}.x#c9939268#0 
     ==#9ca984ce#51ea2a36#0 1.0
 assertCall(FloatEq#👨‍🦰.#Eq#🦩🥜👩‍💻😃#0, 1, 1)
 */
 assertCall(hash_9ca984ce.h51ea2a36_0, 1, 1);
 
 /*
-Box#adbd7cc8{
+Box#041c13d2{
         ...Pos#c9939268{x#c9939268#0: 10.0, y#c9939268#1: 5.0},
-        w#adbd7cc8#0: 1.0,
-        h#adbd7cc8#1: 2.0,
+        w#041c13d2#0: 1.0,
+        h#041c13d2#1: 2.0,
     }.x#c9939268#0 
     ==#9ca984ce#51ea2a36#0 10.0
 assertCall(
     FloatEq#👨‍🦰.#Eq#🦩🥜👩‍💻😃#0,
-    Box#👦{TODO SPREADs}{w: 1, h: 2, x: _#:0, y: _#:0}.#Pos#☘️#0,
+    Box#🥈🏨🙁{TODO SPREADs}{w: 1, h: 2, x: _#:0, y: _#:0}.#Pos#☘️#0,
     10,
 )
 */
@@ -70,4 +70,4 @@ assertCall(hash_9ca984ce.h51ea2a36_0, ({ ...({
   type: "Box",
   w: 1,
   h: 2
-} as t_adbd7cc8).x, 10);
+} as t_041c13d2).x, 10);

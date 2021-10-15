@@ -50,12 +50,17 @@ export const atom = (
     text: string,
     attributes?: Array<string>,
     loc?: Location,
-): PP => ({
-    type: 'atom',
-    text,
-    attributes,
-    loc,
-});
+): PP => {
+    if (text == null) {
+        throw new Error(`Empty atom!`);
+    }
+    return {
+        type: 'atom',
+        text,
+        attributes,
+        loc,
+    };
+};
 export const id = (
     text: string,
     id: string,
