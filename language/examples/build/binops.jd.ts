@@ -34,7 +34,7 @@ const rec arrayEq#dec3f634 = <T#:0>(
 ): bool#builtin ={}> {
     switch (one#:0, two#:1) {
         ([], []) => true,
-        ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if eq#:2."=="#51ea2a36#0(one#:3, two#:5) {
+        ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if one#:3 ==#:2#51ea2a36#0 two#:5 {
             dec3f634#self<T#:0>(rone#:4, rtwo#:6, eq#:2);
         } else {
             false;

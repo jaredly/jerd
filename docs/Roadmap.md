@@ -17,8 +17,8 @@ my good folks.
 NOW
 we're back to the beginning.
 
-
-
+- [ ] record literals, just give me rows, it's fine.
+- [ ] record types extends should be full UserTypeReference, not just an ID
 
 
 
