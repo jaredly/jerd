@@ -8,6 +8,15 @@ effect Print {
 const awesome = 10;
 
 @createdAt#builtin(1)
+const awesome2 = 210;
+
+@createdAt#builtin(1)
+const awesome3 = 310;
+
+@createdAt#builtin(1)
+const awesome4 = 410;
+
+@createdAt#builtin(1)
 type What = {
 	what: () ={Print}> int = () ={Print}> awesome,
 };

@@ -403,6 +403,13 @@ export const topToPretty = (
     throw new Error('Unexpected top type');
 };
 
+const cmp = <T>(a: T, b: T, otherwise: number = 0) => {
+    if (a == b) {
+        return otherwise;
+    }
+    return a < b ? -1 : 1;
+};
+
 export const ctxToSyntax = (ctx: Context): string => {
     // Order of potential dependencies:
     // types before terms ... well except
@@ -422,7 +429,9 @@ export const ctxToSyntax = (ctx: Context): string => {
     getNamesForIds(ctx.library.decorators, namesForIds);
     getNamesForIds(ctx.library.effects, namesForIds);
 
-    const allTops = allTopLevels(ctx.library);
+    const allTops = allTopLevels(ctx.library).sort((a, b) =>
+        cmp(a.type, b.type, cmp(a.id.hash, b.id.hash)),
+    );
     // const allDeps: { [id: string]: string } = {};
     // NOW WE SORT
     // FIRST:

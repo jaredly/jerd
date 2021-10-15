@@ -196,11 +196,15 @@ if (cmd === 'test') {
     const again = parseJd(back);
     const back2 = printEnv(again.global);
     const again2 = parseJd(back2);
-    console.log(raw);
-    console.log('-----');
-    console.log(back);
-    console.log('-----');
-    console.log(back2);
+    if (outfile) {
+        fs.writeFileSync(outfile, back);
+    } else {
+        console.log(raw);
+        console.log('-----');
+        console.log(back);
+        console.log('-----');
+        console.log(back2);
+    }
     console.log('-----');
     console.log(
         hashObject(env.global),
@@ -209,4 +213,7 @@ if (cmd === 'test') {
         'repeat equal?',
         back === back2,
     );
+    if (back2 !== back && outfile) {
+        fs.writeFileSync(outfile + '.2.jd', back2);
+    }
 }
