@@ -169,7 +169,7 @@ describe('typeType', () => {
         const res = parseType(ctx, 'ok<base, base2>');
         const printed = typeToString(ctx, res);
         expect(printed).toMatchInlineSnapshot(
-            `ok#c4cc162c<base#59f7c4d4, base2#a836f2e4>`,
+            `ok#c4cc162c<base#59f7c4d4, base2#87518ee4>`,
         );
         expect(res).toNotHaveErrorsT(ctx);
         expect(typeToString(ctx, parseType(ctx, printed))).toEqual(printed);

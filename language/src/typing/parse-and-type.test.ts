@@ -116,7 +116,7 @@ describe('basic toplevels', () => {
             @ffi("M") type M#bf02d0e8 = {
                 n: float#builtin,
             };
-            @unique(0.8408403012585762) type Z#0f2e3ee8 = {
+            @unique(0.8408403012585762) type Z#0f25b19e = {
                 ...X#0cf8aa06,
                 a: int#builtin,
                 b: string#builtin,
@@ -135,14 +135,14 @@ describe('basic toplevels', () => {
             @unique(0.8408403012585762) type Y#74d8e7f1 = {
                 name: string#builtin,
             };
-            @unique(0.14972816008023876) type Z#00ec7168 = {
+            @unique(0.14972816008023876) type Z#771b4e76 = {
                 ...Y#74d8e7f1,
                 age: int#builtin,
             };
-            enum All#5e2b21e8 {
+            enum All#58f0bb66 {
                 X#740adea4,
                 Y#74d8e7f1,
-                Z#00ec7168,
+                Z#771b4e76,
             }
         `));
 
@@ -553,7 +553,7 @@ describe('Decorators', () => {
                 y: float#builtin,
                 z: float#builtin,
             };
-            @unique(0.14972816008023876) type Vec4#ad03f718 = {
+            @unique(0.14972816008023876) type Vec4#648af9ad = {
                 ...Vec3#53b2e6a0,
                 w: float#builtin,
             };
@@ -575,9 +575,9 @@ describe('Decorators', () => {
                 max: Constant#builtin<Vec2#4284214c>,
             ) Constant#builtin<Vec2#4284214c>;
             @unique(0.02344979974183657) decorator rgb#0ef62c04 Constant#builtin<Vec3#53b2e6a0>;
-            @unique(0.7119657471718334) decorator rgba#560a8e78 Constant#builtin<Vec4#ad03f718>;
+            @unique(0.7119657471718334) decorator rgba#3bab40ec Constant#builtin<Vec4#648af9ad>;
             @unique(0.8926787556192042) decorator hsl#374c649c Constant#builtin<Vec3#53b2e6a0>;
-            @unique(0.3140197780427882) decorator hsla#86c652ec Constant#builtin<Vec4#ad03f718>;
+            @unique(0.3140197780427882) decorator hsla#6ec251c9 Constant#builtin<Vec4#648af9ad>;
             @unique(0.04992760107696806) decorator something#bee55956;
             @unique(0.6800506892126144) decorator hello#677e1867;
             @unique(0.053905825369221054) type Person#73c36f7c = {

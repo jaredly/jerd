@@ -261,7 +261,7 @@ describe('non-generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#f249c8e4#d28f8708#0 3`,
+            `2 /#d1f8ed3e#d28f8708#0 3`,
         );
     });
 });
