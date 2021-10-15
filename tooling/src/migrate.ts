@@ -29,7 +29,10 @@ import { State } from '@jerd/web/src/State';
 import { presetEnv } from '@jerd/language/src/typing/preset';
 import { loadBuiltins } from '@jerd/language/src/printing/loadBuiltins';
 import { parse, Toplevel } from '@jerd/language/src/parsing/parser';
-import { typeFile } from '@jerd/language/src/typing/typeFile';
+import {
+    specifiedToplevelId,
+    typeFile,
+} from '@jerd/language/src/typing/typeFile';
 import { addLocationIndices } from '@jerd/language/src/typing/analyze';
 import { LocatedError } from '@jerd/language/src/typing/errors';
 import { showLocation } from '@jerd/language/src/typing/typeExpr';
@@ -92,20 +95,6 @@ const thereAndBackAgain = (data: GlobalEnv) => {
     found.forEach(([path, message]) => {
         console.log(`${path.join(':')}         ===>          ${message}`);
     });
-};
-
-const specifiedToplevelId = (top: Toplevel): Id | null => {
-    switch (top.type) {
-        case 'define':
-        case 'StructDef':
-        case 'EnumDef':
-        case 'DecoratorDef':
-        case 'effect':
-            return top.id.hash ? idFromName(top.id.hash.slice(1)) : null;
-        case 'Decorated':
-            return specifiedToplevelId(top.wrapped);
-    }
-    return null;
 };
 
 const newEnv = () => {

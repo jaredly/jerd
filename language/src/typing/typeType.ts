@@ -117,16 +117,20 @@ const typeType = (
                     };
                 }
                 if (!env.global.types[rawId]) {
-                    const starts = Object.keys(env.global.types).filter((k) =>
-                        k.startsWith(rawId),
-                    );
-                    if (starts.length) {
-                        rawId = starts[0];
+                    if (env.global.idRemap[rawId]) {
+                        rawId = idName(env.global.idRemap[rawId]);
                     } else {
-                        throw new LocatedError(
-                            type.location,
-                            `Unknown explicit type ${rawId}`,
-                        );
+                        const starts = Object.keys(
+                            env.global.types,
+                        ).filter((k) => k.startsWith(rawId));
+                        if (starts.length) {
+                            rawId = starts[0];
+                        } else {
+                            throw new LocatedError(
+                                type.location,
+                                `Unknown explicit type ${rawId}`,
+                            );
+                        }
                     }
                 }
                 return {

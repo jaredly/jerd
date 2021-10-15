@@ -35,14 +35,14 @@ type t_443a6bbd = {
 
 /**
 ```
-@ffi("EllipsePath") type EllipsePath#92791c88 = {
+@ffi("EllipsePath") type EllipsePath#163da40e = {
     ...Arc#443a6bbd,
     radius: Vec2#08f7c2ac,
     rotation: float#builtin,
 }
 ```
 */
-type t_92791c88 = {
+type t_163da40e = {
   type: "EllipsePath";
   radius: t_08f7c2ac;
   rotation: number;
@@ -102,15 +102,15 @@ type t_5c0c4fd8 = {
   end: t_08f7c2ac;
 };
 
-/*enum PathPart#33159eb4 {
+/*enum PathPart#1bf9b3a6 {
     Vec2#08f7c2ac,
     Quadratic#5c0c4fd8,
     Bezier#37a1f256,
     Rounded#b7a4f230,
     Arc#443a6bbd,
-    EllipsePath#92791c88,
+    EllipsePath#163da40e,
 }*/
-type t_33159eb4 = t_08f7c2ac | t_5c0c4fd8 | t_37a1f256 | t_b7a4f230 | t_443a6bbd | t_92791c88;
+type t_1bf9b3a6 = t_08f7c2ac | t_5c0c4fd8 | t_37a1f256 | t_b7a4f230 | t_443a6bbd | t_163da40e;
 
 /**
 ```
@@ -216,18 +216,18 @@ type t_1ac05bf8 = {
 
 /**
 ```
-@ffi("Path") type Path#ddadd8a8 = {
+@ffi("Path") type Path#6d986b7c = {
     start: Vec2#08f7c2ac,
     closed: bool#builtin = false,
-    parts: Array#builtin<PathPart#33159eb4>,
+    parts: Array#builtin<PathPart#1bf9b3a6>,
 }
 ```
 */
-type t_ddadd8a8 = {
+type t_6d986b7c = {
   type: "Path";
   start: t_08f7c2ac;
   closed: boolean;
-  parts: Array<t_33159eb4>;
+  parts: Array<t_1bf9b3a6>;
 };
 
 /**
@@ -312,14 +312,14 @@ type t_1fe34118 = t_742a31c2 | t_52033f94;
 }*/
 type t_5e11f0b9 = t_1ac05bf8 | t_51486760 | t_155bb0ac;
 
-/*enum Geom#619d2fc4 {
+/*enum Geom#298247f2 {
     Ellipse#098fbabc,
     Line#565da092,
     Polygon#cafe28b8,
     Rect#126fdf00,
-    Path#ddadd8a8,
+    Path#6d986b7c,
 }*/
-type t_619d2fc4 = t_098fbabc | t_565da092 | t_cafe28b8 | t_126fdf00 | t_ddadd8a8;
+type t_298247f2 = t_098fbabc | t_565da092 | t_cafe28b8 | t_126fdf00 | t_6d986b7c;
 
 /**
 ```
@@ -345,17 +345,17 @@ type t_d86ebaa8 = {
 
 /**
 ```
-@ffi("Stroke") type Stroke#adcc8cc6 = {
-    geom: Geom#619d2fc4,
+@ffi("Stroke") type Stroke#522b6fec = {
+    geom: Geom#298247f2,
     color: Color#1fe34118,
     width: float#builtin = 1.0,
     lineCaps: LineCap#5e11f0b9 = LineCap#5e11f0b9:Round#51486760,
 }
 ```
 */
-type t_adcc8cc6 = {
+type t_522b6fec = {
   type: "Stroke";
-  geom: t_619d2fc4;
+  geom: t_298247f2;
   color: t_1fe34118;
   width: number;
   lineCaps: t_5e11f0b9;
@@ -363,24 +363,24 @@ type t_adcc8cc6 = {
 
 /**
 ```
-@ffi("Fill") type Fill#3bd0cc4c = {
-    geom: Geom#619d2fc4,
+@ffi("Fill") type Fill#70b1add0 = {
+    geom: Geom#298247f2,
     color: Color#1fe34118,
 }
 ```
 */
-type t_3bd0cc4c = {
+type t_70b1add0 = {
   type: "Fill";
-  geom: t_619d2fc4;
+  geom: t_298247f2;
   color: t_1fe34118;
 };
 
-/*enum Drawable#56de3b71 {
-    Fill#3bd0cc4c,
-    Stroke#adcc8cc6,
+/*enum Drawable#61499b8c {
+    Fill#70b1add0,
+    Stroke#522b6fec,
     Text#d86ebaa8,
 }*/
-type t_56de3b71 = t_3bd0cc4c | t_adcc8cc6 | t_d86ebaa8;
+type t_61499b8c = t_70b1add0 | t_522b6fec | t_d86ebaa8;
 
 /**
 ```
@@ -603,13 +603,13 @@ export const hash_fd62385c: (arg_0: number) => t_08f7c2ac = (x: number) => ({
 
 /**
 ```
-const drawSpiralCustom#4b373c17 = (
+const drawSpiralCustom#4703d3da = (
     A#:0: int#builtin,
     B#:1: int#builtin,
     C#:2: int#builtin,
     pos#:3: Vec2#08f7c2ac,
     length#:4: float#builtin,
-): Drawable#56de3b71 ={}> {
+): Drawable#61499b8c ={}> {
     const bottom#:5 = A#:0 *#builtin B#:1 +#builtin C#:2;
     const result#:6 = accurateSpiral#ae2070ac(
         at: bottom#:5,
@@ -623,18 +623,18 @@ const drawSpiralCustom#4b373c17 = (
         points: <Vec2#08f7c2ac>[],
         max: bottom#:5 *#builtin 4,
     );
-    Drawable#56de3b71:Stroke#adcc8cc6{
-        geom#adcc8cc6#0: Geom#619d2fc4:Polygon#cafe28b8{
+    Drawable#61499b8c:Stroke#522b6fec{
+        geom#522b6fec#0: Geom#298247f2:Polygon#cafe28b8{
             points#cafe28b8#0: result#:6,
             closed#cafe28b8#1: false,
         },
-        color#adcc8cc6#1: Color#1fe34118:CSS#742a31c2{value#742a31c2#0: "red"},
+        color#522b6fec#1: Color#1fe34118:CSS#742a31c2{value#742a31c2#0: "red"},
     };
 }
-(A#:0: int, B#:1: int, C#:2: int, pos#:3: Vec2#🍱🐶💣, length#:4: float): Drawable#🕰️🌕💆‍♀️😃 => {
+(A#:0: int, B#:1: int, C#:2: int, pos#:3: Vec2#🍱🐶💣, length#:4: float): Drawable#🌓🌾🦏😃 => {
     const bottom#:5: int = A#:0 * B#:1 + C#:2;
-    return Drawable#🕰️🌕💆‍♀️😃:Stroke#👶{TODO SPREADs}{
-        geom: Geom#🎎🛣️🐹😃:Polygon#🦾{TODO SPREADs}{
+    return Drawable#🌓🌾🦏😃:Stroke#🎿🥂🧑‍🎨😃{TODO SPREADs}{
+        geom: Geom#🎱👁️‍🗨️🍔:Polygon#🦾{TODO SPREADs}{
             points: accurateSpiral#🤛(
                 bottom#:5,
                 IntAsFloat#🥛🐰🗻😃.#As#😉#0(A#:0) * PI / IntAsFloat#🥛🐰🗻😃.#As#😉#0(bottom#:5),
@@ -655,7 +655,7 @@ const drawSpiralCustom#4b373c17 = (
 }
 ```
 */
-export const hash_4b373c17: (arg_0: number, arg_1: number, arg_2: number, arg_3: t_08f7c2ac, arg_4: number) => t_56de3b71 = (A: number, B: number, C: number, pos$3: t_08f7c2ac, length$4: number) => {
+export const hash_4703d3da: (arg_0: number, arg_1: number, arg_2: number, arg_3: t_08f7c2ac, arg_4: number) => t_61499b8c = (A: number, B: number, C: number, pos$3: t_08f7c2ac, length$4: number) => {
   let bottom: number = A * B + C;
   return ({
     type: "Stroke",
@@ -663,7 +663,7 @@ export const hash_4b373c17: (arg_0: number, arg_1: number, arg_2: number, arg_3:
       type: "Polygon",
       points: hash_ae2070ac(bottom, hash_6f186ad1.hAs_0(A) * PI / hash_6f186ad1.hAs_0(bottom), length$4, (hash_6f186ad1.hAs_0(bottom) + 1) / 2 * hash_6f186ad1.hAs_0(A) * PI, pos$3, [], bottom * 4),
       closed: false
-    } as t_619d2fc4),
+    } as t_298247f2),
     color: ({
       type: "CSS",
       value: "red"
@@ -672,11 +672,11 @@ export const hash_4b373c17: (arg_0: number, arg_1: number, arg_2: number, arg_3:
     lineCaps: ({
       type: "Round"
     } as t_5e11f0b9)
-  } as t_56de3b71);
+  } as t_61499b8c);
 };
 
 /*
-@display#332375b6(id: "drawable") {
+@display#27e67a0c(id: "drawable") {
     const C#:0 = @slider#4e421b50(min: 1, max: 100, step: 1) @title#1b6d573e(
         title: "C: number of superspiral",
     ) 65;
@@ -693,8 +693,8 @@ export const hash_4b373c17: (arg_0: number, arg_1: number, arg_2: number, arg_3:
         title: "segment length",
     ) 3.0;
     const A#:5 = C#:0 *#builtin 1 +#builtin W#:1 +#builtin Aoff#:3 *#builtin C#:0 *#builtin 8;
-    drawSpiralCustom#4b373c17(A#:5, B#:2, C#:0, pos: vec2#fd62385c(x: 0.0), length#:4);
+    drawSpiralCustom#4703d3da(A#:5, B#:2, C#:0, pos: vec2#fd62385c(x: 0.0), length#:4);
 }
-drawSpiralCustom#😛👨‍👩‍👦🙏😃(65 * 1 + 32 + 8 * 65 * 8, 7, 65, vec2#👿(0), 3)
+drawSpiralCustom#🏉🧏‍♀️🙈😃(65 * 1 + 32 + 8 * 65 * 8, 7, 65, vec2#👿(0), 3)
 */
-hash_4b373c17(65 * 1 + 32 + 8 * 65 * 8, 7, 65, hash_fd62385c(0), 3);
+hash_4703d3da(65 * 1 + 32 + 8 * 65 * 8, 7, 65, hash_fd62385c(0), 3);

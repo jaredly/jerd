@@ -11,6 +11,8 @@ import typeExpr, { showLocation } from '../typing/typeExpr';
 import {
     Env,
     getEffects,
+    Id,
+    idsEqual,
     newLocal,
     newWithGlobal,
     Term,
@@ -31,12 +33,27 @@ import {
     typeDefineInner,
     addDefine,
     hashObject,
+    idFromName,
 } from '../typing/env';
 
 import { presetEnv } from '../typing/preset';
 import { LocatedError, TypeError } from './errors';
 import { transform } from './transform';
 import { addLocationIndices, addLocationIndicesToTerm } from './analyze';
+
+export const specifiedToplevelId = (top: Toplevel): Id | null => {
+    switch (top.type) {
+        case 'define':
+        case 'StructDef':
+        case 'EnumDef':
+        case 'DecoratorDef':
+        case 'effect':
+            return top.id.hash ? idFromName(top.id.hash.slice(1)) : null;
+        case 'Decorated':
+            return specifiedToplevelId(top.wrapped);
+    }
+    return null;
+};
 
 export const uniqueDecorator = (
     decorators: Array<Decorator>,
@@ -90,6 +107,12 @@ export function typeFile(
             handleTypeError(env, item);
             continue;
         }
+        const specified = specifiedToplevelId(item);
+
+        if (specified && ['Some', 'None', 'As'].includes(specified.hash)) {
+            continue;
+        }
+
         if (item.type === 'Decorated' && item.wrapped.type === 'define') {
             let term = typeDefineInner(env, item.wrapped);
             term = addLocationIndicesToTerm(term);
@@ -99,6 +122,14 @@ export function typeFile(
             env.global.metaData[idName(res.id)].tags = tags;
             if (tags.includes('ffi')) {
                 env.global.exportedTerms[item.wrapped.id.text] = res.id;
+            }
+            if (specified && !idsEqual(res.id, specified)) {
+                env.global.idRemap[idName(specified)] = res.id;
+                console.log(
+                    `Different {define}`,
+                    idName(specified),
+                    idName(res.id),
+                );
             }
             continue;
         }
@@ -118,7 +149,18 @@ export function typeFile(
         if (toplevel.type === 'Expression') {
             expressions.push(toplevel.term);
         } else {
-            env = addToplevelToEnv(env, toplevel).env;
+            const res = addToplevelToEnv(env, toplevel);
+            env = res.env;
+
+            if (specified && !idsEqual(res.id, specified)) {
+                env.global.idRemap[idName(specified)] = res.id;
+                console.log(
+                    `Different ${toplevel.type}`,
+                    idName(specified),
+                    ' is really ',
+                    idName(res.id),
+                );
+            }
         }
     }
     return { expressions, env };

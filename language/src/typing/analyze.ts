@@ -608,7 +608,6 @@ export const expressionTypeDeps = (env: Env, terms: Array<Term>) => {
             populateTypeDependencyMap(env, allDeps, id),
         ),
     );
-    console.log(allDeps);
 
     return sortAllDeps(allDeps);
 };
