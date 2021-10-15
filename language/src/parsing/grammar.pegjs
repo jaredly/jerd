@@ -252,8 +252,8 @@ TupleItems = first:Expression rest:(_ "," _ Expression)* _ ","? {
 
 // == Control structures ==
 
-Statements = one:Statement rest:(_ ";" _ Statement)* ";"? {
-    return [one, ...rest.map((r: any) => r[3])]
+Statements = first:Statement rest:(_ ";" _ Statement)* ";"? {
+    return [first, ...rest.map((r: any) => r[3])]
 }
 Block = "{" _ items:Statements? _ "}" {
     return {type: 'block', items: items || [], location: myLocation()}

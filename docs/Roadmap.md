@@ -17,11 +17,15 @@ my good folks.
 NOW
 we're back to the beginning.
 
-- [ ] the `yarn test` should populate the idRemap folks
+- [x] the `yarn test` should populate the idRemap folks
 - [x] record types extends should be full UserTypeReference, not just an ID
   - [ ] update places to actually listen to the type variables? we'll see
 - [ ] record literals, just give me rows, it's fine.
 
+HOW CLose are we to using the new type checker?
+can we say that a let is just an expression?
+like, what would that change?
+Blocks ... idk
 
 
 

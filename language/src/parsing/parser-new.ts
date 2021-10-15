@@ -603,12 +603,11 @@ function peg$parse(input: string, options?: IParseOptions) {
       items: [first, ...rest.map((element: any) => element[3])]
     };
   };
-  const peg$c100 = function(one: any, rest: any): any {
+  const peg$c100 = function(first: any, rest: any): any {
     return {
       type: "Statements",
       location: myLocation(),
-      one,
-      rest: rest.map((element: any) => element[3])
+      items: [first, ...rest.map((element: any) => element[3])]
     };
   };
   const peg$c101 = function(items: any): any {
@@ -8713,17 +8712,38 @@ function peg$parse(input: string, options?: IParseOptions) {
           s3 = peg$FAILED;
         }
         if (s3 !== peg$FAILED) {
-          if (input.charCodeAt(peg$currPos) === 41) {
-            s4 = peg$c10;
+          if (input.charCodeAt(peg$currPos) === 44) {
+            s4 = peg$c16;
             peg$currPos++;
           } else {
             s4 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c11); }
+            if (peg$silentFails === 0) { peg$fail(peg$c17); }
+          }
+          if (s4 === peg$FAILED) {
+            s4 = null;
           }
           if (s4 !== peg$FAILED) {
-            peg$savedPos = s0;
-            s1 = peg$c161(s2, s3);
-            s0 = s1;
+            s5 = peg$parse_();
+            if (s5 !== peg$FAILED) {
+              if (input.charCodeAt(peg$currPos) === 41) {
+                s6 = peg$c10;
+                peg$currPos++;
+              } else {
+                s6 = peg$FAILED;
+                if (peg$silentFails === 0) { peg$fail(peg$c11); }
+              }
+              if (s6 !== peg$FAILED) {
+                peg$savedPos = s0;
+                s1 = peg$c161(s2, s3);
+                s0 = s1;
+              } else {
+                peg$currPos = s0;
+                s0 = peg$FAILED;
+              }
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
           } else {
             peg$currPos = s0;
             s0 = peg$FAILED;
@@ -10820,8 +10840,7 @@ export type TupleItems = {
 export type Statements = {
   type: "Statements";
   location: Location;
-  one: Statement;
-  rest: Statement[];
+  items: Statement[];
 };
 
 export type Block = {

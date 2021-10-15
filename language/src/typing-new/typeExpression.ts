@@ -5,6 +5,7 @@ import { reGroupOps, typeGroup } from './ops';
 import { typeArrayLiteral } from './typeArrayLiteral';
 import { Context } from './Context';
 import { typeIdentifier } from './typeIdentifier';
+import { typeBlock } from './typeBlock';
 
 export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
     if (expected.length && !expected.some((t) => typesEqual(t, term.is))) {
@@ -24,6 +25,8 @@ export const typeExpression = (
     expected: Array<Type>,
 ): Term => {
     switch (term.type) {
+        case 'Block':
+            return typeBlock(ctx, term, expected);
         case 'Identifier': {
             return typeIdentifier(ctx, term, expected);
         }

@@ -15,6 +15,7 @@ import {
     Symbol,
     Id,
     ErrorType,
+    typesEqual,
 } from '../typing/types';
 import * as preset from '../typing/preset';
 import { GroupedOp, reGroupOps } from './ops';
@@ -37,6 +38,7 @@ declare global {
         interface Matchers<R> {
             toNotHaveErrors(ctx: Context): CustomMatcherResult;
             toNotHaveErrorsT(ctx: Context): CustomMatcherResult;
+            toEqualType(t: Type, ctx: Context): CustomMatcherResult;
         }
     }
 }
@@ -76,6 +78,19 @@ export const parseExpression = (
 };
 
 export const customMatchers: jest.ExpectExtendMap = {
+    toEqualType(value, otherValue, ctx) {
+        if (typesEqual(value, otherValue)) {
+            return { pass: true, message: () => 'ok' };
+        }
+        return {
+            pass: false,
+            message: () =>
+                `Expected ${typeToString(ctx, value)} to equal ${typeToString(
+                    ctx,
+                    otherValue,
+                )}`,
+        };
+    },
     toNotHaveErrorsT(value, ctx) {
         if (
             !value ||

@@ -17,6 +17,18 @@ types: {
 
 */
 
+export const nextUnique = (ctx: Context) => ++ctx.bindings.unique.current;
+export const advanceUnique = (
+    { bindings: { unique } }: Context,
+    newOne: number,
+) => {
+    // ok, so what if we come across a unique .... and it's been used already?
+    // how do we know which was which?
+    if (newOne > unique.current) {
+        unique.current = newOne;
+    }
+};
+
 export type Builtins = {
     terms: {
         [key: string]: typed.Type;

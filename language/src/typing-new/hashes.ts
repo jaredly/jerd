@@ -20,7 +20,7 @@ export const parseOpHash = (hash: string) => {
     };
 };
 
-export const parseSym = (hash: string | null): number | null => {
+export const parseSym = (hash: string | null | undefined): number | null => {
     if (hash?.startsWith(':')) {
         const num = +hash.slice(1);
         return isNaN(num) ? null : num;

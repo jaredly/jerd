@@ -1,0 +1,55 @@
+import { Block } from '../parsing/parser-new';
+import { void_ } from '../typing/preset';
+import { Let, Sequence, Symbol, Term, Type } from '../typing/types';
+import { advanceUnique, Context, nextUnique } from './Context';
+import { parseSym } from './hashes';
+import { typeExpression } from './typeExpression';
+import { typeType } from './typeType';
+
+export const typeBlock = (
+    ctx: Context,
+    block: Block,
+    expected: Array<Type>,
+): Sequence => {
+    const values = ctx.bindings.values.slice();
+    ctx = { ...ctx, bindings: { ...ctx.bindings, values } };
+    const sts: Array<Term | Let> =
+        block.items?.items.map((st, i) => {
+            if (st.type === 'Define') {
+                const ann = st.ann ? typeType(ctx, st.ann) : null;
+                const value = typeExpression(ctx, st.expr, ann ? [ann] : []);
+                let unique = parseSym(st.id.hash?.slice(1));
+                if (unique == null) {
+                    unique = nextUnique(ctx);
+                } else {
+                    advanceUnique(ctx, unique);
+                }
+                const sym: Symbol = { name: st.id.text, unique };
+                values.unshift({
+                    location: st.location,
+                    sym,
+                    type: value.is,
+                });
+                return {
+                    type: 'Let',
+                    binding: sym,
+                    idLocation: st.id.location,
+                    is: void_,
+                    location: st.location,
+                    value,
+                };
+            } else {
+                return typeExpression(
+                    ctx,
+                    st,
+                    i === block.items!.items.length - 1 ? expected : [],
+                );
+            }
+        }) || [];
+    return {
+        type: 'sequence',
+        location: block.location,
+        is: sts && sts.length ? sts[sts.length - 1].is : void_,
+        sts,
+    };
+};
