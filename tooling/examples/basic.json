@@ -31,6 +31,36 @@
             },
             "idx": 0
           }
+        ],
+        "one": [
+          {
+            "id": {
+              "hash": "28794e80",
+              "pos": 0,
+              "size": 1
+            },
+            "idx": 0
+          }
+        ],
+        "two": [
+          {
+            "id": {
+              "hash": "28794e80",
+              "pos": 0,
+              "size": 1
+            },
+            "idx": 1
+          }
+        ],
+        "three": [
+          {
+            "id": {
+              "hash": "71b42ce4",
+              "pos": 0,
+              "size": 1
+            },
+            "idx": 0
+          }
         ]
       },
       "idToNames": {
@@ -42,6 +72,13 @@
         ],
         "55361dda": [
           "what"
+        ],
+        "28794e80": [
+          "one",
+          "two"
+        ],
+        "71b42ce4": [
+          "three"
         ]
       }
     },
@@ -409,6 +446,165 @@
         "meta": {
           "created": 1
         }
+      },
+      "28794e80": {
+        "defn": {
+          "type": "Record",
+          "unique": 0.8408403012585762,
+          "typeVbls": [],
+          "location": {
+            "start": {
+              "offset": 356,
+              "line": 25,
+              "column": 1
+            },
+            "end": {
+              "offset": 408,
+              "line": 28,
+              "column": 2
+            },
+            "idx": 82
+          },
+          "effectVbls": [],
+          "ffi": null,
+          "extends": [],
+          "items": [
+            {
+              "type": "ref",
+              "ref": {
+                "type": "builtin",
+                "name": "int"
+              },
+              "location": {
+                "start": {
+                  "offset": 381,
+                  "line": 26,
+                  "column": 7
+                },
+                "end": {
+                  "offset": 384,
+                  "line": 26,
+                  "column": 10
+                },
+                "idx": 77
+              },
+              "typeVbls": []
+            },
+            {
+              "type": "ref",
+              "ref": {
+                "type": "builtin",
+                "name": "string"
+              },
+              "location": {
+                "start": {
+                  "offset": 392,
+                  "line": 27,
+                  "column": 7
+                },
+                "end": {
+                  "offset": 398,
+                  "line": 27,
+                  "column": 13
+                },
+                "idx": 79
+              },
+              "typeVbls": []
+            }
+          ],
+          "defaults": {
+            "1": {
+              "id": null,
+              "idx": 1,
+              "value": {
+                "type": "string",
+                "text": "yes",
+                "location": {
+                  "start": {
+                    "offset": 401,
+                    "line": 27,
+                    "column": 16
+                  },
+                  "end": {
+                    "offset": 406,
+                    "line": 27,
+                    "column": 21
+                  },
+                  "idx": 80
+                },
+                "is": {
+                  "type": "ref",
+                  "ref": {
+                    "type": "builtin",
+                    "name": "string"
+                  },
+                  "location": {
+                    "source": "<builtin>"
+                  },
+                  "typeVbls": []
+                }
+              }
+            }
+          }
+        },
+        "meta": {
+          "created": 2
+        }
+      },
+      "71b42ce4": {
+        "defn": {
+          "type": "Record",
+          "unique": 0.14972816008023876,
+          "typeVbls": [],
+          "location": {
+            "start": {
+              "offset": 432,
+              "line": 31,
+              "column": 1
+            },
+            "end": {
+              "offset": 483,
+              "line": 34,
+              "column": 2
+            },
+            "idx": 94
+          },
+          "effectVbls": [],
+          "ffi": null,
+          "extends": [
+            {
+              "hash": "28794e80",
+              "pos": 0,
+              "size": 1
+            }
+          ],
+          "items": [
+            {
+              "type": "ref",
+              "ref": {
+                "type": "builtin",
+                "name": "float"
+              },
+              "location": {
+                "start": {
+                  "offset": 475,
+                  "line": 33,
+                  "column": 9
+                },
+                "end": {
+                  "offset": 480,
+                  "line": 33,
+                  "column": 14
+                },
+                "idx": 92
+              },
+              "typeVbls": []
+            }
+          ]
+        },
+        "meta": {
+          "created": 3
+        }
       }
     },
     "names": {
@@ -439,13 +635,35 @@
           "pos": 0,
           "size": 1
         }
+      ],
+      "Something": [
+        {
+          "hash": "28794e80",
+          "pos": 0,
+          "size": 1
+        }
+      ],
+      "OtherThing": [
+        {
+          "hash": "71b42ce4",
+          "pos": 0,
+          "size": 1
+        }
       ]
     },
     "superTypes": {
       "As": [],
       "None": [],
       "Some": [],
-      "55361dda": []
+      "55361dda": [],
+      "28794e80": [],
+      "71b42ce4": [
+        {
+          "hash": "28794e80",
+          "pos": 0,
+          "size": 1
+        }
+      ]
     }
   },
   "terms": {
@@ -622,6 +840,192 @@
           }
         }
       },
+      "6f763288": {
+        "meta": {
+          "created": 0
+        },
+        "defn": {
+          "type": "Record",
+          "location": {
+            "start": {
+              "offset": 519,
+              "line": 37,
+              "column": 13
+            },
+            "end": {
+              "offset": 569,
+              "line": 41,
+              "column": 2
+            },
+            "idx": 1
+          },
+          "base": {
+            "rows": [
+              {
+                "type": "float",
+                "value": 4,
+                "location": {
+                  "start": {
+                    "offset": 563,
+                    "line": 40,
+                    "column": 9
+                  },
+                  "end": {
+                    "offset": 566,
+                    "line": 40,
+                    "column": 12
+                  },
+                  "idx": 4
+                },
+                "is": {
+                  "type": "ref",
+                  "location": {
+                    "start": {
+                      "offset": 563,
+                      "line": 40,
+                      "column": 9
+                    },
+                    "end": {
+                      "offset": 566,
+                      "line": 40,
+                      "column": 12
+                    },
+                    "idx": 5
+                  },
+                  "ref": {
+                    "type": "builtin",
+                    "name": "float"
+                  },
+                  "typeVbls": []
+                }
+              }
+            ],
+            "ref": {
+              "type": "user",
+              "id": {
+                "hash": "71b42ce4",
+                "pos": 0,
+                "size": 1
+              }
+            },
+            "type": "Concrete",
+            "spread": null,
+            "location": {
+              "start": {
+                "offset": 519,
+                "line": 37,
+                "column": 13
+              },
+              "end": {
+                "offset": 529,
+                "line": 37,
+                "column": 23
+              },
+              "idx": 2
+            }
+          },
+          "is": {
+            "type": "ref",
+            "ref": {
+              "type": "user",
+              "id": {
+                "hash": "71b42ce4",
+                "pos": 0,
+                "size": 1
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 519,
+                "line": 37,
+                "column": 13
+              },
+              "end": {
+                "offset": 529,
+                "line": 37,
+                "column": 23
+              },
+              "idx": 3
+            },
+            "typeVbls": []
+          },
+          "subTypes": {
+            "28794e80": {
+              "covered": false,
+              "spread": null,
+              "rows": [
+                {
+                  "type": "int",
+                  "value": 2,
+                  "location": {
+                    "start": {
+                      "offset": 537,
+                      "line": 38,
+                      "column": 7
+                    },
+                    "end": {
+                      "offset": 538,
+                      "line": 38,
+                      "column": 8
+                    },
+                    "idx": 6
+                  },
+                  "is": {
+                    "type": "ref",
+                    "location": {
+                      "start": {
+                        "offset": 537,
+                        "line": 38,
+                        "column": 7
+                      },
+                      "end": {
+                        "offset": 538,
+                        "line": 38,
+                        "column": 8
+                      },
+                      "idx": 7
+                    },
+                    "ref": {
+                      "type": "builtin",
+                      "name": "int"
+                    },
+                    "typeVbls": []
+                  }
+                },
+                {
+                  "type": "string",
+                  "text": "three",
+                  "location": {
+                    "start": {
+                      "offset": 546,
+                      "line": 39,
+                      "column": 7
+                    },
+                    "end": {
+                      "offset": 553,
+                      "line": 39,
+                      "column": 14
+                    },
+                    "idx": 8
+                  },
+                  "is": {
+                    "type": "ref",
+                    "ref": {
+                      "type": "builtin",
+                      "name": "string"
+                    },
+                    "location": {
+                      "source": "<builtin>",
+                      "idx": 9
+                    },
+                    "typeVbls": []
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
       "6580d220": {
         "meta": {
           "created": 1
@@ -631,13 +1035,13 @@
           "value": 20,
           "location": {
             "start": {
-              "offset": 370,
-              "line": 25,
+              "offset": 607,
+              "line": 44,
               "column": 15
             },
             "end": {
-              "offset": 372,
-              "line": 25,
+              "offset": 609,
+              "line": 44,
               "column": 17
             },
             "idx": 1
@@ -646,13 +1050,13 @@
             "type": "ref",
             "location": {
               "start": {
-                "offset": 370,
-                "line": 25,
+                "offset": 607,
+                "line": 44,
                 "column": 15
               },
               "end": {
-                "offset": 372,
-                "line": 25,
+                "offset": 609,
+                "line": 44,
                 "column": 17
               },
               "idx": 2
@@ -679,13 +1083,13 @@
           "value": 30,
           "location": {
             "start": {
-              "offset": 438,
-              "line": 29,
+              "offset": 675,
+              "line": 48,
               "column": 15
             },
             "end": {
-              "offset": 440,
-              "line": 29,
+              "offset": 677,
+              "line": 48,
               "column": 17
             },
             "idx": 1
@@ -694,13 +1098,13 @@
             "type": "ref",
             "location": {
               "start": {
-                "offset": 438,
-                "line": 29,
+                "offset": 675,
+                "line": 48,
                 "column": 15
               },
               "end": {
-                "offset": 440,
-                "line": 29,
+                "offset": 677,
+                "line": 48,
                 "column": 17
               },
               "idx": 2
@@ -739,6 +1143,13 @@
       "awesome4": [
         {
           "hash": "1199f022",
+          "size": 1,
+          "pos": 0
+        }
+      ],
+      "yes": [
+        {
+          "hash": "6f763288",
           "size": 1,
           "pos": 0
         }

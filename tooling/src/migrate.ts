@@ -106,7 +106,7 @@ const specifiedToplevelId = (top: Toplevel): Id | null => {
     return null;
 };
 
-const parseJd = (raw: string) => {
+const newEnv = () => {
     const tsBuiltins = loadBuiltins();
     const typedBuiltins: { [key: string]: Type } = {};
     Object.keys(tsBuiltins).forEach((b) => {
@@ -116,9 +116,12 @@ const parseJd = (raw: string) => {
         }
     });
 
-    let env = presetEnv(typedBuiltins);
+    return presetEnv(typedBuiltins);
+};
 
+const parseJd = (raw: string) => {
     const parsed: Array<Toplevel> = parse(raw);
+    let env = newEnv();
 
     parsed.forEach((top) => {
         const { meta, inner } = stripMetaDecorators(env.global, top);
@@ -167,6 +170,16 @@ if (cmd === 'json-to-jd') {
     fs.writeFileSync(outfile, printEnv(data));
 }
 
+if (cmd === 'ctx-to-jd') {
+    const library = JSON.parse(fs.readFileSync(infile, 'utf8'));
+    // this loads up buitins and stuff
+    const ctx = globalEnvToCtx(newEnv().global);
+    ctx.library = library;
+    const data: GlobalEnv = ctxToGlobalEnv(ctx);
+
+    fs.writeFileSync(outfile, printEnv(data));
+}
+
 if (cmd === 'jd-to-json') {
     const raw = fs.readFileSync(infile, 'utf8');
     const env = parseJd(raw);
@@ -197,6 +210,14 @@ if (cmd === 'json-check') {
     const data: GlobalEnv = { ...raw.env.global, rng: () => 0.0 };
     thereAndBackAgain(data);
 }
+
+// if (cmd === 'reparse') {
+//     const raw = fs.readFileSync(infile, 'utf8');
+//     const library = JSON.parse(raw);
+//     // this loads up buitins and stuff
+//     const ctx = globalEnvToCtx(newEnv().global)
+//     ctx.library = library;
+// }
 
 if (cmd === 'test') {
     const raw = fs.readFileSync(infile || 'examples/basic.jd', 'utf8');
