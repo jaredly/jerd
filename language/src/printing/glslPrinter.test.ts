@@ -144,7 +144,7 @@ describe('glslPrinter', () => {
         // NOTE: If this is failing, you probably need to run
         // `yarn prelude-types`
         expect(processOne(`vec2(2.0, 2.0)`)).toMatchInlineSnapshot(
-            `/*vec2(2, 2)*/const vec2 toplevel_35e5c198 = vec2(2.0, 2.0);`,
+            `/*vec2(2, 2)*/const vec2 toplevel_d1db03ce = vec2(2.0, 2.0);`,
         );
     });
 
@@ -152,7 +152,7 @@ describe('glslPrinter', () => {
         expect(
             processOne(`vec2(2.0, 2.0) + vec2(3.0, 1.0)`),
         ).toMatchInlineSnapshot(
-            `/*vec2(2, 2) + vec2(3, 1)*/const vec2 toplevel_0f823a8e = (vec2(2.0, 2.0) + vec2(3.0, 1.0));`,
+            `/*vec2(2, 2) + vec2(3, 1)*/const vec2 toplevel_5354f3e1 = (vec2(2.0, 2.0) + vec2(3.0, 1.0));`,
         );
     });
 
@@ -166,12 +166,12 @@ describe('glslPrinter', () => {
                 ),
             ).toMatchInlineSnapshot(`
                 /* (n#:0: int): float => float(n#:0 * 2) */
-                float thing_c2bd189c(int n_0) {
+                float thing_5461dc4c(int n_0) {
                     return float((n_0 * 2));
                 }
-                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => vec4(vec3(pos#:1, thing#🤏(23)), 1) */
-                vec4 toplevel_cbb50b3a(GLSLEnv_a25a17de env_0, vec2 pos_1) {
-                    return vec4(vec3(pos_1, thing_c2bd189c(23)), 1.0);
+                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => vec4(vec3(pos#:1, thing#😥💖👰‍♀️😃(23)), 1) */
+                vec4 toplevel_7da04efa(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                    return vec4(vec3(pos_1, thing_5461dc4c(23)), 1.0);
                 }
             `);
         });
@@ -188,12 +188,12 @@ describe('glslPrinter', () => {
                     return (float(n_0) + 1.20);
                 }
                 /* (): float => toplevel_lambda#🤸‍♀️👩‍👧😃😃(2) + 2.3 */
-                float basic_specialization_5d78533e() {
+                float basic_specialization_ed5118a0() {
                     return (toplevel_lambda_401795b0(2) + 2.30);
                 }
-                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => vec4(basic_specialization#🚚🦏👨‍👨‍👦‍👦😃()) */
-                vec4 toplevel_437cfce7(GLSLEnv_a25a17de env_0, vec2 pos_1) {
-                    return vec4(basic_specialization_5d78533e());
+                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => vec4(basic_specialization#🤘()) */
+                vec4 toplevel_428e330a(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                    return vec4(basic_specialization_ed5118a0());
                 }
             `);
         });
@@ -222,26 +222,26 @@ describe('glslPrinter', () => {
                         return 1;
                     } else {
                         if (n#:0 modInt 2) == (0) {
-                            return awesome#🪂(n#:0 / 2) + 1;
+                            return awesome#🕍🦕💅😃(n#:0 / 2) + 1;
                         } else {
-                            return awesome#🪂(n#:0 * 3 + 1) + 1;
+                            return awesome#🕍🦕💅😃(n#:0 * 3 + 1) + 1;
                         };
                     };
                 } */
-                int awesome_85445760(int n_0) {
+                int awesome_4b590312(int n_0) {
                     if ((n_0 <= 1)) {
                         return 1;
                     } else {
                         if (((n_0 % 2) == 0)) {
-                            return (awesome_85445760((n_0 / 2)) + 1);
+                            return (awesome_4b590312((n_0 / 2)) + 1);
                         } else {
-                            return (awesome_85445760(((n_0 * 3) + 1)) + 1);
+                            return (awesome_4b590312(((n_0 * 3) + 1)) + 1);
                         };
                     };
                 }
-                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => vec4(float(awesome#🪂(3))) */
-                vec4 toplevel_7198a93c(GLSLEnv_a25a17de env_0, vec2 pos_1) {
-                    return vec4(float(awesome_85445760(3)));
+                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => vec4(float(awesome#🕍🦕💅😃(3))) */
+                vec4 toplevel_229a1f27(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                    return vec4(float(awesome_4b590312(3)));
                 }
             `);
         });
@@ -270,7 +270,7 @@ describe('glslPrinter', () => {
             }`),
             ).toMatchInlineSnapshot(`
                 /* (a#:0: int): int => 3 + a#:0 */
-                int toplevel_dd1dbf5c(int a_0) {
+                int toplevel_50e93374(int a_0) {
                     return (3 + a_0);
                 }
             `);
@@ -391,7 +391,7 @@ describe('glslPrinter', () => {
                     };
                     return newArray#:5;
                 } */
-                int[10] rangeInner_specialization_2c4d6a1a() {
+                int[10] rangeInner_specialization_42f846d8() {
                     int n = 10;
                     int[10] newArray;
                     int idx = 9;
@@ -423,7 +423,7 @@ describe('glslPrinter', () => {
                         match_fail!();
                     };
                 } */
-                float V2f6775dd(float[size_9] items_0, float init_1) {
+                float V23699c64(float[size_9] items_0, float init_1) {
                     int items_i = 0;
                     for (int i=0; i<10000; i++) {
                         if (((items_0.length() - items_i) == 0)) {
@@ -438,9 +438,9 @@ describe('glslPrinter', () => {
                         // match fail;
                     };
                 }
-                /* (): Array<int; 10> => rangeInner_specialization#🐰🛥️🍨() */
-                int[10] range_specialization_6754e9b1() {
-                    return rangeInner_specialization_2c4d6a1a();
+                /* (): Array<int; 10> => rangeInner_specialization#🍹🦙😷😃() */
+                int[10] range_specialization_db2201b8() {
+                    return rangeInner_specialization_42f846d8();
                 }
 
                 INVALID GLSL:
@@ -454,7 +454,7 @@ describe('glslPrinter', () => {
                 - Invalid GLSL at 16:71-16:74: Array length not inferrable
 
                 /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => {
-                    const values#:10: Array<int; 10> = range_specialization#🤼🤴🍎😃();
+                    const values#:10: Array<int; 10> = range_specialization#🤾‍♂️();
                     const collect#:12: Array<float; 0> = [];
                     const result#:15: Array<float>;
                     const values_i#:13: int = 0;
@@ -471,14 +471,14 @@ describe('glslPrinter', () => {
                         };
                         match_fail!();
                     };
-                    if unnamed#👩‍👩‍👧‍👧👩‍👩‍👧‍👧🏞️(result#:15, 1000) < 0 {
+                    if unnamed#👽🌿🦩(result#:15, 1000) < 0 {
                         return vec4(1);
                     } else {
                         return vec4(0);
                     };
                 } */
-                vec4 toplevel_2e28f20a(GLSLEnv_a25a17de env_0, vec2 pos_1) {
-                    int[10] values = range_specialization_6754e9b1();
+                vec4 toplevel_38f8828c(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                    int[10] values = range_specialization_db2201b8();
                     float[0] collect = float[]();
                     float[NULL] result;
                     int values_i = 0;
@@ -495,7 +495,7 @@ describe('glslPrinter', () => {
                         };
                         // match fail;
                     };
-                    if ((V2f6775dd(result, 1000.0) < 0.0)) {
+                    if ((V23699c64(result, 1000.0) < 0.0)) {
                         return vec4(1.0);
                     } else {
                         return vec4(0.0);
@@ -537,7 +537,7 @@ describe('glslPrinter', () => {
                     };
                     return newArray#:5;
                 } */
-                int[10] rangeInner_specialization_2c4d6a1a() {
+                int[10] rangeInner_specialization_42f846d8() {
                     int n = 10;
                     int[10] newArray;
                     int idx = 9;
@@ -552,9 +552,9 @@ describe('glslPrinter', () => {
                 float toplevel_lambda_dd8c017c(float v_0, int i_1) {
                     return (v_0 + float(i_1));
                 }
-                /* (): Array<int; 10> => rangeInner_specialization#🐰🛥️🍨() */
-                int[10] range_specialization_6754e9b1() {
-                    return rangeInner_specialization_2c4d6a1a();
+                /* (): Array<int; 10> => rangeInner_specialization#🍹🦙😷😃() */
+                int[10] range_specialization_db2201b8() {
+                    return rangeInner_specialization_42f846d8();
                 }
                 /* (items#:0: Array<int; 10>, init#:1: float): float => {
                     const items_i#:10: int = 0;
@@ -586,9 +586,9 @@ describe('glslPrinter', () => {
                         // match fail;
                     };
                 }
-                /* (): float => undefined_specialization#🌹👩‍👩‍👧🤾‍♂️😃(range_specialization#🤼🤴🍎😃(), 0) */
-                float toplevel_0eaa0bce() {
-                    return undefined_specialization_5b876a5b(range_specialization_6754e9b1(), 0.0);
+                /* (): float => undefined_specialization#🌹👩‍👩‍👧🤾‍♂️😃(range_specialization#🤾‍♂️(), 0) */
+                float toplevel_77c93a0b() {
+                    return undefined_specialization_5b876a5b(range_specialization_db2201b8(), 0.0);
                 }
             `);
         });
@@ -635,7 +635,7 @@ describe('glslPrinter', () => {
                     };
                     return newArray#:5;
                 } */
-                int[10] rangeInner_specialization_2c4d6a1a() {
+                int[10] rangeInner_specialization_42f846d8() {
                     int n = 10;
                     int[10] newArray;
                     int idx = 9;
@@ -646,12 +646,12 @@ describe('glslPrinter', () => {
                     };
                     return newArray;
                 }
-                /* (): Array<int; 10> => rangeInner_specialization#🐰🛥️🍨() */
-                int[10] range_specialization_6754e9b1() {
-                    return rangeInner_specialization_2c4d6a1a();
+                /* (): Array<int; 10> => rangeInner_specialization#🍹🦙😷😃() */
+                int[10] range_specialization_db2201b8() {
+                    return rangeInner_specialization_42f846d8();
                 }
                 /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => {
-                    const items#:6: Array<int; 10> = range_specialization#🤼🤴🍎😃();
+                    const items#:6: Array<int; 10> = range_specialization#🤾‍♂️();
                     const init#:7: float = 1000;
                     const items_i#:9: int = 0;
                     for (; items_i#:9 <= 10; items_i#:9 = items_i#:9 + 1) {
@@ -665,8 +665,8 @@ describe('glslPrinter', () => {
                         return vec4(0);
                     };
                 } */
-                vec4 toplevel_7f4eed90(GLSLEnv_a25a17de env_0, vec2 pos_1) {
-                    int[10] items = range_specialization_6754e9b1();
+                vec4 toplevel_460b76b7(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                    int[10] items = range_specialization_db2201b8();
                     float init = 1000.0;
                     int items_i = 0;
                     for (; items_i <= 10; items_i++) {
@@ -715,7 +715,7 @@ describe('glslPrinter', () => {
                     };
                     return newArray#:5;
                 } */
-                int[10] rangeInner_specialization_2c4d6a1a() {
+                int[10] rangeInner_specialization_42f846d8() {
                     int n = 10;
                     int[10] newArray;
                     int idx = 9;
@@ -726,15 +726,15 @@ describe('glslPrinter', () => {
                     };
                     return newArray;
                 }
-                /* (): Array<int; 10> => rangeInner_specialization#🐰🛥️🍨() */
-                int[10] range_specialization_6754e9b1() {
-                    return rangeInner_specialization_2c4d6a1a();
+                /* (): Array<int; 10> => rangeInner_specialization#🍹🦙😷😃() */
+                int[10] range_specialization_db2201b8() {
+                    return rangeInner_specialization_42f846d8();
                 }
                 /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => {
                     const first#:4: int;
                     const continueBlock#:6: bool = true;
                     if 10 >= 1 {
-                        first#:4 = range_specialization#🤼🤴🍎😃()[0];
+                        first#:4 = range_specialization#🤾‍♂️()[0];
                         continueBlock#:6 = false;
                     };
                     if continueBlock#:6 {
@@ -743,11 +743,11 @@ describe('glslPrinter', () => {
                     };
                     return vec4(float(10) + float(first#:4));
                 } */
-                vec4 toplevel_32f943e8(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                vec4 toplevel_5be97b32(GLSLEnv_a25a17de env_0, vec2 pos_1) {
                     int first;
                     bool continueBlock = true;
                     if ((10 >= 1)) {
-                        first = range_specialization_6754e9b1()[0];
+                        first = range_specialization_db2201b8()[0];
                         continueBlock = false;
                     };
                     if (continueBlock) {
@@ -861,7 +861,7 @@ describe('glslPrinter', () => {
                     };
                     return newArray#:5;
                 } */
-                int[10] rangeInner_specialization_d8b0b06c() {
+                int[10] rangeInner_specialization_5138eb98() {
                     int n = 10;
                     int[10] newArray;
                     int idx = 0;
@@ -872,15 +872,15 @@ describe('glslPrinter', () => {
                     };
                     return newArray;
                 }
-                /* (): Array<int; 10> => rangeInner_specialization#😽() */
-                int[10] range_specialization_560fa8c8() {
-                    return rangeInner_specialization_d8b0b06c();
+                /* (): Array<int; 10> => rangeInner_specialization#🌝🐊🧑‍🏭😃() */
+                int[10] range_specialization_3358031c() {
+                    return rangeInner_specialization_5138eb98();
                 }
                 /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => {
                     const first#:4: int;
                     const continueBlock#:6: bool = true;
                     if 10 >= 1 {
-                        first#:4 = range_specialization#👦🤿🧜‍♂️😃()[0];
+                        first#:4 = range_specialization#🌆🐎🚑()[0];
                         continueBlock#:6 = false;
                     };
                     if continueBlock#:6 {
@@ -889,11 +889,11 @@ describe('glslPrinter', () => {
                     };
                     return vec4(float(10) + float(first#:4));
                 } */
-                vec4 toplevel_da1ffcac(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                vec4 toplevel_45c532aa(GLSLEnv_a25a17de env_0, vec2 pos_1) {
                     int first;
                     bool continueBlock = true;
                     if ((10 >= 1)) {
-                        first = range_specialization_560fa8c8()[0];
+                        first = range_specialization_3358031c()[0];
                         continueBlock = false;
                     };
                     if (continueBlock) {
@@ -938,7 +938,7 @@ describe('glslPrinter', () => {
                     };
                     return vec4(result#:6);
                 } */
-                vec4 toplevel_573aeeca(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                vec4 toplevel_adb93658(GLSLEnv_a25a17de env_0, vec2 pos_1) {
                     int[3] items = int[](1, 2, 3);
                     float result;
                     bool continueBlock = true;
@@ -1015,7 +1015,7 @@ describe('glslPrinter', () => {
                     };
                     return vec4(result#:8);
                 } */
-                vec4 toplevel_028fe968(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                vec4 toplevel_ee8ac2fc(GLSLEnv_a25a17de env_0, vec2 pos_1) {
                     int start = 0;
                     float init = 1000.0;
                     float result;
@@ -1049,7 +1049,7 @@ describe('glslPrinter', () => {
                     const m#:2: unnamed#🚐🌘👩‍🏫 = RECORDNOTFOUND;
                     return vec4(float(m#:2.#unnamed#🚐🌘👩‍🏫#0), float(m#:2.#unnamed#🚐🌘👩‍🏫#1), float(m#:2.#unnamed#🚐🌘👩‍🏫#0), 2.3);
                 } */
-                vec4 toplevel_264c9418(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                vec4 toplevel_0c035880(GLSLEnv_a25a17de env_0, vec2 pos_1) {
                     T106e4734 m = T106e4734(10, 2);
                     return vec4(float(m.h106e4734_0), float(m.h106e4734_1), float(m.h106e4734_0), 2.30);
                 }
@@ -1071,7 +1071,7 @@ describe('glslPrinter', () => {
                     const m#:2: unnamed#🌕 = RECORDNOTFOUND;
                     return vec4(float(m#:2.#unnamed#🌕#0) + float(m#:2.#unnamed#🌕#0));
                 } */
-                vec4 toplevel_25d1a1d4(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                vec4 toplevel_7ec2fa1b(GLSLEnv_a25a17de env_0, vec2 pos_1) {
                     T8dbd478e m = T8dbd478e(3, 2.0);
                     return vec4((float(m.h8dbd478e_0) + float(m.h8dbd478e_0)));
                 }
@@ -1091,15 +1091,15 @@ describe('glslPrinter', () => {
                 ),
             ).toMatchInlineSnapshot(`
                 /* (n#:0: int, m#:1: unnamed#🌕): unnamed#🌕 => RECORDNOTFOUND */
-                T8dbd478e makeIt_3a46af68(int n_0, T8dbd478e m_1) {
+                T8dbd478e makeIt_092ba55c(int n_0, T8dbd478e m_1) {
                     return T8dbd478e((n_0 + int(m_1.h8dbd478e_1)), float((n_0 + m_1.h8dbd478e_0)));
                 }
                 /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => {
-                    const m#:2: unnamed#🌕 = makeIt#🛸🚵🌦️(2, RECORDNOTFOUND);
+                    const m#:2: unnamed#🌕 = makeIt#🧛🌏🗨️(2, RECORDNOTFOUND);
                     return vec4(float(m#:2.#unnamed#🌕#0) + m#:2.#unnamed#🌕#1);
                 } */
-                vec4 toplevel_499e3bfc(GLSLEnv_a25a17de env_0, vec2 pos_1) {
-                    T8dbd478e m = makeIt_3a46af68(2, T8dbd478e(1, 4.0));
+                vec4 toplevel_2c109762(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                    T8dbd478e m = makeIt_092ba55c(2, T8dbd478e(1, 4.0));
                     return vec4((float(m.h8dbd478e_0) + m.h8dbd478e_1));
                 }
             `);
@@ -1141,20 +1141,20 @@ describe('glslPrinter', () => {
             };
             /**
             \`\`\`
-            const res#5facd680 = (env#:0: GLSLEnv#a25a17de, pos#:1: Vec2#08f7c2ac): Vec4#b1f05ae8 ={}> vec4#1f417702(
+            const res#a38570e0 = (env#:0: GLSLEnv#a25a17de, pos#:1: Vec2#08f7c2ac): Vec4#b1f05ae8 ={}> vec4#ba091e3e(
                 x: 1.0,
             )
             \`\`\`
             */
             /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => vec4(1) */
-            vec4 res_5facd680(
+            vec4 res_a38570e0(
                 GLSLEnv_a25a17de env_0,
                 vec2 pos_1
             ) {
                 return vec4(1.0);
             }
             void main() {
-                fragColor = res_5facd680(GLSLEnv_a25a17de(u_time, u_resolution, u_camera, u_mouse), gl_FragCoord.xy);
+                fragColor = res_a38570e0(GLSLEnv_a25a17de(u_time, u_resolution, u_camera, u_mouse), gl_FragCoord.xy);
             }
         `);
         // yes

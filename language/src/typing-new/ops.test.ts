@@ -169,7 +169,7 @@ describe('non-generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3`,
+            `2 /#a7b87324#d28f8708#0 3`,
         );
     });
 
@@ -210,18 +210,18 @@ describe('non-generic examples', () => {
         expect(ctx.warnings).toHaveLength(0);
         expect(res).toNotHaveErrors(ctx);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3`,
+            `2 /#a7b87324#d28f8708#0 3`,
         );
         const res1 = parseExpression(ctx, `2.0 / 3.0`);
         expect(ctx.warnings).toHaveLength(0);
         expect(res1).toNotHaveErrors(ctx);
         expect(termToString(ctx, res1)).toMatchInlineSnapshot(
-            `2.0 /#0fe058bc#69c30a31#0 3.0`,
+            `2.0 /#2a551f71#69c30a31#0 3.0`,
         );
         // Auto-convert the second one...
         const res3 = parseExpression(ctx, `2.0 / 3`);
         expect(termToString(ctx, res3)).toMatchInlineSnapshot(
-            `2.0 /#0fe058bc#69c30a31#0 3.0`,
+            `2.0 /#2a551f71#69c30a31#0 3.0`,
         );
         expect(res3).toNotHaveErrors(ctx);
     });
@@ -265,7 +265,7 @@ describe('non-generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#d1f8ed3e#d28f8708#0 3`,
+            `2 /#1a321d3e#d28f8708#0 3`,
         );
     });
 });
@@ -326,7 +326,7 @@ describe('failures', () => {
         const res = parseExpression(ctx, `2 / 3.0`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3.0`,
+            `2 /#a7b87324#d28f8708#0 3.0`,
         );
         expect({ ctx, errors: findErrors(res) }).toMatchInlineSnapshot(
             `3.0 at 1:5-1:8`,
@@ -338,7 +338,7 @@ describe('failures', () => {
         const res = parseExpression(ctx, `2.0 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2.0 /#ae81c704#d28f8708#0 3`,
+            `2.0 /#a7b87324#d28f8708#0 3`,
         );
         expect(
             findErrors(res)
@@ -352,7 +352,7 @@ describe('failures', () => {
         const res = parseExpression(ctx, `2.0 / 3.0`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2.0 /#ae81c704#d28f8708#0 3.0`,
+            `2.0 /#a7b87324#d28f8708#0 3.0`,
         );
         expect(
             findErrors(res)
@@ -408,7 +408,7 @@ describe('generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#e17b40b4#e3800aa8#0 3`,
+            `2 /#966e3926#e3800aa8#0 3`,
         );
     });
 
@@ -424,7 +424,7 @@ describe('generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#e17b40b4#e3800aa8#0 3`,
+            `2 /#966e3926#e3800aa8#0 3`,
         );
     });
 
@@ -497,7 +497,7 @@ describe('generic examples', () => {
         const res = parseExpression(ctx, `1.2 / 2.3 / 2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `1.2 /#ad28952c#2243e894#0 2.3 /#001a21f6#2243e894#0 2 /#001a21f6#2243e894#0 3`,
+            `1.2 /#aa1f8bf4#2243e894#0 2.3 /#2ec4d076#2243e894#0 2 /#2ec4d076#2243e894#0 3`,
         );
     });
 
@@ -533,13 +533,16 @@ describe('generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#1b191ec9#49d8f77e#0 3`,
+            `2 /#09a00684#49d8f77e#0 3`,
         );
         // Explicit now
-        const res2 = parseExpression(ctx, `2 /#1b191ec9#49d8f77e#0 3`);
+        const res2 = parseExpression(
+            ctx,
+            `2 /#${idName(slashImpl)}#${idName(slash)}#0 3`,
+        );
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res2)).toMatchInlineSnapshot(
-            `2 /#1b191ec9#49d8f77e#0 3`,
+            `2 /#09a00684#49d8f77e#0 3`,
         );
     });
 
@@ -614,7 +617,7 @@ describe('explicit hashes', () => {
         );
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3`,
+            `2 /#a7b87324#d28f8708#0 3`,
         );
     });
 
@@ -628,7 +631,7 @@ describe('explicit hashes', () => {
             `1:2-1:27: Unable to resolve value for operator`,
         );
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3`,
+            `2 /#a7b87324#d28f8708#0 3`,
         );
     });
 
@@ -642,7 +645,7 @@ describe('explicit hashes', () => {
             `1:2-1:27: Attribute type 0d28f8708 doesn't exist`,
         );
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3`,
+            `2 /#a7b87324#d28f8708#0 3`,
         );
     });
 
@@ -653,7 +656,7 @@ describe('explicit hashes', () => {
             `1:2-1:10: Unable to parse hash "#aaa"`,
         );
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3`,
+            `2 /#a7b87324#d28f8708#0 3`,
         );
     });
 
@@ -661,10 +664,10 @@ describe('explicit hashes', () => {
         const { ctx, slash, slashImpl } = simpleCtx();
         const res = parseExpression(ctx, `2 /#${idName(slashImpl)}#0 3`);
         expect(ctx.warnings).toMatchInlineSnapshot(
-            `1:2-1:17: Invalid hash "#ae81c704#0"`,
+            `1:2-1:17: Invalid hash "#a7b87324#0"`,
         );
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3`,
+            `2 /#a7b87324#d28f8708#0 3`,
         );
     });
 
@@ -685,7 +688,7 @@ describe('explicit hashes', () => {
             `1:2-1:26: Attribute target is a int#builtin, not a user-defined toplevel type`,
         );
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#ae81c704#d28f8708#0 3`,
+            `2 /#a7b87324#d28f8708#0 3`,
         );
     });
 

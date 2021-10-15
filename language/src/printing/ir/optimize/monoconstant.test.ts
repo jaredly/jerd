@@ -35,17 +35,17 @@ describe('specializeFunctionsCalledWithLambdas', () => {
 
             const expr0_lambda#😦: (int) => int = (m#:0: int): int => m#:0 + 4
 
-            const f_specialization#🗣️: (int) => int = (
+            const f_specialization#😀🥎👨‍💻😃: (int) => int = (
                 n#:1: int,
             ): int => expr0_lambda#🦌🚘👩‍🦰😃(n#:1 / 2) + 2
 
-            const f_specialization#🧃🧘🌡️: (int) => int = (
+            const f_specialization#👨‍❤️‍👨🕚🐵😃: (int) => int = (
                 n#:1: int,
             ): int => expr0_lambda#😦(n#:1 / 2) + 2
 
-            const expr0#🌯🌨️👨‍👧‍👦: int = f_specialization#🧃🧘🌡️(
+            const expr0#🖐️🧛👥: int = f_specialization#👨‍❤️‍👨🕚🐵😃(
                 11,
-            ) - f_specialization#🗣️(42)
+            ) - f_specialization#😀🥎👨‍💻😃(42)
         `);
     });
 
@@ -62,12 +62,12 @@ describe('specializeFunctionsCalledWithLambdas', () => {
                 n#:0: int,
             ): int => n#:0 + 1
 
-            const f_specialization#🧎‍♂️🗣️🍻: () => int = (): int => {
+            const f_specialization#🤘: () => int = (): int => {
                 const g#:0: (int) => int = expr0_lambda#🌝🚢🛫;
                 return g#:0(1) + 2;
             }
 
-            const expr0#⛷️👨‍👧‍👧👵😃: int = f_specialization#🧎‍♂️🗣️🍻()
+            const expr0#🍼: int = f_specialization#🤘()
         `));
 
     // TODO: Figure out how to do this!!
@@ -81,13 +81,15 @@ describe('specializeFunctionsCalledWithLambdas', () => {
             specializeFunctionsCalledWithLambdas,
         );
         expect(result).toMatchInlineSnapshot(`
-            const f#😪: ((int) => int) => int = (
+            const f#🛥️🍼🧙‍♂️😃: ((int) => int) => int = (
                 g#:0: (int) => int,
             ): int => g#:0(1) + 2
 
-            const expr0#🐾🧏🎎: int = ((): int => {
+            const expr0#🧗‍♂️🐴🥋😃: int = ((): int => {
                 const v#:0: int = 10;
-                return f#😪((n#:1: int): int => n#:1 + v#:0);
+                return f#🛥️🍼🧙‍♂️😃(
+                    (n#:1: int): int => n#:1 + v#:0,
+                );
             })()
         `);
     });
@@ -109,15 +111,15 @@ describe('specializeFunctionsCalledWithLambdas', () => {
                 n#:0: int,
             ): int => n#:0 + 5
 
-            const f_specialization#👩‍🦯😀⌛: () => int = (): int => expr0_lambda#😵🌨️🧱😃(
+            const f_specialization#🦾: () => int = (): int => expr0_lambda#😵🌨️🧱😃(
                 1,
             ) + 2
 
-            const m_specialization#🚐🍝🥝😃: () => int = (): int => expr0_lambda#😵🌨️🧱😃(
+            const m_specialization#💌🦞🧒: () => int = (): int => expr0_lambda#😵🌨️🧱😃(
                 3,
-            ) + 4 + f_specialization#👩‍🦯😀⌛()
+            ) + 4 + f_specialization#🦾()
 
-            const expr0#🐲: int = m_specialization#🚐🍝🥝😃()
+            const expr0#💓👨‍👩‍👧‍👧🌼😃: int = m_specialization#💌🦞🧒()
         `);
         expectValidGlsl(result);
     });

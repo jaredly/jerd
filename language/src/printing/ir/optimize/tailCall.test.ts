@@ -38,22 +38,22 @@ describe('tailCall', () => {
             ]),
         );
         expect(result).toMatchInlineSnapshot(`
-            const tailMe#🤹🥐🐒: (int, int, int) => int = (
-                max#:0: int,
-                collect#:1: int,
-                most#:2: int,
-            ): int => {
-                for (; max#:0 > most#:2; max#:0 = max#:0 - 2) {
-                    collect#:1 = collect#:1 + 10;
-                    continue;
-                };
-                return collect#:1;
-            }
+const tailMe#🦷😸⛽: (int, int, int) => int = (
+    max#:0: int,
+    collect#:1: int,
+    most#:2: int,
+): int => {
+    for (; max#:0 > most#:2; max#:0 = max#:0 - 2) {
+        collect#:1 = collect#:1 + 10;
+        continue;
+    };
+    return collect#:1;
+}
 
-            const expr1#🚠: int = tailMe#🤹🥐🐒(1, 0, 2)
+const expr1#💒: int = tailMe#🦷😸⛽(1, 0, 2)
 
-            const expr0#😬: int = tailMe#🤹🥐🐒(20, 0, 1)
-        `);
+const expr0#🌝🐌🤣: int = tailMe#🦷😸⛽(20, 0, 1)
+`);
         expectValidGlsl(result);
     });
 });

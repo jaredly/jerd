@@ -79,10 +79,10 @@ describe('template strings', () => {
         const x = "hello \${10}"
         `),
         ).toMatchInlineSnapshot(`
-            const intAsString#a9eb4f54 = As#As<int#builtin, string#builtin>{
+            const intAsString#4285489a = As#As<int#builtin, string#builtin>{
                 as#As#0: (i#:0: int#builtin): string#builtin ={}> "an int",
             };
-            const x#348f5e90 = "hello $#a9eb4f54{10}"
+            const x#32886cd5 = "hello $#4285489a{10}"
         `);
     });
 });
@@ -222,8 +222,8 @@ describe('expression types', () => {
             const n = x(23)
     `),
         ).toMatchInlineSnapshot(`
-            const x#7bdaefe0 = (m#:0: int#builtin): int#builtin ={}> 2 +#builtin 3 *#builtin m#:0;
-            const n#56070c14 = x#7bdaefe0(m: 23)
+            const x#102bcafa = (m#:0: int#builtin): int#builtin ={}> 2 +#builtin 3 *#builtin m#:0;
+            const n#5b2825f9 = x#102bcafa(m: 23)
         `));
 
     it('attribute suffix', () =>
@@ -237,7 +237,7 @@ describe('expression types', () => {
                 name: string#builtin,
                 age: int#builtin,
             };
-            const m#6ef797af = (p#:0: Person#69e137a8): Tuple2#builtin<string#builtin, int#builtin> ={}> (
+            const m#4a38794c = (p#:0: Person#69e137a8): Tuple2#builtin<string#builtin, int#builtin> ={}> (
                 p#:0.name#69e137a8#0,
                 p#:0.age#69e137a8#1,
             )
@@ -260,10 +260,10 @@ describe('expression types', () => {
         const IntAsFloat = As<int, float>{as: (v: int) => 1.0};
         const m = 1 as float`),
         ).toMatchInlineSnapshot(`
-            const IntAsFloat#16da6c1c = As#As<int#builtin, float#builtin>{
+            const IntAsFloat#5e4944d9 = As#As<int#builtin, float#builtin>{
                 as#As#0: (v#:0: int#builtin): float#builtin ={}> 1.0,
             };
-            const m#7364b376 = 1 as#16da6c1c float#builtin
+            const m#d77ad314 = 1 as#5e4944d9 float#builtin
         `));
 
     it('literals', () =>
@@ -294,21 +294,21 @@ describe('expression types', () => {
     `),
         ).toMatchInlineSnapshot(`
             const a#9dacbedc = (): int#builtin ={}> 23;
-            const b#7ca0aaf8 = (): int#builtin ={}> {
+            const b#5a8b4dde = (): int#builtin ={}> {
                 const m#:0 = 2;
                 m#:0 /#builtin 1;
             };
-            const c#bdfd33b0 = (a#:0: int#builtin, b#:1: float#builtin): Tuple2#builtin<
+            const c#ad78e1b0 = (a#:0: int#builtin, b#:1: float#builtin): Tuple2#builtin<
                 int#builtin,
                 float#builtin,
             > ={}> (a#:0, b#:1);
-            const m#4fb5f0cc = (fn#:0: (one: int#builtin, two: float#builtin) ={}> string#builtin): int#builtin ={}> 10
+            const m#6261255c = (fn#:0: (one: int#builtin, two: float#builtin) ={}> string#builtin): int#builtin ={}> 10
         `));
 
     it(`blocks with just a const should ... have a void type?`, () =>
         expect(process(`const n = (): void => {const x = 10 }`))
             .toMatchInlineSnapshot(`
-            const n#36351150 = (): void#builtin ={}> {
+            const n#cf10011c = (): void#builtin ={}> {
                 const x#:0 = 10;
             }
         `));
@@ -327,7 +327,7 @@ describe('expression types', () => {
             }
     `),
         ).toMatchInlineSnapshot(`
-            const n#8b0ae7d4 = {
+            const n#5191e544 = {
                 const m#:0 = 23;
                 2;
                 {
@@ -376,7 +376,7 @@ describe('expression types', () => {
                 read: () => string#builtin,
                 write: (string#builtin) => void#builtin,
             };
-            const respondWith#1fb7cba0 = (responseValue#:0: string#builtin): <T#:0>{e#:0}(
+            const respondWith#6f2f4a68 = (responseValue#:0: string#builtin): <T#:0>{e#:0}(
                 default: T#:0,
                 fn: () ={Stdio#1da337a2, e#:0}> T#:0,
             ) ={e#:0}> T#:0 ={}> <T#:0>{e#:0}(default#:1: T#:0, fn#:2: () ={Stdio#1da337a2, e#:0}> T#:0): T#:0 ={
@@ -394,7 +394,7 @@ describe('expression types', () => {
                     pure(a#:3) => a#:3,
                 };
             };
-            const inner#0320c524 = (name#:0: string#builtin): string#builtin ={Stdio#1da337a2}> {
+            const inner#ca3493ea = (name#:0: string#builtin): string#builtin ={Stdio#1da337a2}> {
                 raise!(
                     Stdio#1da337a2.write(
                         raise!(Stdio#1da337a2.read()) ++#builtin " and " 
@@ -403,10 +403,10 @@ describe('expression types', () => {
                 );
                 raise!(Stdio#1da337a2.read());
             };
-            const test1#6d63aeba = (): string#builtin ={}> {
-                respondWith#1fb7cba0(responseValue: "<read>")<string#builtin>{}(
+            const test1#8a69f32c = (): string#builtin ={}> {
+                respondWith#6f2f4a68(responseValue: "<read>")<string#builtin>{}(
                     "what",
-                    (): string#builtin ={Stdio#1da337a2}> inner#0320c524(name: "Yes"),
+                    (): string#builtin ={Stdio#1da337a2}> inner#ca3493ea(name: "Yes"),
                 );
             }
         `));
@@ -472,7 +472,7 @@ describe('expression types', () => {
             enum Companies#7c2cbdce {
                 Company#503a4e65,
             };
-            const b#3778db64 = (m#:0: Companies#779076b4): bool#builtin ={}> switch m#:0 {
+            const b#a7afab58 = (m#:0: Companies#779076b4): bool#builtin ={}> switch m#:0 {
                 Company#503a4e65{name: "hello", ages: (_, 23.0)} => false,
                 Company#503a4e65{name: "things", people: []} => true,
                 Company#503a4e65{people: [Person#69e137a8{name: "yes"}, ..._]} => true,
@@ -586,7 +586,7 @@ describe('Decorators', () => {
             };
             const m#2629f072 = @something#bee55956 10.0;
             const n#19984ade = @hello#677e1867 Person#73c36f7c{name#73c36f7c#0: "hi", age#73c36f7c#1: 10};
-            const goForIt#98cdba02 = (pos#:0: Vec2#4284214c): float#builtin ={}> {
+            const goForIt#32a8fb20 = (pos#:0: Vec2#4284214c): float#builtin ={}> {
                 pos#:0.x#4284214c#0 *#builtin @slider#1d9fcfd2(min: 0.0, max: 10.0, step: 0.1) 2.3;
             };
             const oneThing#b1904fe4 = @alternates#2d1ef174(

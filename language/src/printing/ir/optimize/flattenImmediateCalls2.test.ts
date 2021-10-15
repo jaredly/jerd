@@ -54,7 +54,7 @@ describe('flattenImmediateCalls2', () => {
                 ]),
             ),
         ).toMatchInlineSnapshot(`
-            const expr0#🏊‍♂️: int = ((): int => {
+            const expr0#🎿👺🧑‍🦳😃: int = ((): int => {
                 if 11 > 2 {
                     const x#:0: int = 10;
                     if x#:0 > 1 {
@@ -86,7 +86,7 @@ describe('flattenImmediateCalls2', () => {
                 ]),
             ),
         ).toMatchInlineSnapshot(`
-            const expr0#🍤⭐🧒: int = ((): int => {
+            const expr0#⚽🎃👩‍👩‍👦😃: int = ((): int => {
                 const z#:2: int;
                 const continueBlock#:3: bool = true;
                 if 11 > 2 {
@@ -178,7 +178,7 @@ describe('flattenImmediateCalls2', () => {
         // Same story with arrays, I imagine.
 
         expect(result).toMatchInlineSnapshot(`
-            const expr0#🐻‍❄️: () => int = (): int => {
+            const expr0#🤏: () => int = (): int => {
                 const v#:0: int = 10;
                 const result#:1: () => int;
                 const continueBlock#:2: bool = true;
@@ -210,17 +210,17 @@ describe('flattenImmediateCalls2', () => {
             ]),
         );
         expect(result).toMatchInlineSnapshot(`
-const length#🥈: (int) => int = (m#:0: int): int => m#:0 + 2
+            const length#🍃🌍🚧: (int) => int = (m#:0: int): int => m#:0 + 2
 
-const expr0#🐣: (int) => int = (n#:0: int): int => length#🥈(
-    n#:0 - ((): int => ((): int => {
-        if 5 == 4 {
-            return 3;
-        };
-        return 2;
-    })())(),
-)
-`);
+            const expr0#🍛🏕️👣😃: (int) => int = (n#:0: int): int => length#🍃🌍🚧(
+                n#:0 - ((): int => ((): int => {
+                    if 5 == 4 {
+                        return 3;
+                    };
+                    return 2;
+                })())(),
+            )
+        `);
     });
 
     it('should do more complex', () => {
@@ -239,21 +239,21 @@ const expr0#🐣: (int) => int = (n#:0: int): int => length#🥈(
             ]),
         );
         expect(result).toMatchInlineSnapshot(`
-const length#🥈: (int) => int = (m#:0: int): int => m#:0 + 2
+            const length#🍃🌍🚧: (int) => int = (m#:0: int): int => m#:0 + 2
 
-const expr0#🐣: (int) => int = (n#:0: int): int => {
-    const result#:2: int;
-    const continueBlock#:3: bool = true;
-    if 5 == 4 {
-        result#:2 = 3;
-        continueBlock#:3 = false;
-    };
-    if continueBlock#:3 {
-        result#:2 = 2;
-        continueBlock#:3 = false;
-    };
-    return length#🥈(n#:0 - result#:2);
-}
-`);
+            const expr0#🍛🏕️👣😃: (int) => int = (n#:0: int): int => {
+                const result#:2: int;
+                const continueBlock#:3: bool = true;
+                if 5 == 4 {
+                    result#:2 = 3;
+                    continueBlock#:3 = false;
+                };
+                if continueBlock#:3 {
+                    result#:2 = 2;
+                    continueBlock#:3 = false;
+                };
+                return length#🍃🌍🚧(n#:0 - result#:2);
+            }
+        `);
     });
 });

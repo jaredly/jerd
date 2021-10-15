@@ -39,7 +39,7 @@ describe('removeUnusedVariable', () => {
                 removeUnusedVariables,
             ),
         ).toMatchInlineSnapshot(`
-            const expr0#🤓🕵️‍♀️🥬: int = ((): int => {
+            const expr0#👩‍❤️‍💋‍👩🤭🍾: int = ((): int => {
                 const y#:1: int = 5;
                 return y#:1 + 2;
             })()
@@ -60,7 +60,9 @@ describe('removeUnusedVariable', () => {
                 removeUnusedVariables,
             ),
         ).toMatchInlineSnapshot(`
-            const expr0#🦅👀🏄: (int) => int = ((): (int) => int => {
+            const expr0#🏊‍♂️🙇‍♂️🌃😃: (int) => int = ((): (
+                int,
+            ) => int => {
                 const x#:0: int = 10;
                 return (y#:2: int): int => x#:0 + 2 + y#:2;
             })()
@@ -88,7 +90,7 @@ describe('glsl in concert', () => {
             combinedOptimize,
         );
         expect(result).toMatchInlineSnapshot(`
-            const expr0#💟: () => int = (): int => {
+            const expr0#🧖‍♀️: () => int = (): int => {
                 const m#:0: () => int;
                 if 10 > 10 {
                     m#:0 = (): int => 20;
@@ -211,18 +213,18 @@ describe('glsl in concert', () => {
         );
 
         expect(result).toMatchInlineSnapshot(`
-const expr0_lambda#🦑👨‍👧‍👦🙍‍♂️: (float) => float = (
-    pos#:0: float,
-): float => 23 + pos#:0
+            const expr0_lambda#🦑👨‍👧‍👦🙍‍♂️: (float) => float = (
+                pos#:0: float,
+            ): float => 23 + pos#:0
 
-const estimateNormal_specialization#🐯🥶🚓😃: () => float = (): float => expr0_lambda#🦑👨‍👧‍👦🙍‍♂️(
-    1.23,
-)
+            const estimateNormal_specialization#🦢🦦🧘😃: () => float = (): float => expr0_lambda#🦑👨‍👧‍👦🙍‍♂️(
+                1.23,
+            )
 
-const expr0#🏺🧇🥧😃: (float) => float = (
-    coord#:4: float,
-): float => estimateNormal_specialization#🐯🥶🚓😃() + coord#:4 + 23
-`);
+            const expr0#🏌️🌤️🏬😃: (float) => float = (
+                coord#:4: float,
+            ): float => estimateNormal_specialization#🦢🦦🧘😃() + coord#:4 + 23
+        `);
 
         expectValidGlsl(result);
     });
@@ -266,24 +268,24 @@ const expr0#🏺🧇🥧😃: (float) => float = (
         );
 
         expect(result).toMatchInlineSnapshot(`
-const expr0_lambda#🍽️👩‍👧💐: (int) => float = (
-    pos#:0: int,
-): float => 23
+            const expr0_lambda#🍽️👩‍👧💐: (int) => float = (
+                pos#:0: int,
+            ): float => 23
 
-const callIt_specialization#🕐🕜🧟‍♀️😃: (int) => float = (
-    eye#:1: int,
-): float => expr0_lambda#🍽️👩‍👧💐(eye#:1)
+            const callIt_specialization#🧑‍🦽: (int) => float = (
+                eye#:1: int,
+            ): float => expr0_lambda#🍽️👩‍👧💐(eye#:1)
 
-const estimateNormal_specialization#💯: () => float = (): float => expr0_lambda#🍽️👩‍👧💐(
-    1,
-)
+            const estimateNormal_specialization#🧜‍♂️🧩😵😃: () => float = (): float => expr0_lambda#🍽️👩‍👧💐(
+                1,
+            )
 
-const expr0#😙🦗💆😃: (float) => float = (
-    coord#:2: float,
-): float => estimateNormal_specialization#💯() + callIt_specialization#🕐🕜🧟‍♀️😃(
-    1000,
-) + coord#:2
-`);
+            const expr0#⛺😘🙎: (float) => float = (
+                coord#:2: float,
+            ): float => estimateNormal_specialization#🧜‍♂️🧩😵😃() + callIt_specialization#🧑‍🦽(
+                1000,
+            ) + coord#:2
+        `);
 
         result.inOrder.forEach((k) => {
             result.irTerms[k].expr = runOpt(
@@ -303,24 +305,24 @@ const expr0#😙🦗💆😃: (float) => float = (
         //     optimizeRepeatedly([removeUnusedVariables, flattenImmediateCalls2]),
         // );
         expect(result).toMatchInlineSnapshot(`
-const expr0_lambda#🍽️👩‍👧💐: (int) => float = (
-    pos#:0: int,
-): float => 23
+            const expr0_lambda#🍽️👩‍👧💐: (int) => float = (
+                pos#:0: int,
+            ): float => 23
 
-const callIt_specialization#🕐🕜🧟‍♀️😃: (int) => float = (
-    eye#:1: int,
-): float => expr0_lambda#🍽️👩‍👧💐(eye#:1)
+            const callIt_specialization#🧑‍🦽: (int) => float = (
+                eye#:1: int,
+            ): float => expr0_lambda#🍽️👩‍👧💐(eye#:1)
 
-const estimateNormal_specialization#💯: () => float = (): float => expr0_lambda#🍽️👩‍👧💐(
-    1,
-)
+            const estimateNormal_specialization#🧜‍♂️🧩😵😃: () => float = (): float => expr0_lambda#🍽️👩‍👧💐(
+                1,
+            )
 
-const expr0#😙🦗💆😃: (float) => float = (
-    coord#:2: float,
-): float => estimateNormal_specialization#💯() + callIt_specialization#🕐🕜🧟‍♀️😃(
-    1000,
-) + coord#:2
-`);
+            const expr0#⛺😘🙎: (float) => float = (
+                coord#:2: float,
+            ): float => estimateNormal_specialization#🧜‍♂️🧩😵😃() + callIt_specialization#🧑‍🦽(
+                1000,
+            ) + coord#:2
+        `);
 
         expectValidGlsl(result);
     });
@@ -355,24 +357,24 @@ const expr0#😙🦗💆😃: (float) => float = (
         );
 
         expect(result).toMatchInlineSnapshot(`
-const expr0_lambda#💦: (float) => float = (
-    pos#:0: float,
-): float => pos#:0 + 2.3
+            const expr0_lambda#💦: (float) => float = (
+                pos#:0: float,
+            ): float => pos#:0 + 2.3
 
-const callIt_specialization#🚘🙅🥢😃: (float) => float = (
-    eye#:1: float,
-): float => expr0_lambda#💦(eye#:1)
+            const estimateNormal_specialization#🏬🏥😣: () => float = (): float => expr0_lambda#💦(
+                2.3 + 1,
+            ) + 1.2
 
-const estimateNormal_specialization#🕓🍂🚗😃: () => float = (): float => expr0_lambda#💦(
-    2.3 + 1,
-) + 1.2
+            const callIt_specialization#🎠✌️🧑‍🎨😃: (float) => float = (
+                eye#:1: float,
+            ): float => expr0_lambda#💦(eye#:1)
 
-const expr0#⛷️: (float) => float = (
-    coord#:2: float,
-): float => estimateNormal_specialization#🕓🍂🚗😃() - callIt_specialization#🚘🙅🥢😃(
-    0.1 + 2.3,
-)
-`);
+            const expr0#🚒🏌️🧗😃: (float) => float = (
+                coord#:2: float,
+            ): float => estimateNormal_specialization#🏬🏥😣() - callIt_specialization#🎠✌️🧑‍🎨😃(
+                0.1 + 2.3,
+            )
+        `);
 
         expectValidGlsl(result);
     });
@@ -397,7 +399,7 @@ const expr0#⛷️: (float) => float = (
             ]),
         );
         expect(result).toMatchInlineSnapshot(`
-            const expr0#🧳⛽🕵️‍♀️: () => int = (): int => {
+            const expr0#👽: () => int = (): int => {
                 const z#:4: int = 2 + 2;
                 const z#:6: int = 4 + 2;
                 return z#:4 * z#:4 + z#:6 * z#:6;
@@ -432,7 +434,7 @@ const expr0#⛷️: (float) => float = (
             ]),
         );
         expect(result).toMatchInlineSnapshot(`
-            const tailMe#🤹🥐🐒: (int, int, int) => int = (
+            const tailMe#🦷😸⛽: (int, int, int) => int = (
                 max#:0: int,
                 collect#:1: int,
                 most#:2: int,
@@ -444,9 +446,9 @@ const expr0#⛷️: (float) => float = (
                 return collect#:1;
             }
 
-            const expr1#🚠: int = tailMe#🤹🥐🐒(1, 0, 2)
+            const expr1#💒: int = tailMe#🦷😸⛽(1, 0, 2)
 
-            const expr0#😬: int = tailMe#🤹🥐🐒(20, 0, 1)
+            const expr0#🌝🐌🤣: int = tailMe#🦷😸⛽(20, 0, 1)
         `);
         expectValidGlsl(result);
     });
