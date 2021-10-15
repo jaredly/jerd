@@ -180,7 +180,7 @@ describe('type descriptions', () => {
             @unique(0.5661807692527293) type Something#c8389130<A#:0, B#:1> = {
                 one: A#:0,
                 two: B#:1,
-                three: <C#:2, D#:3>(name: C#:2, age: D#:3) ={}> (C#:2, D#:3),
+                three: <C#:2, D#:3>(name: C#:2, age: D#:3) ={}> Tuple2#builtin<C#:2, D#:3>,
             }
         `);
     });
@@ -237,7 +237,7 @@ describe('expression types', () => {
                 name: string#builtin,
                 age: int#builtin,
             };
-            const m#6ef797af = (p#:0: Person#69e137a8): (string#builtin, int#builtin) ={}> (
+            const m#6ef797af = (p#:0: Person#69e137a8): Tuple2#builtin<string#builtin, int#builtin> ={}> (
                 p#:0.name#69e137a8#0,
                 p#:0.age#69e137a8#1,
             )
@@ -298,10 +298,10 @@ describe('expression types', () => {
                 const m#:0 = 2;
                 m#:0 /#builtin 1;
             };
-            const c#bdfd33b0 = (a#:0: int#builtin, b#:1: float#builtin): (int#builtin, float#builtin) ={}> (
-                a#:0,
-                b#:1,
-            );
+            const c#bdfd33b0 = (a#:0: int#builtin, b#:1: float#builtin): Tuple2#builtin<
+                int#builtin,
+                float#builtin,
+            > ={}> (a#:0, b#:1);
             const m#4fb5f0cc = (fn#:0: (one: int#builtin, two: float#builtin) ={}> string#builtin): int#builtin ={}> 10
         `));
 
@@ -467,7 +467,7 @@ describe('expression types', () => {
             @unique(0.8408403012585762) type Company#503a4e65 = {
                 name: string#builtin,
                 people: Array#builtin<Person#69e137a8>,
-                ages: (int#builtin, float#builtin),
+                ages: Tuple2#builtin<int#builtin, float#builtin>,
             };
             enum Companies#7c2cbdce {
                 Company#503a4e65,
@@ -558,7 +558,7 @@ describe('Decorators', () => {
                 w: float#builtin,
             };
             @unique(0.5383562320075749) decorator alternates#2d1ef174<T#:0>(
-                options: Constant#builtin<Array#builtin<(string#builtin, T#:0)>>,
+                options: Constant#builtin<Array#builtin<Tuple2#builtin<string#builtin, T#:0>>>,
             ) T#:0;
             @unique(0.969424254802974) decorator slider#1d9fcfd2(
                 min: Constant#builtin<float#builtin>,
@@ -590,10 +590,10 @@ describe('Decorators', () => {
                 pos#:0.x#4284214c#0 *#builtin @slider#1d9fcfd2(min: 0.0, max: 10.0, step: 0.1) 2.3;
             };
             const oneThing#b1904fe4 = @alternates#2d1ef174(
-                options: <(string#builtin, int#builtin)>[("hello", 2), ("sadness", -2)],
+                options: <Tuple2#builtin<string#builtin, int#builtin>>[("hello", 2), ("sadness", -2)],
             ) 23;
             const oneThing#243d9adb = @alternates#2d1ef174(
-                options: <(string#builtin, float#builtin)>[("hello", 2.0), ("sadness", -2.0)],
+                options: <Tuple2#builtin<string#builtin, float#builtin>>[("hello", 2.0), ("sadness", -2.0)],
             ) 23.0
         `);
     });

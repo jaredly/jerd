@@ -360,12 +360,12 @@ export const typeVblDeclsToPretty = (
 export const typeToPretty = (env: Env | null, type: Type): PP => {
     switch (type.type) {
         case 'ref':
-            if (
-                type.ref.type === 'builtin' &&
-                type.ref.name.startsWith('Tuple')
-            ) {
-                return args(type.typeVbls.map((t) => typeToPretty(env, t)));
-            }
+            // if (
+            //     type.ref.type === 'builtin' &&
+            //     type.ref.name.startsWith('Tuple')
+            // ) {
+            //     return args(type.typeVbls.map((t) => typeToPretty(env, t)));
+            // }
             if (type.typeVbls.length) {
                 return items(
                     [

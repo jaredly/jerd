@@ -121,6 +121,21 @@ export const typeTypeRef = (ctx: Context, type: TypeRef): t.Type => {
         });
     }
 
+    if (type.id.text.match(/^Tuple\d+$/)) {
+        const arity = +type.id.text.slice('Tuple'.length);
+        if (arity === type.typeVbls?.inner.items.length) {
+            const decls: Array<Array<t.Id>> = [];
+            for (let i = 0; i < arity; i++) {
+                decls.push([]);
+            }
+
+            options.push({
+                vbls: decls,
+                ref: { type: 'builtin', name: type.id.text },
+            });
+        }
+    }
+
     if (!options.length) {
         return {
             type: 'TNotFound',

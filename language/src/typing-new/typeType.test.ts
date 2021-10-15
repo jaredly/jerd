@@ -67,7 +67,9 @@ describe('typeType', () => {
         ctx.builtins.types['int'] = 0;
         const res = parseType(ctx, '(int, int)');
         const printed = typeToString(ctx, res);
-        expect(printed).toMatchInlineSnapshot(`(int#builtin, int#builtin)`);
+        expect(printed).toMatchInlineSnapshot(
+            `Tuple2#builtin<int#builtin, int#builtin>`,
+        );
         expect(res).toNotHaveErrorsT(ctx);
         expect(typeToString(ctx, parseType(ctx, printed))).toEqual(printed);
     });
