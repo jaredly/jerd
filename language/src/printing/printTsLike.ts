@@ -453,11 +453,12 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
 export const termOrLetToPretty = (env: Env, term: Term | Let): PP => {
     switch (term.type) {
         case 'Let':
-            env.term.localNames[term.binding.unique] = term.binding.name;
+            env.term.localNames[term.binding.sym.unique] =
+                term.binding.sym.name;
             return items(
                 [
                     atom('const ', ['keyword']),
-                    symToPretty(env, term.binding, term.idLocation),
+                    symToPretty(env, term.binding.sym, term.binding.location),
                     atom(' = '),
                     termToPretty(env, term.value),
                 ],
@@ -605,13 +606,7 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                     args(
                         term.args.map((arg, i) =>
                             items([
-                                symToPretty(
-                                    env,
-                                    arg,
-                                    term.idLocations
-                                        ? term.idLocations[i]
-                                        : undefined,
-                                ),
+                                symToPretty(env, arg.sym, arg.location),
                                 atom(': '),
                                 typeToPretty(env, term.is.args[i]),
                             ]),
@@ -721,7 +716,7 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                     env.global.terms[idName(resolvedTarget.ref.id)];
             }
             if (resolvedTarget.type === 'lambda') {
-                argNames = resolvedTarget.args.map((sym) => sym.name);
+                argNames = resolvedTarget.args.map((sym) => sym.sym.name);
             }
             return items(
                 [

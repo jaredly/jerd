@@ -32,8 +32,7 @@ export const typeBlock = (
                 });
                 return {
                     type: 'Let',
-                    binding: sym,
-                    idLocation: st.id.location,
+                    binding: { sym, location: st.id.location },
                     is: void_,
                     location: st.location,
                     value,

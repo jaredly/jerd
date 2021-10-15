@@ -93,9 +93,8 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
         const l: Let = {
             type: 'Let',
             location: builtinLocation,
-            idLocation: builtinLocation,
             is: bool,
-            binding: sym,
+            binding: { sym, location: builtinLocation },
             value: term,
         };
         syms.push(sym);
@@ -105,9 +104,8 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
     sts.push({
         type: 'Let',
         location: loc,
-        idLocation: loc,
         is: float,
-        binding: sizeSym,
+        binding: { sym: sizeSym, location: loc },
         value: applyBuiltin(
             '/',
             [
@@ -142,9 +140,8 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
     sts.push({
         type: 'Let',
         location: loc,
-        idLocation: loc,
         is: float,
-        binding: rad,
+        binding: { sym: rad, location: loc },
         value: applyBuiltin(
             '*',
             [var_(sizeSym, float, loc), floatLiteral(0.4, loc)],
@@ -231,8 +228,10 @@ export const glslTester = (env: Env, tests: Array<Term>): Lambda => {
 
     return {
         type: 'lambda',
-        args: [envSym, fragCoord],
-        idLocations: [nullLocation, nullLocation],
+        args: [
+            { sym: envSym, location: nullLocation },
+            { sym: fragCoord, location: nullLocation },
+        ],
         body: block,
         location: builtinLocation,
         is: pureFunction([refType(idFromName(GLSLEnv$1_id)), Vec2], Vec4),

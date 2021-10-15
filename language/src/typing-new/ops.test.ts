@@ -104,8 +104,12 @@ y float
 const fakeOp = (t: Type) =>
     preset.lambdaLiteral(
         [
-            { sym: { unique: 0, name: 'left' }, is: t },
-            { sym: { name: 'right', unique: 1 }, is: t },
+            { sym: { unique: 0, name: 'left' }, is: t, location: nullLocation },
+            {
+                sym: { name: 'right', unique: 1 },
+                is: t,
+                location: nullLocation,
+            },
         ],
         {
             type: 'Hole',
@@ -125,8 +129,8 @@ const T: Type = {
 
 const fakeAnyOp = preset.lambdaLiteral(
     [
-        { sym: { unique: 0, name: 'left' }, is: T },
-        { sym: { name: 'right', unique: 1 }, is: T },
+        { sym: { unique: 0, name: 'left' }, is: T, location: nullLocation },
+        { sym: { name: 'right', unique: 1 }, is: T, location: nullLocation },
     ],
     {
         type: 'Hole',

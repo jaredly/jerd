@@ -1345,7 +1345,7 @@ export const maxUnique = (term: Term) => {
         }
         if (term.type === 'lambda') {
             term.args.forEach((arg) => {
-                max = Math.max(max, arg.unique);
+                max = Math.max(max, arg.sym.unique);
             });
         }
         if (term.type === 'Switch') {

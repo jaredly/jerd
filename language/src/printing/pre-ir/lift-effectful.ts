@@ -20,10 +20,9 @@ const processArg = (
     };
     lets.push({
         type: 'Let',
-        binding: sym,
+        binding: { sym, location: arg.location },
         is: arg.is,
         location: arg.location,
-        idLocation: arg.location,
         value: arg,
     });
     return {

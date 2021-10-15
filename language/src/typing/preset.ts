@@ -78,15 +78,14 @@ export const binOps = [
 ];
 
 export const lambdaLiteral = (
-    args: Array<{ sym: Symbol; is: Type }>,
+    args: Array<{ sym: Symbol; is: Type; location: Location }>,
     body: Term,
     location: Location = nullLocation,
     typeVbls: Array<TypeVblDecl> = [],
 ): Lambda => ({
     type: 'lambda',
-    args: args.map((arg) => arg.sym),
+    args: args.map((arg) => ({ sym: arg.sym, location: arg.location })),
     body: body,
-    idLocations: [],
     is: pureFunction(
         args.map((arg) => arg.is),
         body.is,

@@ -2814,17 +2814,27 @@ export const transformTerm = <Ctx>(node: Term, visitor: Visitor<Ctx>, ctx: Ctx):
                 changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
 
                 
-                let updatedNode$0node$idLocations = updatedNode$0specified.idLocations;
+                let updatedNode$0node$args = updatedNode$0specified.args;
                 {
                     let changed3 = false;
-                    const arr2 = updatedNode$0specified.idLocations.map((updatedNode$0node$idLocations$item2) => {
+                    const arr2 = updatedNode$0specified.args.map((updatedNode$0node$args$item2) => {
                         
-                const result = transformLocation(updatedNode$0node$idLocations$item2, visitor, ctx);
-                changed3 = changed3 || result !== updatedNode$0node$idLocations$item2;
+            let result = updatedNode$0node$args$item2;
+            {
+                let changed4 = false;
+                
+                const result$location = transformLocation(updatedNode$0node$args$item2.location, visitor, ctx);
+                changed4 = changed4 || result$location !== updatedNode$0node$args$item2.location;
+                if (changed4) {
+                    result =  {...result, location: result$location};
+                    changed3 = true;
+                }
+            }
+            
                         return result
                     })
                     if (changed3) {
-                        updatedNode$0node$idLocations = arr2;
+                        updatedNode$0node$args = arr2;
                         changed2 = true;
                     }
                 }
@@ -2849,7 +2859,7 @@ export const transformTerm = <Ctx>(node: Term, visitor: Visitor<Ctx>, ctx: Ctx):
         }
         
                 if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, idLocations: updatedNode$0node$idLocations, body: updatedNode$0node$body, is: updatedNode$0node$is, decorators: updatedNode$0node$decorators};
+                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, args: updatedNode$0node$args, body: updatedNode$0node$body, is: updatedNode$0node$is, decorators: updatedNode$0node$decorators};
                     changed1 = true;
                 }
             }
@@ -3234,8 +3244,18 @@ export const transformTerm = <Ctx>(node: Term, visitor: Visitor<Ctx>, ctx: Ctx):
                 changed5 = changed5 || result$3node$location !== result$3specified.location;
 
                 
-                const result$3node$idLocation = transformLocation(result$3specified.idLocation, visitor, ctx);
-                changed5 = changed5 || result$3node$idLocation !== result$3specified.idLocation;
+            let result$3node$binding = result$3specified.binding;
+            {
+                let changed6 = false;
+                
+                const result$3node$binding$location = transformLocation(result$3specified.binding.location, visitor, ctx);
+                changed6 = changed6 || result$3node$binding$location !== result$3specified.binding.location;
+                if (changed6) {
+                    result$3node$binding =  {...result$3node$binding, location: result$3node$binding$location};
+                    changed5 = true;
+                }
+            }
+            
 
                 
                 const result$3node$value = transformTerm(result$3specified.value, visitor, ctx);
@@ -3256,7 +3276,7 @@ export const transformTerm = <Ctx>(node: Term, visitor: Visitor<Ctx>, ctx: Ctx):
         }
         
                 if (changed5) {
-                    result$3node =  {...result$3node, location: result$3node$location, idLocation: result$3node$idLocation, value: result$3node$value, is: result$3node$is, decorators: result$3node$decorators};
+                    result$3node =  {...result$3node, location: result$3node$location, binding: result$3node$binding, value: result$3node$value, is: result$3node$is, decorators: result$3node$decorators};
                     changed4 = true;
                 }
             }
@@ -3453,8 +3473,18 @@ export const transformLet = <Ctx>(node: Let, visitor: Visitor<Ctx>, ctx: Ctx): L
                 changed1 = changed1 || updatedNode$location !== node.location;
 
                 
-                const updatedNode$idLocation = transformLocation(node.idLocation, visitor, ctx);
-                changed1 = changed1 || updatedNode$idLocation !== node.idLocation;
+            let updatedNode$binding = node.binding;
+            {
+                let changed2 = false;
+                
+                const updatedNode$binding$location = transformLocation(node.binding.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$binding$location !== node.binding.location;
+                if (changed2) {
+                    updatedNode$binding =  {...updatedNode$binding, location: updatedNode$binding$location};
+                    changed1 = true;
+                }
+            }
+            
 
                 
                 const updatedNode$value = transformTerm(node.value, visitor, ctx);
@@ -3475,7 +3505,7 @@ export const transformLet = <Ctx>(node: Let, visitor: Visitor<Ctx>, ctx: Ctx): L
         }
         
                 if (changed1) {
-                    updatedNode =  {...updatedNode, location: updatedNode$location, idLocation: updatedNode$idLocation, value: updatedNode$value, is: updatedNode$is, decorators: updatedNode$decorators};
+                    updatedNode =  {...updatedNode, location: updatedNode$location, binding: updatedNode$binding, value: updatedNode$value, is: updatedNode$is, decorators: updatedNode$decorators};
                     changed0 = true;
                 }
             }

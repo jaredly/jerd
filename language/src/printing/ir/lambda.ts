@@ -69,14 +69,14 @@ export const printLambda = (
                 loc: term.location,
                 direct: arrowFunctionExpression(
                     directVersion.args.map(
-                        (sym, i) => ({
+                        ({ sym, location }, i) => ({
                             sym,
                             type: typeFromTermType(
                                 env,
                                 opts,
                                 directVersion.is.args[i],
                             ),
-                            loc: term.location,
+                            loc: location,
                         }), // TODO(sourcemap): hang on to location for lambda args?
                     ),
                     withExecutionLimit(
@@ -98,10 +98,10 @@ export const printLambda = (
         return effectfulLambda(env, opts, term);
     } else {
         return arrowFunctionExpression(
-            term.args.map((sym, i) => ({
+            term.args.map(({ sym, location }, i) => ({
                 sym,
                 type: typeFromTermType(env, opts, term.is.args[i]),
-                loc: term.location,
+                loc: location,
             })),
             withExecutionLimit(
                 env,
@@ -162,10 +162,10 @@ const effectfulLambda = (
     return cpsArrowFunctionExpression(
         env,
         opts,
-        term.args.map((sym, i) => ({
+        term.args.map(({ sym, location }, i) => ({
             sym,
             type: typeFromTermType(env, opts, term.is.args[i]),
-            loc: term.location,
+            loc: location,
         })),
         term.is.effects,
         typeFromTermType(env, opts, term.is.res),
@@ -195,7 +195,7 @@ export const sequenceToBlock = (
                     if (s.type === 'Let') {
                         return {
                             type: 'Define',
-                            sym: s.binding,
+                            sym: s.binding.sym,
                             value: printTerm(env, opts, s.value),
                             loc: s.location,
                             is: typeFromTermType(env, opts, s.is),

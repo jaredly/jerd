@@ -1159,7 +1159,6 @@ export const getMainTerm = (
                 },
                 is: preset.pureFunction([], preset.void_),
                 location: nullLocation,
-                idLocations: [],
             },
             displayName,
         };
@@ -1189,7 +1188,6 @@ export const getMainTerm = (
                         ),
                     ),
                 },
-                idLocations: [],
                 is: {
                     type: 'lambda',
                     args: [],

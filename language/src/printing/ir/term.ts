@@ -276,7 +276,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
                             s.type === 'Let'
                                 ? {
                                       type: 'Define',
-                                      sym: s.binding,
+                                      sym: s.binding.sym,
                                       value: printTerm(env, opts, s.value),
                                       is: mapType(s.is),
                                       loc: s.location,
