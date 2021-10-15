@@ -3930,6 +3930,23 @@ export const transformRecordDef = <Ctx>(node: RecordDef, visitor: Visitor<Ctx>, 
                 
 
                 
+                let updatedNode$extends = node.extends;
+                {
+                    let changed2 = false;
+                    const arr1 = node.extends.map((updatedNode$extends$item1) => {
+                        
+                const result = transformUserTypeReference(updatedNode$extends$item1, visitor, ctx);
+                changed2 = changed2 || result !== updatedNode$extends$item1;
+                        return result
+                    })
+                    if (changed2) {
+                        updatedNode$extends = arr1;
+                        changed1 = true;
+                    }
+                }
+                
+
+                
                 let updatedNode$items = node.items;
                 {
                     let changed2 = false;
@@ -3999,7 +4016,7 @@ export const transformRecordDef = <Ctx>(node: RecordDef, visitor: Visitor<Ctx>, 
         }
         
                 if (changed1) {
-                    updatedNode =  {...updatedNode, location: updatedNode$location, typeVbls: updatedNode$typeVbls, items: updatedNode$items, decorators: updatedNode$decorators, defaults: updatedNode$defaults};
+                    updatedNode =  {...updatedNode, location: updatedNode$location, typeVbls: updatedNode$typeVbls, extends: updatedNode$extends, items: updatedNode$items, decorators: updatedNode$decorators, defaults: updatedNode$defaults};
                     changed0 = true;
                 }
             }

@@ -27,7 +27,7 @@ can we say that a let is just an expression?
 like, what would that change?
 Blocks ... idk
 
-
+- [ ] idLocation change!! yeah let's do that.
 
 
 

@@ -3,7 +3,7 @@ import { void_ } from '../typing/preset';
 import { Let, Sequence, Symbol, Term, Type } from '../typing/types';
 import { advanceUnique, Context, nextUnique } from './Context';
 import { parseSym } from './hashes';
-import { typeExpression } from './typeExpression';
+import { typeExpression, wrapExpected } from './typeExpression';
 import { typeType } from './typeType';
 
 export const typeBlock = (
@@ -46,10 +46,13 @@ export const typeBlock = (
                 );
             }
         }) || [];
-    return {
-        type: 'sequence',
-        location: block.location,
-        is: sts && sts.length ? sts[sts.length - 1].is : void_,
-        sts,
-    };
+    return wrapExpected(
+        {
+            type: 'sequence',
+            location: block.location,
+            is: sts && sts.length ? sts[sts.length - 1].is : void_,
+            sts,
+        },
+        expected,
+    ) as Sequence;
 };

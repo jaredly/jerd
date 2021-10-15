@@ -4,6 +4,7 @@ import { Term, Type } from '../typing/types';
 import { parseIdOrSym } from './hashes';
 import { resolveNamedValue, resolveValue } from './resolve';
 import { Context } from './Context';
+import { wrapExpected } from './typeExpression';
 
 export const typeIdentifier = (
     ctx: Context,
@@ -23,7 +24,7 @@ export const typeIdentifier = (
     }
     const named = resolveNamedValue(ctx, term.text, term.location, expected);
     if (named) {
-        return named;
+        return wrapExpected(named, expected);
     }
     if (expected.length) {
         // Try resolving without an expected type
