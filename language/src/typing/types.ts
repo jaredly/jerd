@@ -537,8 +537,7 @@ export const apply = (
 export type Let = {
     type: 'Let';
     location: Location;
-    idLocation: Location;
-    binding: Symbol; // TODO patterns folks
+    binding: { sym: Symbol; location: Location }; // TODO patterns folks
     value: Term;
     is: Type;
     decorators?: Decorators;
@@ -924,8 +923,7 @@ export type Boolean = {
 export type Lambda = {
     type: 'lambda';
     location: Location;
-    args: Array<Symbol>;
-    idLocations: Array<Location>;
+    args: Array<{ sym: Symbol; location: Location }>;
     body: Term;
     is: LambdaType;
     /**
