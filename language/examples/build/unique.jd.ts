@@ -15,7 +15,7 @@ type t_51ea2a36<T_0> = {
 
 /**
 ```
-const rec arrayEq#dec3f634 = <T#:0>(
+const rec arrayEq#0b9c95cc = <T#:0>(
     one#:0: Array#builtin<T#:0>,
     two#:1: Array#builtin<T#:0>,
     eq#:2: Eq#51ea2a36<T#:0>,
@@ -23,7 +23,7 @@ const rec arrayEq#dec3f634 = <T#:0>(
     switch (one#:0, two#:1) {
         ([], []) => true,
         ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if one#:3 ==#:2#51ea2a36#0 two#:5 {
-            dec3f634#self<T#:0>(rone#:4, rtwo#:6, eq#:2);
+            0b9c95cc#self<T#:0>(rone#:4, rtwo#:6, eq#:2);
         } else {
             false;
         },
@@ -51,7 +51,7 @@ const rec arrayEq#dec3f634 = <T#:0>(
 }
 ```
 */
-export const hash_dec3f634: <T_0>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t_51ea2a36<T_0>) => boolean = <T_0>(one: Array<T_0>, two: Array<T_0>, eq: t_51ea2a36<T_0>) => {
+export const hash_0b9c95cc: <T_0>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t_51ea2a36<T_0>) => boolean = <T_0>(one: Array<T_0>, two: Array<T_0>, eq: t_51ea2a36<T_0>) => {
   let one_i: number = 0;
   let two_i: number = 0;
 
@@ -75,7 +75,7 @@ export const hash_dec3f634: <T_0>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t
 };
 
 /*
-arrayEq#dec3f634
-arrayEq#🦢
+arrayEq#0b9c95cc
+arrayEq#👨‍❤️‍👨🚂🦿
 */
-hash_dec3f634;
+hash_0b9c95cc;

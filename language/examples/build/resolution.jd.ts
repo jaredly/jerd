@@ -27,19 +27,19 @@ type t_As<T_10000, T_10001> = {
 
 /**
 ```
-const one#5678a3a0 = (a#:0: float#builtin): float#builtin ={}> a#:0 +#builtin 4.0
+const one#5c58851a = (a#:0: float#builtin): float#builtin ={}> a#:0 +#builtin 4.0
 (a#:0: float): float => a#:0 + 4
 ```
 */
-export const hash_5678a3a0: (arg_0: number) => number = (a: number) => a + 4;
+export const hash_5c58851a: (arg_0: number) => number = (a: number) => a + 4;
 
 /**
 ```
-const one#f4c397d2 = (a#:0: int#builtin): int#builtin ={}> a#:0 +#builtin 2
+const one#353b9e6c = (a#:0: int#builtin): int#builtin ={}> a#:0 +#builtin 2
 (a#:0: int): int => a#:0 + 2
 ```
 */
-export const hash_f4c397d2: (arg_0: number) => number = (a: number) => a + 2;
+export const hash_353b9e6c: (arg_0: number) => number = (a: number) => a + 2;
 
 /**
 ```
@@ -64,12 +64,12 @@ export const hash_9ca984ce: t_51ea2a36<number> = ({
 } as t_51ea2a36<number>);
 
 /*
-one#f4c397d2(a: 2) as#6f186ad1 float#builtin +#builtin one#5678a3a0(a: 3.0) 
+one#353b9e6c(a: 2) as#6f186ad1 float#builtin +#builtin one#5c58851a(a: 3.0) 
     ==#9ca984ce#51ea2a36#0 11.0
 assertCall(
     FloatEq#👨‍🦰.#Eq#🦩🥜👩‍💻😃#0,
-    IntAsFloat#🥛🐰🗻😃.#As#😉#0(one#🥈(2)) + one#⛅🐾🧞‍♀️😃(3),
+    IntAsFloat#🥛🐰🗻😃.#As#😉#0(one#🍃🌍🚧(2)) + one#👨‍🔬🐨👬😃(3),
     11,
 )
 */
-assertCall(hash_9ca984ce.h51ea2a36_0, hash_6f186ad1.hAs_0(hash_f4c397d2(2)) + hash_5678a3a0(3), 11);
+assertCall(hash_9ca984ce.h51ea2a36_0, hash_6f186ad1.hAs_0(hash_353b9e6c(2)) + hash_5c58851a(3), 11);

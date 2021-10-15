@@ -30,11 +30,11 @@ export const hash_64605d94:
 
 /**
 ```
-const rec provideString#0247dd82 = (
+const rec provideString#706cdc48 = (
     v#:0: string#builtin,
     fn#:1: () ={Read#22024b72}> string#builtin,
 ): string#builtin ={}> handle! fn#:1 {
-    Read.read#0(() => k#:3) => 0247dd82#self(
+    Read.read#0(() => k#:3) => 706cdc48#self(
             v#:0,
             (): string#builtin ={Read#22024b72}> k#:3(v#:0 +#builtin "got") +#builtin "back",
         ) 
@@ -48,7 +48,7 @@ const rec provideString#0247dd82 = (
 }
 ```
 */
-export const hash_0247dd82: (arg_0: string, arg_1:
+export const hash_706cdc48: (arg_0: string, arg_1:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: string) => void) => void) => string = (v: string, fn:
 /*from cps lambda*/
@@ -57,7 +57,7 @@ export const hash_0247dd82: (arg_0: string, arg_1:
   handleSimpleShallow2<any, any, any>("22024b72", fn, [(handlers, _, k$3:
   /*from cps lambda*/
   (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: string) => void) => void) => {
-    result = hash_0247dd82(v, (handlers: Handlers, done$6: (arg_0: Handlers, arg_1: string) => void) => {
+    result = hash_706cdc48(v, (handlers: Handlers, done$6: (arg_0: Handlers, arg_1: string) => void) => {
       k$3(v + "got", handlers, (handlers: Handlers, returnValue: string) => {
         done$6(handlers, returnValue + "back");
       });
@@ -80,12 +80,12 @@ export const hash_da00b310: t_51ea2a36<string> = ({
 } as t_51ea2a36<string>);
 
 /*
-provideString#0247dd82(v: "Yes", fn: getString#64605d94) 
+provideString#706cdc48(v: "Yes", fn: getString#64605d94) 
     ==#da00b310#51ea2a36#0 "Yesgotbackpureprovided"
 assertCall(
     StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
-    provideString#👩‍🦽🦝😶("Yes", getString#⛷️😛🐠😃),
+    provideString#😦🚓🏪😃("Yes", getString#⛷️😛🐠😃),
     "Yesgotbackpureprovided",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_0247dd82("Yes", hash_64605d94), "Yesgotbackpureprovided");
+assertCall(hash_da00b310.h51ea2a36_0, hash_706cdc48("Yes", hash_64605d94), "Yesgotbackpureprovided");

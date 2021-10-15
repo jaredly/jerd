@@ -1,5 +1,5 @@
 import { AsSuffix } from '../../parsing/parser';
-import { idFromName, symPrefix } from '../env';
+import { idFromName, idName, symPrefix } from '../env';
 import { LocatedError } from '../errors';
 import { getTypeError } from '../getTypeError';
 import { pureFunction } from '../preset';
@@ -90,11 +90,15 @@ export const typeAs = (env: Env, target: Term, suffix: AsSuffix): Term => {
                 is: local.type,
             };
         } else {
-            const t = env.global.terms[suffix.hash.slice(1)];
+            let rawId = suffix.hash.slice(1);
+            if (env.global.idRemap[rawId]) {
+                rawId = idName(env.global.idRemap[rawId]);
+            }
+            const t = env.global.terms[rawId];
             if (!t) {
                 throw new LocatedError(
                     suffix.location,
-                    `Unknown term ${suffix.hash.slice(1)}`,
+                    `Unknown term ${rawId}`,
                 );
             }
             const err = getTypeError(env, t.is, goalType, suffix.location);

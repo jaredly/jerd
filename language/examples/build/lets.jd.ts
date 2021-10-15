@@ -26,11 +26,11 @@ export const hash_ec95f154: t_51ea2a36<number> = ({
 
 /**
 ```
-const rec fib#f0fe98c2 = (prev#:0: int#builtin, cur#:1: int#builtin, n#:2: int#builtin): int#builtin ={}> if n#:2 
+const rec fib#0cb40110 = (prev#:0: int#builtin, cur#:1: int#builtin, n#:2: int#builtin): int#builtin ={}> if n#:2 
     ==#ec95f154#51ea2a36#0 0 {
     prev#:0;
 } else {
-    f0fe98c2#self(cur#:1, prev#:0 +#builtin cur#:1, n#:2 -#builtin 1);
+    0cb40110#self(cur#:1, prev#:0 +#builtin cur#:1, n#:2 -#builtin 1);
 }
 (prev#:0: int, cur#:1: int, n#:2: int): int => {
     loop(unbounded) {
@@ -47,7 +47,7 @@ const rec fib#f0fe98c2 = (prev#:0: int#builtin, cur#:1: int#builtin, n#:2: int#b
 }
 ```
 */
-export const hash_f0fe98c2: (arg_0: number, arg_1: number, arg_2: number) => number = (prev: number, cur: number, n: number) => {
+export const hash_0cb40110: (arg_0: number, arg_1: number, arg_2: number) => number = (prev: number, cur: number, n: number) => {
   while (true) {
     if (hash_ec95f154.h51ea2a36_0(n, 0)) {
       return prev;
@@ -63,40 +63,40 @@ export const hash_f0fe98c2: (arg_0: number, arg_1: number, arg_2: number) => num
 
 /**
 ```
-const z#ce5d9b4c = (n#:0: int#builtin): int#builtin ={}> {
+const z#560f2d40 = (n#:0: int#builtin): int#builtin ={}> {
     const m#:1 = n#:0 +#builtin 2;
     m#:1 -#builtin 1;
 }
 (n#:0: int): int => n#:0 + 2 - 1
 ```
 */
-export const hash_ce5d9b4c: (arg_0: number) => number = (n$0: number) => n$0 + 2 - 1;
+export const hash_560f2d40: (arg_0: number) => number = (n$0: number) => n$0 + 2 - 1;
 
 /**
 ```
-const x#0c634e04 = {
+const x#6a4891d8 = {
     const y#:0 = 10;
     y#:0;
 }
 10
 ```
 */
-export const hash_0c634e04: number = 10;
+export const hash_6a4891d8: number = 10;
 
 /*
-x#0c634e04 ==#ec95f154#51ea2a36#0 10
-assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, x#🐮👩‍🦰👶, 10)
+x#6a4891d8 ==#ec95f154#51ea2a36#0 10
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, x#👨‍👨‍👧‍👧🦦🥘😃, 10)
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_0c634e04, 10);
+assertCall(hash_ec95f154.h51ea2a36_0, hash_6a4891d8, 10);
 
 /*
-z#ce5d9b4c(n: 10) ==#ec95f154#51ea2a36#0 11
-assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, z#🛤️(10), 11)
+z#560f2d40(n: 10) ==#ec95f154#51ea2a36#0 11
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, z#🧕🎗️🧜‍♂️😃(10), 11)
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_ce5d9b4c(10), 11);
+assertCall(hash_ec95f154.h51ea2a36_0, hash_560f2d40(10), 11);
 
 /*
-fib#f0fe98c2(prev: 0, cur: 1, n: 10) ==#ec95f154#51ea2a36#0 55
-assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, fib#👀(0, 1, 10), 55)
+fib#0cb40110(prev: 0, cur: 1, n: 10) ==#ec95f154#51ea2a36#0 55
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, fib#🧑‍🔧👩‍⚕️👱(0, 1, 10), 55)
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_f0fe98c2(0, 1, 10), 55);
+assertCall(hash_ec95f154.h51ea2a36_0, hash_0cb40110(0, 1, 10), 55);

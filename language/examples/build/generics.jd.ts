@@ -15,37 +15,45 @@ type t_51ea2a36<T_0> = {
 
 /**
 ```
-const addTwo#f4c397d2 = (one#:0: int#builtin): int#builtin ={}> one#:0 +#builtin 2
+const addTwo#353b9e6c = (one#:0: int#builtin): int#builtin ={}> one#:0 +#builtin 2
 (one#:0: int): int => one#:0 + 2
 ```
 */
-export const hash_f4c397d2: (arg_0: number) => number = (one: number) => one + 2;
+export const hash_353b9e6c: (arg_0: number) => number = (one: number) => one + 2;
 
 /**
 ```
-const callme#777bf1fc = <T#:0>(x#:0: (T#:0) ={}> T#:0, arg#:1: T#:0): T#:0 ={}> x#:0(arg#:1)
+const callme#25f9596b = <T#:0>(x#:0: (T#:0) ={}> T#:0, arg#:1: T#:0): T#:0 ={}> x#:0(arg#:1)
 <T>(x#:0: ([var]T#:0) => [var]T#:0, arg#:1: [var]T#:0): [var]T#:0 => x#:0(arg#:1)
 ```
 */
-export const hash_777bf1fc: <T_0>(arg_0: (arg_0: T_0) => T_0, arg_1: T_0) => T_0 = <T_0>(x: (arg_0: T_0) => T_0, arg: T_0) => x(arg);
+export const hash_25f9596b: <T_0>(arg_0: (arg_0: T_0) => T_0, arg_1: T_0) => T_0 = <T_0>(x: (arg_0: T_0) => T_0, arg: T_0) => x(arg);
 
 /**
 ```
-const scopeIt#36626a20 = (x#:0: int#builtin): (y: int#builtin) ={}> int#builtin ={}> (
+const scopeIt#4be86ab4 = (x#:0: int#builtin): (y: int#builtin) ={}> int#builtin ={}> (
     y#:1: int#builtin,
 ): int#builtin ={}> x#:0 +#builtin y#:1
 (x#:0: int): (int) => int => (y#:1: int): int => x#:0 + y#:1
 ```
 */
-export const hash_36626a20: (arg_0: number) => (arg_0: number) => number = (x: number) => (y: number) => x + y;
+export const hash_4be86ab4: (arg_0: number) => (arg_0: number) => number = (x: number) => (y: number) => x + y;
 
 /**
 ```
-const callIt#2d15e126 = callme#777bf1fc<int#builtin>(x: addTwo#f4c397d2, arg: 5)
-callme#🐯🏚️🕝😃<int>(addTwo#🥈, 5)
+const callIt#09628198 = callme#25f9596b<int#builtin>(x: addTwo#353b9e6c, arg: 5)
+callme#💆🦠🌼<int>(addTwo#🍃🌍🚧, 5)
 ```
 */
-export const hash_2d15e126: number = hash_777bf1fc(hash_f4c397d2, 5);
+export const hash_09628198: number = hash_25f9596b(hash_353b9e6c, 5);
+
+/**
+```
+const ten#62aa9914 = scopeIt#4be86ab4(x: 4)(6)
+scopeIt#🍢🐰👃😃(4)(6)
+```
+*/
+export const hash_62aa9914: number = hash_4be86ab4(4)(6);
 
 /**
 ```
@@ -58,22 +66,14 @@ export const hash_ec95f154: t_51ea2a36<number> = ({
   h51ea2a36_0: intEq
 } as t_51ea2a36<number>);
 
-/**
-```
-const ten#48447074 = scopeIt#36626a20(x: 4)(6)
-scopeIt#🐻‍❄️🖖🛰️(4)(6)
-```
+/*
+ten#62aa9914 ==#ec95f154#51ea2a36#0 10
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, ten#👨‍🏭🥣🐔😃, 10)
 */
-export const hash_48447074: number = hash_36626a20(4)(6);
+assertCall(hash_ec95f154.h51ea2a36_0, hash_62aa9914, 10);
 
 /*
-ten#48447074 ==#ec95f154#51ea2a36#0 10
-assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, ten#💌🧑‍💻💜😃, 10)
+callIt#09628198 ==#ec95f154#51ea2a36#0 7
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, callIt#🏌️‍♀️🤘👋, 7)
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_48447074, 10);
-
-/*
-callIt#2d15e126 ==#ec95f154#51ea2a36#0 7
-assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, callIt#👨‍✈️🧎‍♂️🥛, 7)
-*/
-assertCall(hash_ec95f154.h51ea2a36_0, hash_2d15e126, 7);
+assertCall(hash_ec95f154.h51ea2a36_0, hash_09628198, 7);

@@ -55,14 +55,14 @@ type t_08f7c2ac = {
 
 /**
 ```
-const vec2#fa534764 = (x#:0: float#builtin, y#:1: float#builtin): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
+const vec2#5531df03 = (x#:0: float#builtin, y#:1: float#builtin): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
     x#08f7c2ac#0: x#:0,
     y#08f7c2ac#1: y#:1,
 }
 (x#:0: float, y#:1: float): Vec2#🍱🐶💣 => Vec2#🍱🐶💣{TODO SPREADs}{x: x#:0, y: y#:1}
 ```
 */
-export const hash_fa534764: (arg_0: number, arg_1: number) => t_08f7c2ac = (x: number, y: number) => ({
+export const hash_5531df03: (arg_0: number, arg_1: number) => t_08f7c2ac = (x: number, y: number) => ({
   type: "Vec2",
   x: x,
   y: y
@@ -70,18 +70,18 @@ export const hash_fa534764: (arg_0: number, arg_1: number) => t_08f7c2ac = (x: n
 
 /**
 ```
-const thetaPos2#b03288dc = (theta#:0: float#builtin): Vec2#08f7c2ac ={}> vec2#fa534764(
+const thetaPos2#3d82c362 = (theta#:0: float#builtin): Vec2#08f7c2ac ={}> vec2#5531df03(
     x: cos#builtin(theta#:0),
     y: sin#builtin(theta#:0),
 )
-(theta#:0: float): Vec2#🍱🐶💣 => vec2#🚠(cos(theta#:0), sin(theta#:0))
+(theta#:0: float): Vec2#🍱🐶💣 => vec2#🏦💖🦹😃(cos(theta#:0), sin(theta#:0))
 ```
 */
-export const hash_b03288dc: (arg_0: number) => t_08f7c2ac = (theta: number) => hash_fa534764(cos(theta), sin(theta));
+export const hash_3d82c362: (arg_0: number) => t_08f7c2ac = (theta: number) => hash_5531df03(cos(theta), sin(theta));
 
 /**
 ```
-const Vec2float#db41487e = Mul#02cc25c4<Vec2#08f7c2ac, float#builtin, Vec2#08f7c2ac>{
+const Vec2float#4d42870c = Mul#02cc25c4<Vec2#08f7c2ac, float#builtin, Vec2#08f7c2ac>{
     "*"#02cc25c4#0: (v#:0: Vec2#08f7c2ac, scale#:1: float#builtin): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
         x#08f7c2ac#0: v#:0.x#08f7c2ac#0 *#builtin scale#:1,
         y#08f7c2ac#1: v#:0.y#08f7c2ac#1 *#builtin scale#:1,
@@ -95,7 +95,7 @@ Mul#👫🏭😪{TODO SPREADs}{
 }
 ```
 */
-export const hash_db41487e: t_02cc25c4<t_08f7c2ac, number, t_08f7c2ac> = ({
+export const hash_4d42870c: t_02cc25c4<t_08f7c2ac, number, t_08f7c2ac> = ({
   type: "02cc25c4",
   h02cc25c4_0: (v: t_08f7c2ac, scale: number) => ({
     type: "Vec2",
@@ -106,7 +106,7 @@ export const hash_db41487e: t_02cc25c4<t_08f7c2ac, number, t_08f7c2ac> = ({
 
 /**
 ```
-const AddSubVec2#04f14e9c = AddSub#3d436b7e<Vec2#08f7c2ac, Vec2#08f7c2ac, Vec2#08f7c2ac>{
+const AddSubVec2#87e033d0 = AddSub#3d436b7e<Vec2#08f7c2ac, Vec2#08f7c2ac, Vec2#08f7c2ac>{
     "+"#3d436b7e#0: (one#:0: Vec2#08f7c2ac, two#:1: Vec2#08f7c2ac): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
         x#08f7c2ac#0: one#:0.x#08f7c2ac#0 +#builtin two#:1.x#08f7c2ac#0,
         y#08f7c2ac#1: one#:0.y#08f7c2ac#1 +#builtin two#:1.y#08f7c2ac#1,
@@ -128,7 +128,7 @@ AddSub#🕕🧑‍🦲⚽{TODO SPREADs}{
 }
 ```
 */
-export const hash_04f14e9c: t_3d436b7e<t_08f7c2ac, t_08f7c2ac, t_08f7c2ac> = ({
+export const hash_87e033d0: t_3d436b7e<t_08f7c2ac, t_08f7c2ac, t_08f7c2ac> = ({
   type: "3d436b7e",
   h3d436b7e_0: (one: t_08f7c2ac, two: t_08f7c2ac) => ({
     type: "Vec2",
@@ -155,7 +155,7 @@ export const hash_6f186ad1: t_As<number, number> = ({
 
 /**
 ```
-const rec accurateSpiral#ae2070ac = (
+const rec accurateSpiral#702f3342 = (
     at#:0: int#builtin,
     by#:1: float#builtin,
     length#:2: float#builtin,
@@ -169,8 +169,8 @@ const rec accurateSpiral#ae2070ac = (
     } else {
         const next#:7 = theta#:3 +#builtin by#:1 *#builtin at#:0 as#6f186ad1 float#builtin;
         const nextPos#:8 = pos#:4 
-            +#04f14e9c#3d436b7e#0 thetaPos2#b03288dc(theta#:3) *#db41487e#02cc25c4#0 length#:2;
-        ae2070ac#self(
+            +#87e033d0#3d436b7e#0 thetaPos2#3d82c362(theta#:3) *#4d42870c#02cc25c4#0 length#:2;
+        702f3342#self(
             at#:0 +#builtin 1,
             by#:1,
             length#:2,
@@ -192,9 +192,9 @@ const rec accurateSpiral#ae2070ac = (
 ): Array<Vec2#🍱🐶💣> => {
     const points#:16: Array<Vec2#🍱🐶💣> = *arrayCopy*(points#:5);
     for (; at#:0 < max#:6; at#:0 = at#:0 + 1) {
-        const nextPos#:8: Vec2#🍱🐶💣 = AddSubVec2#🥪😓😱.#AddSub#🕕🧑‍🦲⚽#0(
+        const nextPos#:8: Vec2#🍱🐶💣 = AddSubVec2#🏅.#AddSub#🕕🧑‍🦲⚽#0(
             pos#:4,
-            Vec2float#💔.#Mul#👫🏭😪#0(thetaPos2#👱‍♂️(theta#:3), length#:2),
+            Vec2float#💒🤙🧑‍🦰😃.#Mul#👫🏭😪#0(thetaPos2#🚁👐🏐(theta#:3), length#:2),
         );
         theta#:3 = theta#:3 + by#:1 * IntAsFloat#🥛🐰🗻😃.#As#😉#0(at#:0);
         pos#:4 = nextPos#:8;
@@ -205,11 +205,11 @@ const rec accurateSpiral#ae2070ac = (
 }
 ```
 */
-export const hash_ae2070ac: (arg_0: number, arg_1: number, arg_2: number, arg_3: number, arg_4: t_08f7c2ac, arg_5: Array<t_08f7c2ac>, arg_6: number) => Array<t_08f7c2ac> = (at: number, by: number, length: number, theta$3: number, pos: t_08f7c2ac, points: Array<t_08f7c2ac>, max: number) => {
+export const hash_702f3342: (arg_0: number, arg_1: number, arg_2: number, arg_3: number, arg_4: t_08f7c2ac, arg_5: Array<t_08f7c2ac>, arg_6: number) => Array<t_08f7c2ac> = (at: number, by: number, length: number, theta$3: number, pos: t_08f7c2ac, points: Array<t_08f7c2ac>, max: number) => {
   let points$16: Array<t_08f7c2ac> = points.slice();
 
   for (; at < max; at = at + 1) {
-    let nextPos: t_08f7c2ac = hash_04f14e9c.h3d436b7e_0(pos, hash_db41487e.h02cc25c4_0(hash_b03288dc(theta$3), length));
+    let nextPos: t_08f7c2ac = hash_87e033d0.h3d436b7e_0(pos, hash_4d42870c.h02cc25c4_0(hash_3d82c362(theta$3), length));
     theta$3 = theta$3 + by * hash_6f186ad1.hAs_0(at);
     pos = nextPos;
     points$16.push(nextPos);
@@ -220,7 +220,7 @@ export const hash_ae2070ac: (arg_0: number, arg_1: number, arg_2: number, arg_3:
 };
 
 /*
-accurateSpiral#ae2070ac(
+accurateSpiral#702f3342(
     at: 0,
     by: 3.14159 /#builtin 10.0,
     length: 1.0,
@@ -229,9 +229,9 @@ accurateSpiral#ae2070ac(
     points: <Vec2#08f7c2ac>[],
     max: 200,
 )
-accurateSpiral#🤛(0, 3.14159 / 10, 1, 0, Vec2#🍱🐶💣{TODO SPREADs}{x: 0, y: 0}, [], 200)
+accurateSpiral#🏍️🎟️🏥😃(0, 3.14159 / 10, 1, 0, Vec2#🍱🐶💣{TODO SPREADs}{x: 0, y: 0}, [], 200)
 */
-hash_ae2070ac(0, 3.14159 / 10, 1, 0, ({
+hash_702f3342(0, 3.14159 / 10, 1, 0, ({
   type: "Vec2",
   x: 0,
   y: 0

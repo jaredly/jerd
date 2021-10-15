@@ -3,7 +3,7 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-const z#6a5b05d8 = (n#:0: int#builtin): int#builtin ={}> {
+const z#12863dfa = (n#:0: int#builtin): int#builtin ={}> {
     if n#:0 <#builtin 10 {
         log#builtin("Ok");
     };
@@ -17,7 +17,7 @@ const z#6a5b05d8 = (n#:0: int#builtin): int#builtin ={}> {
 }
 ```
 */
-export const hash_6a5b05d8: (arg_0: number) => number = (n: number) => {
+export const hash_12863dfa: (arg_0: number) => number = (n: number) => {
   if (n < 10) {
     log("Ok");
   }
@@ -26,7 +26,7 @@ export const hash_6a5b05d8: (arg_0: number) => number = (n: number) => {
 };
 
 /*
-z#6a5b05d8(n: 3)
-z#👨‍👨‍👧‍👧🦪🍲😃(3)
+z#12863dfa(n: 3)
+z#🐈‍⬛🧗🧑‍🚀(3)
 */
-hash_6a5b05d8(3);
+hash_12863dfa(3);

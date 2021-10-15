@@ -27,7 +27,7 @@ type t_51ea2a36<T_0> = {
 
 /**
 ```
-const rec arrayEq#dec3f634 = <T#:0>(
+const rec arrayEq#0b9c95cc = <T#:0>(
     one#:0: Array#builtin<T#:0>,
     two#:1: Array#builtin<T#:0>,
     eq#:2: Eq#51ea2a36<T#:0>,
@@ -35,7 +35,7 @@ const rec arrayEq#dec3f634 = <T#:0>(
     switch (one#:0, two#:1) {
         ([], []) => true,
         ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if one#:3 ==#:2#51ea2a36#0 two#:5 {
-            dec3f634#self<T#:0>(rone#:4, rtwo#:6, eq#:2);
+            0b9c95cc#self<T#:0>(rone#:4, rtwo#:6, eq#:2);
         } else {
             false;
         },
@@ -63,7 +63,7 @@ const rec arrayEq#dec3f634 = <T#:0>(
 }
 ```
 */
-export const hash_dec3f634: <T_0>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t_51ea2a36<T_0>) => boolean = <T_0>(one: Array<T_0>, two: Array<T_0>, eq: t_51ea2a36<T_0>) => {
+export const hash_0b9c95cc: <T_0>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t_51ea2a36<T_0>) => boolean = <T_0>(one: Array<T_0>, two: Array<T_0>, eq: t_51ea2a36<T_0>) => {
   let one_i: number = 0;
   let two_i: number = 0;
 
@@ -99,26 +99,26 @@ export const hash_ec95f154: t_51ea2a36<number> = ({
 
 /**
 ```
-const ArrayEq#8715b480 = <T#:0>(eq#:0: Eq#51ea2a36<T#:0>): Eq#51ea2a36<Array#builtin<T#:0>> ={}> Eq#51ea2a36<
+const ArrayEq#1a50aec3 = <T#:0>(eq#:0: Eq#51ea2a36<T#:0>): Eq#51ea2a36<Array#builtin<T#:0>> ={}> Eq#51ea2a36<
     Array#builtin<T#:0>,
 >{
     "=="#51ea2a36#0: (one#:1: Array#builtin<T#:0>, two#:2: Array#builtin<T#:0>): bool#builtin ={}> len#builtin<
                 T#:0,
             >(one#:1) 
             ==#ec95f154#51ea2a36#0 len#builtin<T#:0>(two#:2) 
-        &&#builtin arrayEq#dec3f634<T#:0>(one#:1, two#:2, eq#:0),
+        &&#builtin arrayEq#0b9c95cc<T#:0>(one#:1, two#:2, eq#:0),
 }
 <T>(eq#:0: Eq#🦩🥜👩‍💻😃<[var]T#:0>): Eq#🦩🥜👩‍💻😃<Array<[var]T#:0>> => Eq#🦩🥜👩‍💻😃{TODO SPREADs}{
     h51ea2a36_0: (one#:1: Array<[var]T#:0>, two#:2: Array<[var]T#:0>): bool => IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0(
         len<[var]T#:0>(one#:1),
         len<[var]T#:0>(two#:2),
-    ) && arrayEq#🦢<[var]T#:0>(one#:1, two#:2, eq#:0),
+    ) && arrayEq#👨‍❤️‍👨🚂🦿<[var]T#:0>(one#:1, two#:2, eq#:0),
 }
 ```
 */
-export const hash_8715b480: <T_0>(arg_0: t_51ea2a36<T_0>) => t_51ea2a36<Array<T_0>> = <T_0>(eq$0: t_51ea2a36<T_0>) => ({
+export const hash_1a50aec3: <T_0>(arg_0: t_51ea2a36<T_0>) => t_51ea2a36<Array<T_0>> = <T_0>(eq$0: t_51ea2a36<T_0>) => ({
   type: "51ea2a36",
-  h51ea2a36_0: (one$1: Array<T_0>, two$2: Array<T_0>) => hash_ec95f154.h51ea2a36_0(len(one$1), len(two$2)) && hash_dec3f634(one$1, two$2, eq$0)
+  h51ea2a36_0: (one$1: Array<T_0>, two$2: Array<T_0>) => hash_ec95f154.h51ea2a36_0(len(one$1), len(two$2)) && hash_0b9c95cc(one$1, two$2, eq$0)
 } as t_51ea2a36<Array<T_0>>);
 
 /**
@@ -159,23 +159,23 @@ export const hash_9ca984ce: t_51ea2a36<number> = ({
 
 /**
 ```
-const ArrayIntEq#171f4490 = ArrayEq#8715b480<int#builtin>(eq: IntEq#ec95f154)
-ArrayEq#🧡<int>(IntEq#🦹‍♂️)
+const ArrayIntEq#513ad540 = ArrayEq#1a50aec3<int#builtin>(eq: IntEq#ec95f154)
+ArrayEq#🍧😔🏋️<int>(IntEq#🦹‍♂️)
 ```
 */
-export const hash_171f4490: t_51ea2a36<Array<number>> = hash_8715b480(hash_ec95f154);
+export const hash_513ad540: t_51ea2a36<Array<number>> = hash_1a50aec3(hash_ec95f154);
 
 /**
 ```
-const goToTown#a4c2a3f0 = (t#:0: Tuple2#builtin<int#builtin, int#builtin>): int#builtin ={}> t#:0.0
+const goToTown#19cbd74a = (t#:0: Tuple2#builtin<int#builtin, int#builtin>): int#builtin ={}> t#:0.0
 (t#:0: Tuple2<int, int>): int => t#:0.0
 ```
 */
-export const hash_a4c2a3f0: (arg_0: [number, number]) => number = (t: [number, number]) => t[0];
+export const hash_19cbd74a: (arg_0: [number, number]) => number = (t: [number, number]) => t[0];
 
 /**
 ```
-const IntArrayAddable#5f636011 = Addable#1e488087<Array#builtin<int#builtin>>{
+const IntArrayAddable#14929696 = Addable#1e488087<Array#builtin<int#builtin>>{
     "+"#1e488087#0: (a#:0: Array#builtin<int#builtin>, b#:1: Array#builtin<int#builtin>): Array#builtin<
         int#builtin,
     > ={}> concat#builtin<int#builtin>(a#:0, b#:1),
@@ -185,46 +185,46 @@ Addable#🤍🐻‍❄️👩‍👦‍👦{TODO SPREADs}{
 }
 ```
 */
-export const hash_5f636011: t_1e488087<Array<number>> = ({
+export const hash_14929696: t_1e488087<Array<number>> = ({
   type: "1e488087",
   h1e488087_0: (a: Array<number>, b: Array<number>) => concat(a, b)
 } as t_1e488087<Array<number>>);
 
 /*
-<int#builtin>[1] +#5f636011#1e488087#0 <int#builtin>[2, 3]
-IntArrayAddable#😗🧑‍🦳🦊😃.#Addable#🤍🐻‍❄️👩‍👦‍👦#0([1], [2, 3])
+<int#builtin>[1] +#14929696#1e488087#0 <int#builtin>[2, 3]
+IntArrayAddable#🥩🖕👩‍🍼.#Addable#🤍🐻‍❄️👩‍👦‍👦#0([1], [2, 3])
 */
-hash_5f636011.h1e488087_0([1], [2, 3]);
+hash_14929696.h1e488087_0([1], [2, 3]);
 
 /*
-goToTown#a4c2a3f0(t: (2, 3)) ==#ec95f154#51ea2a36#0 2
-assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, goToTown#🪀((2, 3)), 2)
+goToTown#19cbd74a(t: (2, 3)) ==#ec95f154#51ea2a36#0 2
+assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, goToTown#🚏🏝️🚣((2, 3)), 2)
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_a4c2a3f0([2, 3]), 2);
+assertCall(hash_ec95f154.h51ea2a36_0, hash_19cbd74a([2, 3]), 2);
 
 /*
-ArrayEq#8715b480<int#builtin>(eq: IntEq#ec95f154)."=="#51ea2a36#0(
+ArrayEq#1a50aec3<int#builtin>(eq: IntEq#ec95f154)."=="#51ea2a36#0(
     <int#builtin>[1, 2],
     <int#builtin>[1, 2],
 )
-assertCall(ArrayEq#🧡<int>(IntEq#🦹‍♂️).#Eq#🦩🥜👩‍💻😃#0, [1, 2], [1, 2])
+assertCall(ArrayEq#🍧😔🏋️<int>(IntEq#🦹‍♂️).#Eq#🦩🥜👩‍💻😃#0, [1, 2], [1, 2])
 */
-assertCall(hash_8715b480(hash_ec95f154).h51ea2a36_0, [1, 2], [1, 2]);
+assertCall(hash_1a50aec3(hash_ec95f154).h51ea2a36_0, [1, 2], [1, 2]);
 
 /*
-ArrayEq#8715b480<int#builtin>(eq: IntEq#ec95f154)."=="#51ea2a36#0(
+ArrayEq#1a50aec3<int#builtin>(eq: IntEq#ec95f154)."=="#51ea2a36#0(
     <int#builtin>[1, 2, 3],
     <int#builtin>[1, 2, 3],
 )
-assertCall(ArrayEq#🧡<int>(IntEq#🦹‍♂️).#Eq#🦩🥜👩‍💻😃#0, [1, 2, 3], [1, 2, 3])
+assertCall(ArrayEq#🍧😔🏋️<int>(IntEq#🦹‍♂️).#Eq#🦩🥜👩‍💻😃#0, [1, 2, 3], [1, 2, 3])
 */
-assertCall(hash_8715b480(hash_ec95f154).h51ea2a36_0, [1, 2, 3], [1, 2, 3]);
+assertCall(hash_1a50aec3(hash_ec95f154).h51ea2a36_0, [1, 2, 3], [1, 2, 3]);
 
 /*
-<int#builtin>[1, 2] ==#171f4490#51ea2a36#0 <int#builtin>[1, 2]
-assertCall(ArrayIntEq#💬🥇🚶.#Eq#🦩🥜👩‍💻😃#0, [1, 2], [1, 2])
+<int#builtin>[1, 2] ==#513ad540#51ea2a36#0 <int#builtin>[1, 2]
+assertCall(ArrayIntEq#🧕🍣🧑‍🏭😃.#Eq#🦩🥜👩‍💻😃#0, [1, 2], [1, 2])
 */
-assertCall(hash_171f4490.h51ea2a36_0, [1, 2], [1, 2]);
+assertCall(hash_513ad540.h51ea2a36_0, [1, 2], [1, 2]);
 
 /*
 1 +#builtin 2 *#builtin 3 ==#ec95f154#51ea2a36#0 7

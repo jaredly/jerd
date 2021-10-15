@@ -60,7 +60,7 @@ type t_3b763160<T_0, T_1, T_2> = {
 
 /**
 ```
-const MulVec2#08bab8c4 = Div#3b763160<Vec2#08f7c2ac, Vec2#08f7c2ac, Vec2#08f7c2ac>{
+const MulVec2#474a6979 = Div#3b763160<Vec2#08f7c2ac, Vec2#08f7c2ac, Vec2#08f7c2ac>{
     "/"#3b763160#0: (v#:0: Vec2#08f7c2ac, scale#:1: Vec2#08f7c2ac): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
         x#08f7c2ac#0: v#:0.x#08f7c2ac#0 /#builtin scale#:1.x#08f7c2ac#0,
         y#08f7c2ac#1: v#:0.y#08f7c2ac#1 /#builtin scale#:1.y#08f7c2ac#1,
@@ -74,7 +74,7 @@ Div#🧜‍♂️🧖💧{TODO SPREADs}{
 }
 ```
 */
-export const hash_08bab8c4: t_3b763160<t_08f7c2ac, t_08f7c2ac, t_08f7c2ac> = ({
+export const hash_474a6979: t_3b763160<t_08f7c2ac, t_08f7c2ac, t_08f7c2ac> = ({
   type: "3b763160",
   h3b763160_0: (v: t_08f7c2ac, scale: t_08f7c2ac) => ({
     type: "Vec2",
@@ -85,14 +85,14 @@ export const hash_08bab8c4: t_3b763160<t_08f7c2ac, t_08f7c2ac, t_08f7c2ac> = ({
 
 /**
 ```
-const main#9f08e91a = (
+const main#39cb4e3a = (
     iTime#:0: float#builtin,
     fragCoord#:1: Vec2#08f7c2ac,
     iResolution#:2: Vec2#08f7c2ac,
     uCamera#:3: Vec3#b79db448,
     buffer#:4: sampler2D#builtin,
 ): Vec4#b1f05ae8 ={}> {
-    texture#builtin(buffer#:4, fragCoord#:1 /#08bab8c4#3b763160#0 iResolution#:2);
+    texture#builtin(buffer#:4, fragCoord#:1 /#474a6979#3b763160#0 iResolution#:2);
 }
 (
     iTime#:0: float,
@@ -100,14 +100,14 @@ const main#9f08e91a = (
     iResolution#:2: Vec2#🍱🐶💣,
     uCamera#:3: Vec3#😦,
     buffer#:4: sampler2D,
-): Vec4#🌎 => texture(buffer#:4, MulVec2#👅🍙💫.#Div#🧜‍♂️🧖💧#0(fragCoord#:1, iResolution#:2))
+): Vec4#🌎 => texture(buffer#:4, MulVec2#🧎‍♀️🍕💌😃.#Div#🧜‍♂️🧖💧#0(fragCoord#:1, iResolution#:2))
 ```
 */
-export const hash_9f08e91a: (arg_0: number, arg_1: t_08f7c2ac, arg_2: t_08f7c2ac, arg_3: t_b79db448, arg_4: sampler2D) => t_b1f05ae8 = (iTime: number, fragCoord: t_08f7c2ac, iResolution: t_08f7c2ac, uCamera: t_b79db448, buffer: sampler2D) => texture(buffer, hash_08bab8c4.h3b763160_0(fragCoord, iResolution));
+export const hash_39cb4e3a: (arg_0: number, arg_1: t_08f7c2ac, arg_2: t_08f7c2ac, arg_3: t_b79db448, arg_4: sampler2D) => t_b1f05ae8 = (iTime: number, fragCoord: t_08f7c2ac, iResolution: t_08f7c2ac, uCamera: t_b79db448, buffer: sampler2D) => texture(buffer, hash_474a6979.h3b763160_0(fragCoord, iResolution));
 
 /**
 ```
-const pendulum#a02e3e5c = (
+const pendulum#5adf8eb0 = (
     iTime#:0: float#builtin,
     fragCoord#:1: Vec2#08f7c2ac,
     iResolution#:2: Vec2#08f7c2ac,
@@ -124,7 +124,7 @@ const pendulum#a02e3e5c = (
     } else {
         const current#:5 = texture#builtin(
             buffer#:4,
-            fragCoord#:1 /#08bab8c4#3b763160#0 iResolution#:2,
+            fragCoord#:1 /#474a6979#3b763160#0 iResolution#:2,
         );
         Vec4#b1f05ae8{...current#:5, x#08f7c2ac#0: current#:5.x#08f7c2ac#0 +#builtin 0.00001};
     };
@@ -141,14 +141,14 @@ const pendulum#a02e3e5c = (
     } else {
         const current#:5: Vec4#🌎 = texture(
             buffer#:4,
-            MulVec2#👅🍙💫.#Div#🧜‍♂️🧖💧#0(fragCoord#:1, iResolution#:2),
+            MulVec2#🧎‍♀️🍕💌😃.#Div#🧜‍♂️🧖💧#0(fragCoord#:1, iResolution#:2),
         );
         return Vec4#🌎{TODO SPREADs}{w: _#:0, z: _#:0};
     };
 }
 ```
 */
-export const hash_a02e3e5c: (arg_0: number, arg_1: t_08f7c2ac, arg_2: t_08f7c2ac, arg_3: t_b79db448, arg_4: sampler2D) => t_b1f05ae8 = (iTime: number, fragCoord: t_08f7c2ac, iResolution: t_08f7c2ac, uCamera: t_b79db448, buffer: sampler2D) => {
+export const hash_5adf8eb0: (arg_0: number, arg_1: t_08f7c2ac, arg_2: t_08f7c2ac, arg_3: t_b79db448, arg_4: sampler2D) => t_b1f05ae8 = (iTime: number, fragCoord: t_08f7c2ac, iResolution: t_08f7c2ac, uCamera: t_b79db448, buffer: sampler2D) => {
   if (iTime < 0.1) {
     return ({
       type: "Vec4",
@@ -158,12 +158,12 @@ export const hash_a02e3e5c: (arg_0: number, arg_1: t_08f7c2ac, arg_2: t_08f7c2ac
       w: 1
     } as t_b1f05ae8);
   } else {
-    let current: t_b1f05ae8 = texture(buffer, hash_08bab8c4.h3b763160_0(fragCoord, iResolution));
+    let current: t_b1f05ae8 = texture(buffer, hash_474a6979.h3b763160_0(fragCoord, iResolution));
     return ({ ...current,
       type: "Vec4",
       x: current.x + 0.00001
     } as t_b1f05ae8);
   }
 };
-export const pendulum = hash_a02e3e5c;
-export const main = hash_9f08e91a;
+export const pendulum = hash_5adf8eb0;
+export const main = hash_39cb4e3a;

@@ -26,7 +26,7 @@ export const hash_ec95f154: t_51ea2a36<number> = ({
 
 /**
 ```
-const within#004be9c0 = (
+const within#0c09e1ca = (
     found#:0: float#builtin,
     expected#:1: float#builtin,
     margin#:2: float#builtin,
@@ -46,7 +46,7 @@ const within#004be9c0 = (
 }
 ```
 */
-export const hash_004be9c0: (arg_0: number, arg_1: number, arg_2: number) => boolean = (found: number, expected: number, margin: number) => {
+export const hash_0c09e1ca: (arg_0: number, arg_1: number, arg_2: number) => boolean = (found: number, expected: number, margin: number) => {
   if (found - margin < expected) {
     return found + margin > expected;
   } else {
@@ -72,10 +72,10 @@ assertCall(FloatEq#👨‍🦰.#Eq#🦩🥜👩‍💻😃#0, sqrt(4), 2)
 assertCall(hash_9ca984ce.h51ea2a36_0, sqrt(4), 2);
 
 /*
-within#004be9c0(found: sin#builtin(PI#builtin), expected: 0.0, margin: 0.0001)
-assertCall(within#🛀🧱😆, sin(PI), 0, 0.0001)
+within#0c09e1ca(found: sin#builtin(PI#builtin), expected: 0.0, margin: 0.0001)
+assertCall(within#💑🍑🦷, sin(PI), 0, 0.0001)
 */
-assertCall(hash_004be9c0, sin(PI), 0, 0.0001);
+assertCall(hash_0c09e1ca, sin(PI), 0, 0.0001);
 
 /*
 floatToInt#builtin(2.3) ==#ec95f154#51ea2a36#0 2

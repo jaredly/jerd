@@ -3,11 +3,11 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-const hello#f4c397d2 = (n#:0: int#builtin): int#builtin ={}> n#:0 +#builtin 2
+const hello#353b9e6c = (n#:0: int#builtin): int#builtin ={}> n#:0 +#builtin 2
 (n#:0: int): int => n#:0 + 2
 ```
 */
-export const hash_f4c397d2: (arg_0: number) => number = (n: number) => n + 2;
+export const hash_353b9e6c: (arg_0: number) => number = (n: number) => n + 2;
 
 /**
 ```
@@ -19,22 +19,22 @@ export const hash_8d2d2d94: Array<number> = [1, 2];
 
 /**
 ```
-const world#118f1780 = (n#:0: int#builtin, m#:1: int#builtin): int#builtin ={}> hello#f4c397d2(
+const world#179e7b7a = (n#:0: int#builtin, m#:1: int#builtin): int#builtin ={}> hello#353b9e6c(
         n: m#:1,
     ) 
     -#builtin n#:0
-(n#:0: int, m#:1: int): int => hello#🥈(m#:1) - n#:0
+(n#:0: int, m#:1: int): int => hello#🍃🌍🚧(m#:1) - n#:0
 ```
 */
-export const hash_118f1780: (arg_0: number, arg_1: number) => number = (n: number, m: number) => hash_f4c397d2(m) - n;
+export const hash_179e7b7a: (arg_0: number, arg_1: number) => number = (n: number, m: number) => hash_353b9e6c(m) - n;
 
 /*
-Hello#2d892b6c{age#2d892b6c#0: world#118f1780(n: 20, m: 17), name#2d892b6c#1: "whatsit"}
-Hello#⏳🐚🍹{TODO SPREADs}{age: world#🕖🎏👩‍💼(20, 17), name: "whatsit"}
+Hello#2d892b6c{age#2d892b6c#0: world#179e7b7a(n: 20, m: 17), name#2d892b6c#1: "whatsit"}
+Hello#⏳🐚🍹{TODO SPREADs}{age: world#🕓🌌🧎‍♀️(20, 17), name: "whatsit"}
 */
 ({
   type: "Hello",
-  age: hash_118f1780(20, 17),
+  age: hash_179e7b7a(20, 17),
   name: "whatsit"
 } as t_2d892b6c);
 
