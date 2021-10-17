@@ -169,6 +169,35 @@ describe('typeIdentifier', () => {
         expect(termToString(ctx, res)).toEqual(`what#${idName(id)}`);
     });
 
+    it('should work with a builtin', () => {
+        const ctx = newContext();
+        ctx.builtins.terms['what'] = preset.int;
+
+        const res = parseExpression(ctx, `what`);
+        expect(res).toNotHaveErrors(ctx);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toEqual(`what#builtin`);
+        expect(res.is).toEqualType(preset.int, ctx);
+    });
+
+    it('should work with an explicit builtin', () => {
+        const ctx = newContext();
+        ctx.builtins.terms['what'] = preset.int;
+
+        let id;
+        [ctx.library, id] = addTerm(
+            ctx.library,
+            preset.intLiteral(10, nullLocation),
+            'what',
+        );
+
+        const res = parseExpression(ctx, `what#builtin`);
+        expect(res).toNotHaveErrors(ctx);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toEqual(`what#builtin`);
+        expect(res.is).toEqualType(preset.int, ctx);
+    });
+
     describe('failure', () => {
         it('should give a NotFound', () => {
             const ctx = newContext();

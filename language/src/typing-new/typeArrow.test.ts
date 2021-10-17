@@ -19,8 +19,6 @@ expect.addSnapshotSerializer(rawSnapshotSerializer);
 expect.addSnapshotSerializer(errorSerilaizer);
 expect.addSnapshotSerializer(warningsSerializer);
 
-const fakeIntOp = fakeOp(preset.int);
-
 describe('typeArrow', () => {
     it('should work', () => {
         const ctx = newContext();
@@ -72,6 +70,7 @@ describe('typeArrow', () => {
                 location: nullLocation,
             },
         ]);
+        // TODO use the effects and stuff, once I have raise and suffixes implemented.
         expect(termToString(ctx, res)).toMatchInlineSnapshot(`
             <T#:3: Hi#688af3e6>{e#:2}(
                 a#:4: int#builtin,
@@ -80,6 +79,47 @@ describe('typeArrow', () => {
                 arg#:7: T#:3,
             ): int#builtin ={What#20bf83b4, e#:2}> a#:4 +#builtin b#:5
         `);
+    });
+
+    it('should track effect usages', () => {
+        const ctx = newContext();
+        let id;
+        [ctx.library, id] = addEffect(
+            ctx.library,
+            {
+                type: 'EffectDef',
+                constrs: [{ args: [preset.int], ret: preset.void_ }],
+                location: nullLocation,
+            },
+            'What',
+            ['what'],
+        );
+        const res = parseExpression(ctx, `() => raise!(What.what(23))`);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `(): void#builtin ={What#895a3b94}> raise!(What#895a3b94.what(23))`,
+        );
+    });
+
+    it('should track effect usages even when incorrectly specified', () => {
+        const ctx = newContext();
+        let id;
+        [ctx.library, id] = addEffect(
+            ctx.library,
+            {
+                type: 'EffectDef',
+                constrs: [{ args: [preset.int], ret: preset.void_ }],
+                location: nullLocation,
+            },
+            'What',
+            ['what'],
+        );
+        const res = parseExpression(ctx, `() ={}> raise!(What.what(23))`);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `(): void#builtin ={What#895a3b94}> raise!(What#895a3b94.what(23))`,
+        );
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:1-1:30: Function body had an effect that wasn't declated: ref:895a3b94`,
+        );
     });
 
     it('should work with basic late-binding of expected types, in both directions', () => {

@@ -31,8 +31,13 @@ AST CHANGES:
 - [x] idLocation change!! yeah let's do that.
 - [ ] Lambdas shouldn't have a separate `.is`, the dupication between args and is.args is bad news.
     change all expr.is to a function to get the type of an expr.
+  - [ ] same story for 'Raise' and 'attribute'
 - [ ] effectVbls shouldn't be numbers, lets get ids in there
 - [ ] TypeVblDecl should have better attributes
+
+AST CHANGES FOR BETTER ERROR REPORTING:
+- [ ] raise's target should be allowed to be "invalid"
+  - getTermErrors needs to detect this as an error state
 
 
 OK so this is all well and fun,

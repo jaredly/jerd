@@ -10,6 +10,9 @@ import {
     TypeVblDecl,
     EffectRef,
     getEffects,
+    effectsMatch,
+    effectsEqual,
+    effectKey,
 } from '../typing/types';
 import { Context, idToSym } from './Context';
 import { resolveEffectId, resolveTypeId } from './resolve';
@@ -89,9 +92,9 @@ export const typeArrow = (
         }) || [];
 
     const boundEffects = arrow.effects
-        ? (arrow.effects.items
+        ? (arrow.effects.effects?.items
               .map((id) => resolveEffectId(ctx, id))
-              .filter(Boolean) as Array<EffectRef>)
+              .filter(Boolean) as Array<EffectRef>) || []
         : null;
 
     let args: Array<{ sym: Symbol; location: Location; type: Type | null }> =
@@ -116,7 +119,7 @@ export const typeArrow = (
         if (typ.typeVbls.length !== typeVbls.length) {
             return false;
         }
-        if (boundEffects) {
+        if (boundEffects != null) {
             if (boundEffects.length !== typ.effects.length) {
                 return false;
             }
@@ -164,27 +167,28 @@ export const typeArrow = (
             : [],
     );
 
-    // const is: LambdaType = validExpected.length
-    //     ? validExpected[0]
-    //     : {
-    //           type: 'lambda',
-    //           args: args.map(({ location, type }, i): LambdaType['args'][0] =>
-    //               type ? type : { type: 'THole', location },
-    //           ),
-    //           effectVbls,
-    //           effects: [],
-    //           location: arrow.location,
-    //           res: body.is,
-    //           rest: null,
-    //           typeVbls: [],
-    //       };
+    let gotEffects = getEffects(body);
+    if (boundEffects) {
+        gotEffects.forEach((got) => {
+            if (!boundEffects.some((eff) => effectsEqual(eff, got))) {
+                boundEffects.push(got);
+                ctx.warnings.push({
+                    location: arrow.location,
+                    text: `Function body had an effect that wasn't declated: ${effectKey(
+                        got,
+                    )}`,
+                });
+            }
+        });
+    }
+
     const is: LambdaType = {
         type: 'lambda',
         args: args.map(({ location, type }, i): LambdaType['args'][0] =>
             type ? type : { type: 'THole', location },
         ),
         effectVbls,
-        effects: boundEffects || getEffects(body),
+        effects: boundEffects || gotEffects,
         location: arrow.location,
         res: body.is,
         rest: null,

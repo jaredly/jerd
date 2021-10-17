@@ -189,6 +189,14 @@ export const resolveNamedValue = (
             ref: { type: 'user', id },
         };
     }
+    if (ctx.builtins.terms[name]) {
+        return {
+            type: 'ref',
+            is: ctx.builtins.terms[name],
+            location,
+            ref: { type: 'builtin', name },
+        };
+    }
     // TODO: find the /closest/ one, and put it in here w/ a typeError
     return null;
 };

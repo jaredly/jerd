@@ -7,6 +7,8 @@ import { Context } from './Context';
 import { typeIdentifier } from './typeIdentifier';
 import { typeBlock } from './typeBlock';
 import { typeArrow } from './typeArrow';
+import { typeRaise } from './typeRaise';
+import { typeSuffix } from './typeSuffix';
 
 export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
     if (expected.length && !expected.some((t) => typesEqual(t, term.is))) {
@@ -41,12 +43,28 @@ export const typeExpression = (
         case 'Lambda': {
             return typeArrow(ctx, term, expected);
         }
+        case 'Raise': {
+            return typeRaise(ctx, term, expected);
+        }
         // case 'WithUnary': {
         //     if (term.op != null) {
         //         throw new Error('no unary');
         //     }
         //     return typeExpression(ctx, term.inner, expected);
         // }
+        case 'WithSuffix': {
+            // Ok, we're going to type these from the outside in, so that
+            // we get out expecteds right.
+            if (term.suffixes.length === 0) {
+                return typeExpression(ctx, term.target, expected);
+            }
+            const right = term.suffixes[term.suffixes.length - 1];
+            const inner =
+                term.suffixes.length === 1
+                    ? term.target
+                    : { ...term, suffixes: term.suffixes.slice(0, -1) };
+            return typeSuffix(ctx, right, inner, expected);
+        }
         case 'Float': {
             return wrapExpected(
                 {

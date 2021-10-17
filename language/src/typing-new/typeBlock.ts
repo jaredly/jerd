@@ -1,8 +1,7 @@
 import { Block } from '../parsing/parser-new';
 import { void_ } from '../typing/preset';
-import { Let, Sequence, Symbol, Term, Type } from '../typing/types';
-import { advanceUnique, Context, idToSym, nextUnique } from './Context';
-import { parseSym } from './hashes';
+import { Let, Sequence, Term, Type } from '../typing/types';
+import { Context, idToSym } from './Context';
 import { typeExpression, wrapExpected } from './typeExpression';
 import { typeType } from './typeType';
 

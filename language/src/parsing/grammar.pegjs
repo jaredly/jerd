@@ -190,8 +190,9 @@ FullSlice = left:(Expression __)? ":" right:(__ Expression)? {
     return {type: 'Slice', left: left ? left[0] : null, right: right ? right[1] : null, location: myLocation()}
 }
 
-LabeledCommaExpr = label:(IdText ":" __)? first:Expression rest:(_ "," _ (IdText ":" __)? Expression)* _ ","? {
-    return [{label, value: first}, ...rest.map((r: any) => ({label: r[3] ? r[3][0] : null, value: r[4]}))]
+LabeledExpr = label:(IdText ":" __)? value:Expression {return {label, value}}
+LabeledCommaExpr = first:LabeledExpr rest:(_ "," _ LabeledExpr)* _ ","? {
+    return [first, ...rest.map((r: any) => r[3])]
 }
 
 ApplySuffix = typevbls:TypeVblsApply? effectVbls:EffectVblsApply? "(" _ args:LabeledCommaExpr? _ ")" {
@@ -347,11 +348,13 @@ CommaExpr = first:Expression rest:(_ "," _ Expression)* _ ","? {return [first, .
 
 // == Lambda ==
 
+ExplicitEffects = "{" _ effects:CommaEffects? _ "}" {return effects}
+
 Lambda = typevbls:TypeVbls? effvbls:EffectVbls? "(" _ args:Args? _ ")" _ rettype:(":" _ Type _)?
-    "=" effects:("{" _ CommaEffects? _ "}")? ">" _ body:Expression {return {
+    "=" effects:ExplicitEffects? ">" _ body:Expression {return {
     type: 'lambda',
     typevbls: typevbls || [],
-    effects: effects ? effects[2] || [] : null,
+    effects: effects ? effects || [] : null,
     effvbls: effvbls || [],
     args: args || [],
     rettype: rettype ? rettype[2] : null,

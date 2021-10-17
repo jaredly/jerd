@@ -1099,11 +1099,13 @@ export const typesEqual = (one: Type | null, two: Type | null): boolean => {
     // return false;
 };
 
-const effectKey = (e: EffectRef) =>
+export const effectKey = (e: EffectRef) =>
     e.type === 'ref'
         ? 'ref:' + (e.ref.type === 'builtin' ? e.ref.name : idName(e.ref.id))
         : 'sym:' + e.sym.unique;
 
+export const effectsEqual = (one: EffectRef, two: EffectRef) =>
+    effectKey(one) === effectKey(two);
 // TODO: should I allow variables to be flexible here? idk
 export const effectsMatch = (
     one: Array<EffectRef>,
