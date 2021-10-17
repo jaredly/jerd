@@ -36,6 +36,38 @@ describe('typeBlock', () => {
         `);
     });
 
+    it('should work with explicit sym specified', () => {
+        const ctx = newContext();
+
+        const res = parseExpression(ctx, `{ const x#:2 = 10; x }`);
+        expect(res).toNotHaveErrors(ctx);
+        expect(res.is).toEqualType(preset.int, ctx);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(`
+            {
+                const x#:2 = 10;
+                x#:2;
+            }
+        `);
+    });
+
+    it('should recover from bad symbol hash', () => {
+        const ctx = newContext();
+
+        const res = parseExpression(ctx, `{ const x#bad = 10; x }`);
+        expect(res).toNotHaveErrors(ctx);
+        expect(res.is).toEqualType(preset.int, ctx);
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:9-1:14: Invalid symbol hash #bad`,
+        );
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(`
+            {
+                const x#:1 = 10;
+                x#:1;
+            }
+        `);
+    });
+
     it('should work empty', () => {
         const ctx = newContext();
 
@@ -70,12 +102,12 @@ describe('typeBlock', () => {
         expect(res.is).toEqualType(preset.float, ctx);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(`
-{
-    const x#:1 = 10.0;
-    5;
-    x#:1;
-}
-`);
+            {
+                const x#:1 = 10.0;
+                5;
+                x#:1;
+            }
+        `);
     });
 
     it('should do explicit hashes', () => {
@@ -86,11 +118,11 @@ describe('typeBlock', () => {
         expect(res.is).toEqualType(preset.float, ctx);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(`
-{
-    const x#:100 = 10.0;
-    x#:100;
-}
-`);
+            {
+                const x#:100 = 10.0;
+                x#:100;
+            }
+        `);
     });
 
     it('should fallback annotations', () => {
@@ -101,17 +133,17 @@ describe('typeBlock', () => {
             `{ const a: int = 10; const x: float = a; x }`,
         );
         expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(`
-10 at 1:18-1:20
-a#:1 at 1:39-1:40
-`);
+            10 at 1:18-1:20
+            a#:1 at 1:39-1:40
+        `);
         expect(res.is).toEqualType(preset.float, ctx);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(`
-{
-    const a#:1 = 10;
-    const x#:2 = a#:1;
-    x#:2;
-}
-`);
+            {
+                const a#:1 = 10;
+                const x#:2 = a#:1;
+                x#:2;
+            }
+        `);
     });
 });

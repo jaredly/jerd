@@ -21,9 +21,13 @@ types: {
 export const idToSym = (ctx: Context, id: Identifier) => {
     let unique;
     if (id.hash) {
-        unique = parseSym(id.hash?.slice(1));
+        unique = parseSym(id.hash!.slice(1));
         if (unique == null) {
             unique = nextUnique(ctx);
+            ctx.warnings.push({
+                location: id.location,
+                text: `Invalid symbol hash ${id.hash}`,
+            });
         } else {
             advanceUnique(ctx, unique);
         }

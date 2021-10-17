@@ -1,7 +1,7 @@
 import { Block } from '../parsing/parser-new';
 import { void_ } from '../typing/preset';
 import { Let, Sequence, Symbol, Term, Type } from '../typing/types';
-import { advanceUnique, Context, nextUnique } from './Context';
+import { advanceUnique, Context, idToSym, nextUnique } from './Context';
 import { parseSym } from './hashes';
 import { typeExpression, wrapExpected } from './typeExpression';
 import { typeType } from './typeType';
@@ -18,13 +18,7 @@ export const typeBlock = (
             if (st.type === 'Define') {
                 const ann = st.ann ? typeType(ctx, st.ann) : null;
                 const value = typeExpression(ctx, st.expr, ann ? [ann] : []);
-                let unique = parseSym(st.id.hash?.slice(1));
-                if (unique == null) {
-                    unique = nextUnique(ctx);
-                } else {
-                    advanceUnique(ctx, unique);
-                }
-                const sym: Symbol = { name: st.id.text, unique };
+                const sym = idToSym(ctx, st.id);
                 values.unshift({
                     location: st.location,
                     sym,
