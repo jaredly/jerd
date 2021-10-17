@@ -52,6 +52,27 @@ export const typeToplevel = (
                 name: top.id.text,
             };
         }
+        case 'Effect': {
+            const defn: typed.EffectDef = {
+                constrs: top.constrs.map((constr) => ({
+                    args:
+                        constr.type.args?.items.map((arg) =>
+                            typeType(ctx, arg.type),
+                        ) || [],
+                    ret: typeType(ctx, constr.type.res),
+                })),
+                location: top.location,
+                type: 'EffectDef',
+            };
+            return {
+                type: 'Effect',
+                constrNames: top.constrs.map((t) => t.id.text),
+                effect: defn,
+                id: idFromName(hashObject(defn)),
+                location: top.location,
+                name: top.id.text,
+            };
+        }
         // case 'Define': {
         //     const t = top.ann ? typeType(ctx, )
         //     const term = typeExpression(ctx, top.expr,)

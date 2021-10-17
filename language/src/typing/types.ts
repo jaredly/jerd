@@ -759,6 +759,19 @@ export type InvalidApplication = {
     target: Term;
     extraArgs: Array<Term>;
     extraTypeArgs: Array<Type>;
+    // hmmmmmm maybe I want to establish an arithmetic of effects?
+    // like A + B {A + B}
+    // that's one more character than A, B
+    // is that ok?
+    // so () ={A, B}> {} wouldn't make sense, right?
+    // but, then we could do multiple effects variables.
+    // sounds legit.
+    // and then {e}() ={A + B + e}> {}
+    // would make sense, sure.
+    // oooh.
+    // we can use subtraction too. is that too weird?
+    // {e}(n: () ={e}> {}) ={e - Stdio}> {}
+    extraEffectArgs: Array<EffectRef>;
     location: Location;
     decorators?: Decorators;
 };

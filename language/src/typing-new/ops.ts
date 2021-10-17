@@ -635,8 +635,9 @@ export const typeGroup = (
     return typeGroup(ctx, left as GroupedOp, expectedTypes);
 };
 
-export const mapTypeVariablesInType = (
+export const mapTypeAndEffectVariablesInType = (
     mapping: { [unique: number]: Type },
+    effMapping: { [unique: number]: Array<t.EffectRef> },
     type: Type,
 ) =>
     transformType(
@@ -645,6 +646,24 @@ export const mapTypeVariablesInType = (
             Type: (t) => {
                 if (t.type === 'var' && mapping[t.sym.unique]) {
                     return mapping[t.sym.unique];
+                }
+                if (
+                    t.type === 'lambda' &&
+                    t.effects.find(
+                        (e) =>
+                            e.type === 'var' &&
+                            effMapping[e.sym.unique] != null,
+                    )
+                ) {
+                    const effects: Array<t.EffectRef> = [];
+                    t.effects.forEach((eff) => {
+                        if (eff.type === 'var' && effMapping[eff.sym.unique]) {
+                            effects.push(...effMapping[eff.sym.unique]);
+                        } else {
+                            effects.push(eff);
+                        }
+                    });
+                    return { ...t, effects };
                 }
                 return null;
             },
@@ -656,22 +675,33 @@ export const applyTypeVariablesToRecord = (
     ctx: Context,
     type: t.RecordDef,
     vbls: Array<Type>,
-    location: Location | null,
+    effectVbls: Array<t.EffectRef>,
+    location: Location,
     selfHash: string,
 ): t.RecordDef | null => {
     if (type.typeVbls.length !== vbls.length) {
         return null;
     }
-    const mapping = createTypeVblMapping(ctx, type.typeVbls, vbls, location!);
-    if (mapping == null) {
-        return null;
+    const mapping = createTypeVblMapping(ctx, type.typeVbls, vbls, location);
+    // const effMapping = createEffectVblMapping(ctx, type.effectVbls, effVbls, location);
+    if (type.effectVbls.length > 1) {
+        throw new Error(`can't handle multiple effect vbls just yet`);
     }
+    const effMapping =
+        type.effectVbls.length === 1
+            ? { [type.effectVbls[0]]: effectVbls }
+            : {};
     return {
         ...type,
         typeVbls: [],
-        items: type.items.map((t) => mapTypeVariablesInType(mapping, t)),
+        items: type.items.map((t) =>
+            mapTypeAndEffectVariablesInType(mapping!, effMapping, t),
+        ),
     };
 };
+
+// export const createEffectVblMapping = (ctx: Context, vbls: Array<number>, effectVbls: Array<t.EffectRef>, location: Location) => {
+// }
 
 export const createTypeVblMapping = (
     ctx: Context,
@@ -835,6 +865,7 @@ const optionForValue = (
                 ctx,
                 myDecl,
                 type.typeVbls,
+                [],
                 location,
                 idName(type.ref.id),
             );

@@ -66,7 +66,7 @@ export const showTermErrors = (ctx: Context, res: Term) => {
     return findErrors(res)
         .map(
             (err) =>
-                `${termToString(ctx, err)} at ${showLocation(err.location)}`,
+                `${showErrorTerm(ctx, err)} at ${showLocation(err.location)}`,
         )
         .join('\n');
 };
@@ -106,6 +106,20 @@ export const parseExpression = (
         throw new Error(`nope`);
     }
     return typeExpression(ctx, top.expr, expected);
+};
+
+export const showErrorTerm = (ctx: Context, t: ErrorTerm) => {
+    switch (t.type) {
+        case 'TypeError':
+            return `Expected ${typeToString(ctx, t.is)}, found ${typeToString(
+                ctx,
+                t.inner.is,
+            )} : ${termToString(ctx, t.inner)}`;
+        case 'Hole':
+            return `[Hole]`;
+        default:
+            return termToString(ctx, t);
+    }
 };
 
 export const customMatchers: jest.ExpectExtendMap = {
@@ -175,16 +189,18 @@ export const customMatchers: jest.ExpectExtendMap = {
                         errors
                             .map(
                                 (t: ErrorTerm) =>
-                                    `${termToString(ctx, t)} at ${showLocation(
-                                        t.location,
-                                    )}`,
+                                    `${t.type}: ${showErrorTerm(
+                                        ctx,
+                                        t,
+                                    )} at ${showLocation(t.location)}`,
                             )
                             .join('\n') +
                         terrors.map(
                             (t: ErrorType) =>
-                                `${typeToString(ctx, t)} at ${showLocation(
-                                    t.location,
-                                )}`,
+                                `${t.type}: ${typeToString(
+                                    ctx,
+                                    t,
+                                )} at ${showLocation(t.location)}`,
                         )
                     );
                 },

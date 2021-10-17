@@ -32,7 +32,6 @@ describe('typeApply', () => {
         expect(res).toNotHaveErrors(ctx);
     });
 
-    // ok
     it('should work with a term', () => {
         const ctx = newContext();
         ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
@@ -47,7 +46,6 @@ describe('typeApply', () => {
         expect(res).toNotHaveErrors(ctx);
     });
 
-    // ok
     it('should preserve extra arguments', () => {
         const ctx = newContext();
         ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
@@ -75,7 +73,9 @@ describe('typeApply', () => {
             `hello#f1288954(v: 2)`,
         );
         expect(res.is).toEqualType(preset.int, ctx);
-        expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(`2 at 1:7-1:8`);
+        expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
+            `Expected [Not Found: string], found int#builtin : 2 at 1:7-1:8`,
+        );
     });
 
     it('should flag non-function target', () => {
@@ -143,6 +143,58 @@ describe('typeApply', () => {
         expect(res.is).toEqualType(
             { type: 'THole', location: nullLocation },
             ctx,
+        );
+    });
+
+    it('should work with effects n stuff', () => {
+        const ctx = newContext();
+        ctx.builtins.types.int = 0;
+        ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
+        ctx.library = parseToplevels(
+            ctx,
+            `const hello = {e}(f: () ={e}> int): int ={e}> f();
+            effect What {
+                what: () => int,
+            };`,
+        );
+
+        const res = parseExpression(ctx, `hello{What}(() ={What}> 10)`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `hello#130eb59c{What#b54d969c}(f: (): int#builtin ={What#b54d969c}> 10)`,
+        );
+        expect(res.is).toEqualType(preset.int, ctx);
+        expect(res).toNotHaveErrors(ctx);
+    });
+
+    it('should detect mismatched effects', () => {
+        const ctx = newContext();
+        ctx.builtins.types.int = 0;
+        ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
+        ctx.library = parseToplevels(
+            ctx,
+            `const hello = {e}(f: () ={e}> int): int ={e}> f();
+            effect What {
+                what: () => int,
+            };`,
+        );
+
+        let res = parseExpression(ctx, `hello{What}(() ={}> 10)`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `hello#130eb59c{What#b54d969c}(f: (): int#builtin ={}> 10)`,
+        );
+        expect(res.is).toEqualType(preset.int, ctx);
+        expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
+            `Expected () ={What#b54d969c}> int#builtin, found () ={}> int#builtin : (): int#builtin ={}> 10 at 1:13-1:23`,
+        );
+        res = parseExpression(ctx, `hello{}(() ={What}> 10)`);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `hello#130eb59c{}(f: (): int#builtin ={What#b54d969c}> 10)`,
+        );
+        expect(res.is).toEqualType(preset.int, ctx);
+        expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
+            `Expected () ={}> int#builtin, found () ={What#b54d969c}> int#builtin : (): int#builtin ={What#b54d969c}> 10 at 1:9-1:23`,
         );
     });
 

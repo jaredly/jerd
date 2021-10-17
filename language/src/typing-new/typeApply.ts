@@ -9,7 +9,7 @@ import {
     typesEqual,
 } from '../typing/types';
 import { Context } from './Context';
-import { createTypeVblMapping, mapTypeVariablesInType } from './ops';
+import { createTypeVblMapping, mapTypeAndEffectVariablesInType } from './ops';
 import { resolveEffectId } from './resolve';
 import { typeExpression, wrapExpected } from './typeExpression';
 import { typeIdentifierMany } from './typeIdentifier';
@@ -47,10 +47,11 @@ export const typeApply = (
         suffix.args?.items.map(({ value }) => {
             return typeExpression(ctx, value, []);
         }) || [];
-    const effectVbls =
-        (suffix.effectVbls?.inner?.items
-            .map((vbl) => resolveEffectId(ctx, vbl))
-            .filter(Boolean) as Array<EffectRef>) || null;
+    const effectVbls = suffix.effectVbls
+        ? (suffix.effectVbls.inner?.items
+              .map((vbl) => resolveEffectId(ctx, vbl))
+              .filter(Boolean) as Array<EffectRef>) || []
+        : null;
     // How to say ... we expect such and such.
     // ALSO do I want to do some inference of type variables?
     // like I super do.
@@ -91,8 +92,9 @@ export const typeApply = (
             target,
             is: void_,
             location: suffix.location,
-            extraTypeArgs: [],
+            extraTypeArgs: typeVbls,
             extraArgs: typedArgs,
+            extraEffectArgs: effectVbls || [],
         };
     }
 
@@ -109,7 +111,12 @@ export const typeApply = (
             : typeVbls[i],
     );
 
-    if (typeVbls.length || is.typeVbls.length) {
+    if (
+        typeVbls.length ||
+        is.typeVbls.length ||
+        effectVbls ||
+        is.effectVbls.length
+    ) {
         const mapping = createTypeVblMapping(
             ctx,
             is.typeVbls,
@@ -120,7 +127,15 @@ export const typeApply = (
         if (!mapping) {
             throw new Error(`nope`);
         }
-        is = mapTypeVariablesInType(mapping, is) as LambdaType;
+        const effectMapping =
+            is.effectVbls.length === 1
+                ? { [is.effectVbls[0]]: effectVbls || [] }
+                : {};
+        is = mapTypeAndEffectVariablesInType(
+            mapping,
+            effectMapping,
+            is,
+        ) as LambdaType;
     }
 
     const result: Apply = {
@@ -135,7 +150,6 @@ export const typeApply = (
         is: (is as LambdaType).res,
         location: suffix.location,
         target,
-        // typeVbls.slice(0, is.typeVbls.length),
         typeVbls: allTypeVbls,
         hadAllVariableEffects: effectVbls
             ? effectVbls.every((v) => v.type === 'var')
@@ -161,6 +175,7 @@ export const typeApply = (
             location: suffix.location,
             extraArgs: typedArgs.slice(is.args.length),
             extraTypeArgs: typeVbls.slice(is.typeVbls.length),
+            extraEffectArgs: [],
         };
     }
     return result;

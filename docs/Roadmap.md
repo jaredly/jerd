@@ -34,6 +34,10 @@ AST CHANGES:
   - [ ] same story for 'Raise' and 'attribute'
 - [ ] effectVbls shouldn't be numbers, lets get ids in there
 - [ ] TypeVblDecl should have better attributes
+- [ ] a basic algebra of effects! () ={A + B}> {}
+    {e}() ={e + A}> {}
+    whatsit{A + B}()
+    {e}() ={e - A}> {}
 
 AST CHANGES FOR BETTER ERROR REPORTING:
 - [ ] raise's target should be allowed to be "invalid"
