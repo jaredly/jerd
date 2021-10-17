@@ -1,8 +1,17 @@
 import { ApplySuffix, Expression } from '../parsing/parser-new';
-import { EffectRef, LambdaType, Term, Type, typesEqual } from '../typing/types';
+import { void_ } from '../typing/preset';
+import {
+    Apply,
+    EffectRef,
+    LambdaType,
+    Term,
+    Type,
+    typesEqual,
+} from '../typing/types';
 import { Context } from './Context';
+import { createTypeVblMapping, mapTypeVariablesInType } from './ops';
 import { resolveEffectId } from './resolve';
-import { typeExpression } from './typeExpression';
+import { typeExpression, wrapExpected } from './typeExpression';
 import { typeIdentifierMany } from './typeIdentifier';
 import { typeType } from './typeType';
 
@@ -34,7 +43,7 @@ export const typeApply = (
     // ok I think I'll just do something simple for the moment.
     // and then figure out what I want the fancier behavior to be.
     // OHH also in the IDE, you'll have actually specified the target first, so it's fine.
-    const args =
+    const typedArgs =
         suffix.args?.items.map(({ value }) => {
             return typeExpression(ctx, value, []);
         }) || [];
@@ -74,11 +83,40 @@ export const typeApply = (
 
     const target = typeExpression(ctx, inner, []);
 
-    return {
+    let is = target.is;
+
+    if (is.type !== 'lambda') {
+        return {
+            type: 'InvalidApplication',
+            target,
+            is: void_,
+            location: suffix.location,
+            extraArgs: typedArgs,
+        };
+    }
+
+    if (typeVbls.length) {
+        const mapping = createTypeVblMapping(
+            ctx,
+            is.typeVbls,
+            typeVbls,
+            suffix.location,
+        );
+        if (mapping) {
+            is = mapTypeVariablesInType(mapping, is) as LambdaType;
+        }
+    }
+
+    const result: Apply = {
         type: 'apply',
-        args,
+        args: is.args.map((arg, i) => {
+            if (i >= typedArgs.length) {
+                return { type: 'Hole', location: suffix.location, is: arg };
+            }
+            return wrapExpected(typedArgs[i], [arg]);
+        }),
         effectVbls,
-        is: (target.is as LambdaType).res,
+        is: (is as LambdaType).res,
         location: suffix.location,
         target,
         typeVbls,
@@ -86,4 +124,23 @@ export const typeApply = (
             ? effectVbls.every((v) => v.type === 'var')
             : false,
     };
+
+    // pick up the extra args
+    // SO HERE's A THING
+    // a(b)(c)
+    // will be treated the same as
+    // a(b,c)
+    // IFF a is a function that only takes one arg,
+    // and doesn't return a function.
+
+    if (typedArgs.length > is.args.length) {
+        return {
+            type: 'InvalidApplication',
+            target: result,
+            is: result.is,
+            location: suffix.location,
+            extraArgs: typedArgs.slice(is.args.length),
+        };
+    }
+    return result;
 };

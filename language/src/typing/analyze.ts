@@ -766,6 +766,7 @@ export const termDependencies = (term: Term): Array<Reference> => {
         case 'boolean':
         case 'self':
         case 'TemplateString':
+        case 'InvalidApplication':
         case 'Hole':
         case 'NotFound':
             return [];

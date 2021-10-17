@@ -153,6 +153,24 @@ describe('typeArrow', () => {
         expect(res).toNotHaveErrors(ctx);
     });
 
+    // SOOOOOO what would I need to do to get local recursion? Is that important at all?
+    it('should work recursive', () => {
+        const ctx = newContext();
+        ctx.builtins.types.int = 0;
+        ctx.builtins.types.float = 0;
+
+        ctx.bindings.self = {
+            name: 'hello',
+            type: preset.pureFunction([], preset.int),
+        };
+        const res = parseExpression(ctx, `(): int => hello#self()`);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `(): int#builtin ={}> hello#self()`,
+        );
+        expect(res.is).toEqualType(preset.pureFunction([], preset.int), ctx);
+        expect(res).toNotHaveErrors(ctx);
+    });
+
     it('should just give holes if nothing specified', () => {
         const ctx = newContext();
         const res = parseExpression(ctx, `(a) => a`, []);

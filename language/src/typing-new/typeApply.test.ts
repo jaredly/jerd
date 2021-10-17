@@ -7,6 +7,7 @@ import {
     fakeOp,
     newContext,
     parseExpression,
+    parseToplevels,
     rawSnapshotSerializer,
     showTermErrors,
     showTypeErrors,
@@ -20,13 +21,91 @@ expect.addSnapshotSerializer(errorSerilaizer);
 expect.addSnapshotSerializer(warningsSerializer);
 
 describe('typeApply', () => {
-    it('should work', () => {
+    it('should with a builtin', () => {
         const ctx = newContext();
         ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
 
         const res = parseExpression(ctx, `hello()`);
         expect(ctx.warnings).toHaveLength(0);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(`hello#builtin()`);
+        expect(termToString(ctx, res)).toEqual(`hello#builtin()`);
+        expect(res.is).toEqualType(preset.int, ctx);
+        expect(res).toNotHaveErrors(ctx);
+    });
+
+    // ok
+    it('should work with a term', () => {
+        const ctx = newContext();
+        ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
+        ctx.library = parseToplevels(ctx, `const hello = () => 10`);
+
+        const res = parseExpression(ctx, `hello()`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `hello#40954438()`,
+        );
+        expect(res.is).toEqualType(preset.int, ctx);
+        expect(res).toNotHaveErrors(ctx);
+    });
+
+    // ok
+    it('should preserve extra arguments', () => {
+        const ctx = newContext();
+        ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
+        ctx.library = parseToplevels(ctx, `const hello = () => 10`);
+
+        const res = parseExpression(ctx, `hello(2)`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `INVALID_APPLICATION[hello#40954438()(2)]`,
+        );
+        expect(res.is).toEqualType(preset.int, ctx);
+        expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
+            `INVALID_APPLICATION[hello#40954438()(2)] at 1:6-1:9`,
+        );
+    });
+
+    it('should flag invalid arguments', () => {
+        const ctx = newContext();
+        ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
+        ctx.library = parseToplevels(ctx, `const hello = (v: string) => 10`);
+
+        const res = parseExpression(ctx, `hello(2)`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `hello#f1288954(v: 2)`,
+        );
+        expect(res.is).toEqualType(preset.int, ctx);
+        expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(`2 at 1:7-1:8`);
+    });
+
+    it('should flag non-function target', () => {
+        const ctx = newContext();
+        ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
+        ctx.library = parseToplevels(ctx, `const hello = 10`);
+
+        const res = parseExpression(ctx, `hello(2)`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `INVALID_APPLICATION[hello#6e9352f2(2)]`,
+        );
+        expect(res.is).toEqualType(preset.void_, ctx);
+        expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
+            `INVALID_APPLICATION[hello#6e9352f2(2)] at 1:6-1:9`,
+        );
+    });
+
+    // ok
+    it('should work with generic', () => {
+        const ctx = newContext();
+        ctx.builtins.types.int = 0;
+        ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
+        ctx.library = parseToplevels(ctx, `const hello = <T>(x: T) => x`);
+
+        const res = parseExpression(ctx, `hello<int>(2)`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `hello#49d35b73<int#builtin>(x: 2)`,
+        );
         expect(res.is).toEqualType(preset.int, ctx);
         expect(res).toNotHaveErrors(ctx);
     });

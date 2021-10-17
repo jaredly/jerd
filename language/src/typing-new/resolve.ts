@@ -151,6 +151,16 @@ export const resolveNamedValue = (
     location: Location,
     expectedTypes: Array<t.Type>,
 ): t.Term | null => {
+    if (ctx.bindings.self && ctx.bindings.self.name === name) {
+        if (
+            !expectedTypes.length ||
+            expectedTypes.some((type) =>
+                t.typesEqual(type, ctx.bindings.self!.type),
+            )
+        ) {
+            return { type: 'self', is: ctx.bindings.self.type, location };
+        }
+    }
     for (let binding of ctx.bindings.values) {
         if (binding.sym.name === name) {
             if (binding.type === null) {

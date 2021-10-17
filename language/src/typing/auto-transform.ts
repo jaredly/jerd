@@ -3029,6 +3029,62 @@ export const transformTerm = <Ctx>(node: Term, visitor: Visitor<Ctx>, ctx: Ctx):
                     break;
                 }
 
+            case 'InvalidApplication': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
+
+                
+                const updatedNode$0node$target = transformTerm(updatedNode$0specified.target, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$target !== updatedNode$0specified.target;
+
+                
+                let updatedNode$0node$extraArgs = updatedNode$0specified.extraArgs;
+                {
+                    let changed3 = false;
+                    const arr2 = updatedNode$0specified.extraArgs.map((updatedNode$0node$extraArgs$item2) => {
+                        
+                const result = transformTerm(updatedNode$0node$extraArgs$item2, visitor, ctx);
+                changed3 = changed3 || result !== updatedNode$0node$extraArgs$item2;
+                        return result
+                    })
+                    if (changed3) {
+                        updatedNode$0node$extraArgs = arr2;
+                        changed2 = true;
+                    }
+                }
+                
+
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, target: updatedNode$0node$target, extraArgs: updatedNode$0node$extraArgs, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
             case 'raise': {
                     const updatedNode$0specified = node;
                     let changed1 = false;

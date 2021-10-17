@@ -6,6 +6,7 @@ import {
     Term,
     RecordDef,
     DecoratorDef,
+    ToplevelT,
 } from '../typing/types';
 import { NamedDefns, ConstructorNames, MetaData } from './Context';
 
@@ -136,13 +137,27 @@ export type Library = {
     decorators: NamedDefns<DecoratorDef>;
 };
 
+export const addToplevel = (lib: Library, top: ToplevelT) => {
+    switch (top.type) {
+        case 'Define':
+            return addTerm(lib, top.term, top.name, top.tags);
+        case 'RecordDef':
+            return addRecord(lib, top.def, top.name, top.attrNames);
+        case 'Effect':
+            return addEffect(lib, top.effect, top.name, top.constrNames);
+        default:
+            throw new Error('nope');
+    }
+};
+
 export const addTerm = (
     lib: Library,
     term: Term,
     name?: string,
+    tags?: Array<string>,
 ): [Library, Id] => {
     const id = idFromName(hashObject(term));
-    const meta: MetaData = { created: Date.now() };
+    const meta: MetaData = { created: Date.now(), tags };
     return [
         {
             ...lib,

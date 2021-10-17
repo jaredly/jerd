@@ -1056,6 +1056,13 @@ export const _termToPretty = (env: Env, term: Term): PP => {
             ]);
         case 'Hole':
             return atom('HOLE');
+        case 'InvalidApplication':
+            return items([
+                atom('INVALID_APPLICATION['),
+                termToPretty(env, term.target),
+                args(term.extraArgs.map((arg) => termToPretty(env, arg))),
+                atom(']'),
+            ]);
         case 'NotFound':
             return atom('NOTFOND(' + term.text + ')');
         default:

@@ -376,6 +376,7 @@ export const transformWithCtx = <Ctx>(
         case 'var':
         case 'Hole':
         case 'NotFound':
+        case 'InvalidApplication': // NOTE: BROKEN!!! FOLKS!!!
             return term;
         default:
             let _x: never = term;
@@ -518,6 +519,7 @@ export const walkTerm = (
         case 'int':
         case 'float':
         case 'boolean':
+        case 'InvalidApplication':
         case 'self':
         case 'ref':
         case 'var':

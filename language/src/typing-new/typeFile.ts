@@ -22,6 +22,7 @@ import { parseIdOrSym } from './hashes';
 import { resolveNamedValue, resolveValue } from './resolve';
 import { typeExpression } from './typeExpression';
 import { Context } from './Context';
+import { typeType } from './typeType';
 
 export const typeToplevel = (
     ctx: Context,
@@ -38,6 +39,17 @@ export const typeToplevel = (
                 id: idFromName(hashObject(term)),
                 location: top.location,
                 term,
+            };
+        }
+        case 'Define': {
+            const t = top.ann ? typeType(ctx, top.ann) : null;
+            const term = typeExpression(ctx, top.expr, t ? [t] : []);
+            return {
+                type: 'Define',
+                term,
+                id: idFromName(hashObject(term)),
+                location: top.location,
+                name: top.id.text,
             };
         }
         // case 'Define': {

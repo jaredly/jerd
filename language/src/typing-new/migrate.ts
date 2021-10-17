@@ -205,6 +205,14 @@ export const mapObj = <A, B>(
 };
 
 export const ctxToEnv = (ctx: Context): Env => {
+    const local = newLocal();
+    if (ctx.bindings.self) {
+        local.self = {
+            ann: ctx.bindings.self.type,
+            name: ctx.bindings.self.name,
+            type: 'Term',
+        };
+    }
     return {
         depth: 0,
         term: {
@@ -212,6 +220,6 @@ export const ctxToEnv = (ctx: Context): Env => {
             nextTraceId: 0,
         },
         global: ctxToGlobalEnv(ctx),
-        local: newLocal(),
+        local,
     };
 };

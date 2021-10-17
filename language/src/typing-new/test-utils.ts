@@ -16,13 +16,14 @@ import {
     Id,
     ErrorType,
     typesEqual,
+    isErrorTerm,
 } from '../typing/types';
 import * as preset from '../typing/preset';
 import { GroupedOp, reGroupOps } from './ops';
 import { ctxToEnv } from './migrate';
 import { Context, NamedDefns } from './Context';
 import { typeExpression } from './typeExpression';
-import { addRecord, addTerm } from './Library';
+import { addRecord, addTerm, addToplevel, Library } from './Library';
 import { printToString } from '../printing/printer';
 import { termToPretty, typeToPretty } from '../printing/printTsLike';
 import { showLocation } from '../typing/typeExpr';
@@ -32,6 +33,7 @@ import {
     Visitor,
 } from '../typing/auto-transform';
 import { showType } from '../typing/unify';
+import { typeToplevel } from './typeFile';
 
 declare global {
     namespace jest {
@@ -78,6 +80,18 @@ export const showTypeErrors = (ctx: Context, res: Type) => {
                 )}`,
         )
         .join('\n');
+};
+
+export const parseToplevels = (ctx: Context, raw: string): Library => {
+    let library = ctx.library;
+    const parsed = parseTyped(raw);
+    parsed.tops!.items.forEach(({ top }) => {
+        const typed = typeToplevel({ ...ctx, library }, top);
+        if (typed) {
+            [library] = addToplevel(library, typed);
+        }
+    });
+    return library;
 };
 
 export const parseExpression = (
@@ -223,13 +237,8 @@ export const findErrors = (term: Term | null | void) => {
         term,
         {
             Term(node: Term, _) {
-                if (
-                    node.type === 'TypeError' ||
-                    node.type === 'Hole' ||
-                    node.type === 'Ambiguous' ||
-                    node.type === 'NotFound'
-                ) {
-                    errors.push(node);
+                if (isErrorTerm(node)) {
+                    errors.push(node as ErrorTerm);
                 }
                 return null;
             },

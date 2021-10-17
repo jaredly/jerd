@@ -135,6 +135,7 @@ import { subtTypeVars } from '../typing/typeExpr';
 import { resolveTypeVbls } from '../typing/getTypeError';
 import { showType } from '../typing/unify';
 import { getAllSubTypes, hasSubType } from './utils';
+import { transformType } from '../typing/auto-transform';
 
 const opsEqual = (one: binopWithHash, two: binopWithHash) =>
     one.op === two.op && one.hash === two.hash;
@@ -634,6 +635,23 @@ export const typeGroup = (
     return typeGroup(ctx, left as GroupedOp, expectedTypes);
 };
 
+export const mapTypeVariablesInType = (
+    mapping: { [unique: number]: Type },
+    type: Type,
+) =>
+    transformType(
+        type,
+        {
+            Type: (t) => {
+                if (t.type === 'var' && mapping[t.sym.unique]) {
+                    return mapping[t.sym.unique];
+                }
+                return null;
+            },
+        },
+        null,
+    );
+
 export const applyTypeVariablesToRecord = (
     ctx: Context,
     type: t.RecordDef,
@@ -651,7 +669,7 @@ export const applyTypeVariablesToRecord = (
     return {
         ...type,
         typeVbls: [],
-        items: type.items.map((t) => subtTypeVars(t, mapping, selfHash)),
+        items: type.items.map((t) => mapTypeVariablesInType(mapping, t)),
     };
 };
 

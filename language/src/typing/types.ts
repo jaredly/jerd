@@ -751,7 +751,23 @@ export type TermHole = {
     decorators?: Decorators;
 };
 
-export type ErrorTerm = Ambiguous | TypeError | NotFound | TermHole;
+export type InvalidApplication = {
+    type: 'InvalidApplication';
+    is: Type;
+    // This is either not a function, or a function call
+    // where too many args were supplied
+    target: Term;
+    extraArgs: Array<Term>;
+    location: Location;
+    decorators?: Decorators;
+};
+
+export type ErrorTerm =
+    | Ambiguous
+    | TypeError
+    | NotFound
+    | TermHole
+    | InvalidApplication;
 
 export const isErrorTerm = (type: Term) => {
     switch (type.type) {
@@ -759,6 +775,7 @@ export const isErrorTerm = (type: Term) => {
         case 'NotFound':
         case 'TypeError':
         case 'Ambiguous':
+        case 'InvalidApplication':
             return true;
     }
     return false;
@@ -1195,6 +1212,7 @@ export type TypeNotFound = {
     decorators?: Decorators;
     text: string;
 };
+// There were extra type variables provided!
 export type InvalidTypeApplication = {
     type: 'InvalidTypeApplication';
     location: Location;
@@ -1316,6 +1334,7 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
         case 'ref':
         case 'var':
         case 'NotFound':
+        case 'InvalidApplication':
         case 'Hole':
             return [];
         case 'handle':
@@ -1485,6 +1504,7 @@ export const walkTerm = (
         case 'ref':
         case 'var':
         case 'NotFound':
+        case 'InvalidApplication':
         case 'Hole':
             return;
         case 'TemplateString':
