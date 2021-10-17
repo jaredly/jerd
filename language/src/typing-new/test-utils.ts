@@ -43,6 +43,23 @@ declare global {
     }
 }
 
+export const fakeOp = (t: Type) =>
+    preset.lambdaLiteral(
+        [
+            { sym: { unique: 0, name: 'left' }, is: t, location: nullLocation },
+            {
+                sym: { name: 'right', unique: 1 },
+                is: t,
+                location: nullLocation,
+            },
+        ],
+        {
+            type: 'Hole',
+            is: t,
+            location: nullLocation,
+        },
+    );
+
 export const showTermErrors = (ctx: Context, res: Term) => {
     return findErrors(res)
         .map(
@@ -227,7 +244,12 @@ export const newContext = (): Context => ({
     rng: () => 0.0,
     warnings: [],
     idRemap: {},
-    builtins: { terms: {}, types: {}, decorators: {} },
+    builtins: {
+        terms: {},
+        types: {},
+        decorators: {},
+        ops: { unary: {}, binary: {} },
+    },
     bindings: {
         unique: { current: 0 },
         self: null,

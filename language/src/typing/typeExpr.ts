@@ -155,14 +155,18 @@ export const applyEffectVariables = (
         const t: LambdaType = type as LambdaType;
 
         const mapping: { [unique: number]: Array<EffectRef> } = {};
+        if (type.effectVbls.length === 0) {
+            return t;
+        }
 
         if (type.effectVbls.length !== 1) {
             console.log(type.effectVbls);
             throw new LocatedError(
                 loc || type.location,
-                `Multiple effect variables not yet supported: ${
-                    env ? showType(env, type) : 'no env for printing'
-                }`,
+                `Multiple effect variables not yet supported: ${showType(
+                    env,
+                    type,
+                )}`,
             );
         }
 

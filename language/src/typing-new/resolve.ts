@@ -109,16 +109,24 @@ export const resolveValue = (
     ctx: Context,
     idOrSym: IdOrSym,
     location: Location,
+    expected: Array<t.Type>,
 ): t.Term | null => {
     if (idOrSym.type === 'sym') {
         const binding = ctx.bindings.values.find(
             (b) => b.sym.unique === idOrSym.unique,
         );
         if (binding) {
+            if (binding.type === null) {
+                if (!expected.length) {
+                    binding.type = { type: 'THole', location };
+                } else {
+                    binding.type = expected[0];
+                }
+            }
             return {
                 type: 'var',
                 sym: binding.sym,
-                is: binding.type,
+                is: binding.type!,
                 location,
             };
         }
@@ -145,6 +153,13 @@ export const resolveNamedValue = (
 ): t.Term | null => {
     for (let binding of ctx.bindings.values) {
         if (binding.sym.name === name) {
+            if (binding.type === null) {
+                if (!expectedTypes.length) {
+                    binding.type = { type: 'THole', location };
+                } else {
+                    binding.type = expectedTypes[0];
+                }
+            }
             if (
                 expectedTypes.length &&
                 !expectedTypes.some((et) => t.typesEqual(binding.type, et))
@@ -154,7 +169,7 @@ export const resolveNamedValue = (
             return {
                 type: 'var',
                 sym: binding.sym,
-                is: binding.type,
+                is: binding.type!,
                 location,
             };
         }

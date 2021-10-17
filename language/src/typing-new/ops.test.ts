@@ -29,6 +29,7 @@ import { showType } from '../typing/unify';
 import {
     customMatchers,
     errorSerilaizer,
+    fakeOp,
     findErrors,
     newContext,
     parseExpression,
@@ -100,23 +101,6 @@ y float
     - both at the record level, and at the row (function) level
 
 */
-
-const fakeOp = (t: Type) =>
-    preset.lambdaLiteral(
-        [
-            { sym: { unique: 0, name: 'left' }, is: t, location: nullLocation },
-            {
-                sym: { name: 'right', unique: 1 },
-                is: t,
-                location: nullLocation,
-            },
-        ],
-        {
-            type: 'Hole',
-            is: t,
-            location: nullLocation,
-        },
-    );
 
 const fakeIntOp = fakeOp(preset.int);
 

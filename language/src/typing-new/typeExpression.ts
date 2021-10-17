@@ -6,6 +6,7 @@ import { typeArrayLiteral } from './typeArrayLiteral';
 import { Context } from './Context';
 import { typeIdentifier } from './typeIdentifier';
 import { typeBlock } from './typeBlock';
+import { typeArrow } from './typeArrow';
 
 export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
     if (expected.length && !expected.some((t) => typesEqual(t, term.is))) {
@@ -36,6 +37,9 @@ export const typeExpression = (
                 return typeExpression(ctx, grouped, expected);
             }
             return wrapExpected(typeGroup(ctx, grouped, expected), expected);
+        }
+        case 'Lambda': {
+            return typeArrow(ctx, term, expected);
         }
         // case 'WithUnary': {
         //     if (term.op != null) {

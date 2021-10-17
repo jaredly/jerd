@@ -295,7 +295,8 @@ export const resolveOpHash = (
         ctx.warnings.push({ location, text: `Invalid hash "${hashRaw}"` });
         return null;
     }
-    const base = resolveValue(ctx, hash.value, location);
+    // TODO: expected here?
+    const base = resolveValue(ctx, hash.value, location, []);
     if (!base) {
         warn(`Unable to resolve value for operator`);
         return null;
@@ -540,7 +541,7 @@ export const typePair = (
         args: [larg, rarg],
         location,
         target: op2.term,
-        effectVbls: [],
+        effectVbls: null,
         is: op2.term.is.res,
         typeVbls: op2.typeArgs,
     };
@@ -681,6 +682,9 @@ function findBinopImplementorsForRecordTypes(
             return;
         }
         ctx.bindings.values.forEach(({ sym, type }) => {
+            if (!type) {
+                return;
+            }
             // reffff hmm hmmmmm hm hmmm
             // or a var that has the right subtype
             if (type.type === 'ref' && type.ref.type === 'user') {

@@ -115,6 +115,7 @@ export const globalEnvToCtx = (env: GlobalEnv): Context => {
             types: env.builtinTypes,
             terms: env.builtins,
             decorators: {},
+            ops: { unary: {}, binary: {} },
         },
         library: {
             types,

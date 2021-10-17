@@ -1,5 +1,6 @@
-import { Location } from '../parsing/parser-new';
+import { Identifier, Location } from '../parsing/parser-new';
 import * as typed from '../typing/types';
+import { parseSym } from './hashes';
 import { Library } from './Library';
 
 /*
@@ -16,6 +17,21 @@ types: {
 
 
 */
+
+export const idToSym = (ctx: Context, id: Identifier) => {
+    let unique;
+    if (id.hash) {
+        unique = parseSym(id.hash?.slice(1));
+        if (unique == null) {
+            unique = nextUnique(ctx);
+        } else {
+            advanceUnique(ctx, unique);
+        }
+    } else {
+        unique = nextUnique(ctx);
+    }
+    return { unique, name: id.text };
+};
 
 export const nextUnique = (ctx: Context) => ++ctx.bindings.unique.current;
 export const advanceUnique = (
@@ -35,6 +51,10 @@ export type Builtins = {
     };
     types: {
         [key: string]: number; // number of type variables accepted.
+    };
+    ops: {
+        unary: { [key: string]: Array<typed.Type> };
+        binary: { [key: string]: Array<[typed.Type, typed.Type]> };
     };
     decorators: {
         // name, args, target type if applicable. Do I need type arguments?
@@ -69,7 +89,7 @@ export type Bindings = {
     values: Array<{
         location: Location;
         sym: typed.Symbol;
-        type: typed.Type;
+        type: typed.Type | null; // TODO: allow type | null here, for more inference
     }>;
     types: Array<{
         location: Location;

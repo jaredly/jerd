@@ -13,7 +13,8 @@ export const typeIdentifier = (
 ): Term => {
     if (term.hash) {
         const idOrSym = parseIdOrSym(term.hash.slice(1));
-        const resolved = idOrSym && resolveValue(ctx, idOrSym, term.location);
+        const resolved =
+            idOrSym && resolveValue(ctx, idOrSym, term.location, expected);
         if (resolved) {
             return resolved;
         }
