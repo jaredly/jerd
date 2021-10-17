@@ -51,6 +51,23 @@ describe('typeBlock', () => {
         `);
     });
 
+    it('should recover from mismatched explicit sym hashes', () => {
+        const ctx = newContext();
+
+        const res = parseExpression(ctx, `{ const x#:2 = 10; x#:3 }`);
+        expect(res).toNotHaveErrors(ctx);
+        expect(res.is).toEqualType(preset.int, ctx);
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:20-1:24: Unable to resolve term hash #:3`,
+        );
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(`
+            {
+                const x#:2 = 10;
+                x#:2;
+            }
+        `);
+    });
+
     it('should recover from bad symbol hash', () => {
         const ctx = newContext();
 
