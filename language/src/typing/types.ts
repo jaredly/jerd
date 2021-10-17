@@ -758,6 +758,7 @@ export type InvalidApplication = {
     // where too many args were supplied
     target: Term;
     extraArgs: Array<Term>;
+    extraTypeArgs: Array<Type>;
     location: Location;
     decorators?: Decorators;
 };

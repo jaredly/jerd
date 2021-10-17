@@ -91,20 +91,36 @@ export const typeApply = (
             target,
             is: void_,
             location: suffix.location,
+            extraTypeArgs: [],
             extraArgs: typedArgs,
         };
     }
 
-    if (typeVbls.length) {
+    // Ok: IF TOO FEW: fill with holes, it's fine
+    // IF TOO MANY: InvalidApplication, yse
+    if (typeVbls.length !== is.typeVbls.length) {
+        // Sooo we um
+        // wrap the target in an invalidTypeApplication?
+    }
+
+    const allTypeVbls: Array<Type> = is.typeVbls.map((_, i) =>
+        i >= typeVbls.length
+            ? { type: 'THole', location: suffix.location }
+            : typeVbls[i],
+    );
+
+    if (typeVbls.length || is.typeVbls.length) {
         const mapping = createTypeVblMapping(
             ctx,
             is.typeVbls,
-            typeVbls,
+            allTypeVbls,
+            // typeVbls.slice(0, is.typeVbls.length),
             suffix.location,
         );
-        if (mapping) {
-            is = mapTypeVariablesInType(mapping, is) as LambdaType;
+        if (!mapping) {
+            throw new Error(`nope`);
         }
+        is = mapTypeVariablesInType(mapping, is) as LambdaType;
     }
 
     const result: Apply = {
@@ -119,7 +135,8 @@ export const typeApply = (
         is: (is as LambdaType).res,
         location: suffix.location,
         target,
-        typeVbls,
+        // typeVbls.slice(0, is.typeVbls.length),
+        typeVbls: allTypeVbls,
         hadAllVariableEffects: effectVbls
             ? effectVbls.every((v) => v.type === 'var')
             : false,
@@ -133,13 +150,17 @@ export const typeApply = (
     // IFF a is a function that only takes one arg,
     // and doesn't return a function.
 
-    if (typedArgs.length > is.args.length) {
+    if (
+        typedArgs.length > is.args.length ||
+        typeVbls.length > is.typeVbls.length
+    ) {
         return {
             type: 'InvalidApplication',
             target: result,
             is: result.is,
             location: suffix.location,
             extraArgs: typedArgs.slice(is.args.length),
+            extraTypeArgs: typeVbls.slice(is.typeVbls.length),
         };
     }
     return result;

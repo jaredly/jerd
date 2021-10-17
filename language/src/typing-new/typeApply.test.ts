@@ -56,11 +56,11 @@ describe('typeApply', () => {
         const res = parseExpression(ctx, `hello(2)`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `INVALID_APPLICATION[hello#40954438()(2)]`,
+            `INVALID_APPLICATION[hello#40954438()<>(2)]`,
         );
         expect(res.is).toEqualType(preset.int, ctx);
         expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
-            `INVALID_APPLICATION[hello#40954438()(2)] at 1:6-1:9`,
+            `INVALID_APPLICATION[hello#40954438()<>(2)] at 1:6-1:9`,
         );
     });
 
@@ -86,11 +86,11 @@ describe('typeApply', () => {
         const res = parseExpression(ctx, `hello(2)`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `INVALID_APPLICATION[hello#6e9352f2(2)]`,
+            `INVALID_APPLICATION[hello#6e9352f2<>(2)]`,
         );
         expect(res.is).toEqualType(preset.void_, ctx);
         expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
-            `INVALID_APPLICATION[hello#6e9352f2(2)] at 1:6-1:9`,
+            `INVALID_APPLICATION[hello#6e9352f2<>(2)] at 1:6-1:9`,
         );
     });
 
@@ -108,6 +108,42 @@ describe('typeApply', () => {
         );
         expect(res.is).toEqualType(preset.int, ctx);
         expect(res).toNotHaveErrors(ctx);
+    });
+
+    // ok
+    it('should capture extra type vbls', () => {
+        const ctx = newContext();
+        ctx.builtins.types.int = 0;
+        ctx.builtins.types.float = 0;
+        ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
+        ctx.library = parseToplevels(ctx, `const hello = <T>(x: T) => x`);
+
+        const res = parseExpression(ctx, `hello<int, float>(2)`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `INVALID_APPLICATION[hello#49d35b73<int#builtin>(x: 2)<float#builtin>()]`,
+        );
+        expect(res.is).toEqualType(preset.int, ctx);
+        // expect(res).toNotHaveErrors(ctx);
+    });
+
+    // ok
+    it('should add holes for missing type vbls', () => {
+        const ctx = newContext();
+        ctx.builtins.types.int = 0;
+        ctx.builtins.types.float = 0;
+        ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
+        ctx.library = parseToplevels(ctx, `const hello = <T>(x: T) => x`);
+
+        const res = parseExpression(ctx, `hello(2)`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `hello#49d35b73<[type hole]>(x: 2)`,
+        );
+        expect(res.is).toEqualType(
+            { type: 'THole', location: nullLocation },
+            ctx,
+        );
     });
 
     // it('should work, if complicated', () => {

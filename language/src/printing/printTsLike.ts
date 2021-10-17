@@ -1060,6 +1060,11 @@ export const _termToPretty = (env: Env, term: Term): PP => {
             return items([
                 atom('INVALID_APPLICATION['),
                 termToPretty(env, term.target),
+                args(
+                    term.extraTypeArgs.map((t) => typeToPretty(env, t)),
+                    '<',
+                    '>',
+                ),
                 args(term.extraArgs.map((arg) => termToPretty(env, arg))),
                 atom(']'),
             ]);
