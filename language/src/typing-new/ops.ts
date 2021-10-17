@@ -423,29 +423,57 @@ export const typePair = (
     // TODO: KEEP TRACK of the return types, and compare them to the expected types.
     const options: Array<Option> = [];
 
+    let addedBuiltins = false;
+
     // let target: null | t.Attribute = null;
     // Things to consider:
     // - if the op has a hash, we just believe it, ... right?
     //   we could of course not believe it, if we wanted
     //   but we can handle that later
     if (op.hash != null) {
-        const target = resolveOpHash(ctx, op.hash, op.location, location);
-        if (
-            target != null &&
-            target.is.type === 'lambda' &&
-            target.is.args.length === 2
-        ) {
-            options.push({
-                left: target.is.args[0],
-                right: target.is.args[1],
-                term: target,
-                typeArgs: [],
-            });
+        if (op.hash === '#builtin') {
+            addedBuiltins = true;
+            if (ctx.builtins.ops.binary[op.op]) {
+                ctx.builtins.ops.binary[op.op].forEach(
+                    ({ left, right, output }) => {
+                        options.push({
+                            left,
+                            right,
+                            term: {
+                                type: 'ref',
+                                ref: { type: 'builtin', name: op.op },
+                                location,
+                                is: pureFunction([left, right], output),
+                            },
+                            typeArgs: [],
+                        });
+                    },
+                );
+            } else {
+                ctx.warnings.push({
+                    location,
+                    text: `Unknown builtin op ${op.op}`,
+                });
+            }
+        } else {
+            const target = resolveOpHash(ctx, op.hash, op.location, location);
+            if (
+                target != null &&
+                target.is.type === 'lambda' &&
+                target.is.args.length === 2
+            ) {
+                options.push({
+                    left: target.is.args[0],
+                    right: target.is.args[1],
+                    term: target,
+                    typeArgs: [],
+                });
+            }
         }
     }
 
     const potentials = ctx.library.types.constructors.names[op.op];
-    if (!potentials && !options.length) {
+    if (!potentials && !options.length && !ctx.builtins.ops.binary[op.op]) {
         ctx.warnings.push({
             location: location,
             text: `No attribute ${op.op}`,
@@ -477,9 +505,27 @@ export const typePair = (
     // So I can just say "I'm looking for values that are
     // one of these supertypes".
 
-    options.push(
-        ...findBinopImplementorsForRecordTypes(potentials, ctx, location),
-    );
+    if (potentials) {
+        options.push(
+            ...findBinopImplementorsForRecordTypes(potentials, ctx, location),
+        );
+    }
+
+    if (!addedBuiltins && ctx.builtins.ops.binary[op.op]) {
+        ctx.builtins.ops.binary[op.op].forEach(({ left, right, output }) => {
+            options.push({
+                left,
+                right,
+                term: {
+                    type: 'ref',
+                    ref: { type: 'builtin', name: op.op },
+                    location,
+                    is: pureFunction([left, right], output),
+                },
+                typeArgs: [],
+            });
+        });
+    }
 
     if (!options.length) {
         ctx.warnings.push({
@@ -547,11 +593,11 @@ export const typePair = (
     };
 };
 
-const hole = (type: t.Type, location: Location): t.TermHole => ({
-    type: 'Hole',
-    is: type,
-    location,
-});
+// const hole = (type: t.Type, location: Location): t.TermHole => ({
+//     type: 'Hole',
+//     is: type,
+//     location,
+// });
 
 export const typeUnaryOrGroup = (
     ctx: Context,

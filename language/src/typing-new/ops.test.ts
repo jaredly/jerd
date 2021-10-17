@@ -157,6 +157,32 @@ describe('non-generic examples', () => {
         );
     });
 
+    it('builtin', () => {
+        const ctx = newContext();
+        ctx.builtins.ops.binary['+'] = [
+            { left: preset.int, right: preset.float, output: preset.int },
+        ];
+
+        const res = parseExpression(ctx, `2 + 3.0`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(res).toNotHaveErrors(ctx);
+        expect(res.is).toEqualType(preset.int, ctx);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(`2 +#builtin 3.0`);
+    });
+
+    it('toplevel wins over builtin', () => {
+        const { ctx } = simpleCtx();
+        ctx.builtins.ops.binary['+'] = [
+            { left: preset.int, right: preset.float, output: preset.int },
+        ];
+
+        const res = parseExpression(ctx, `2 / 3`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `2 /#a7b87324#d28f8708#0 3`,
+        );
+    });
+
     it('toplevel definition, two to choose from', () => {
         const ctx = newContext();
 

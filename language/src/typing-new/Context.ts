@@ -53,8 +53,16 @@ export type Builtins = {
         [key: string]: number; // number of type variables accepted.
     };
     ops: {
-        unary: { [key: string]: Array<typed.Type> };
-        binary: { [key: string]: Array<[typed.Type, typed.Type]> };
+        unary: {
+            [key: string]: Array<{ input: typed.Type; output: typed.Type }>;
+        };
+        binary: {
+            [key: string]: Array<{
+                left: typed.Type;
+                right: typed.Type;
+                output: typed.Type;
+            }>;
+        };
     };
     decorators: {
         // name, args, target type if applicable. Do I need type arguments?
