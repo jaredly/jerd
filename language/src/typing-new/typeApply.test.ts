@@ -104,7 +104,7 @@ describe('typeApply', () => {
         const res = parseExpression(ctx, `hello<int>(2)`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `hello#49d35b73<int#builtin>(x: 2)`,
+            `hello#347ce412<int#builtin>(x: 2)`,
         );
         expect(res.is).toEqualType(preset.int, ctx);
         expect(res).toNotHaveErrors(ctx);
@@ -121,7 +121,7 @@ describe('typeApply', () => {
         const res = parseExpression(ctx, `hello<int, float>(2)`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `INVALID_APPLICATION[hello#49d35b73<int#builtin>(x: 2)<float#builtin>()]`,
+            `INVALID_APPLICATION[hello#347ce412<int#builtin>(x: 2)<float#builtin>()]`,
         );
         expect(res.is).toEqualType(preset.int, ctx);
         // expect(res).toNotHaveErrors(ctx);
@@ -139,7 +139,7 @@ describe('typeApply', () => {
             const res = parseExpression(ctx, `hello(2)`);
             expect(ctx.warnings).toHaveLength(0);
             expect(termToString(ctx, res)).toMatchInlineSnapshot(
-                `hello#49d35b73<int#builtin>(x: 2)`,
+                `hello#347ce412<int#builtin>(x: 2)`,
             );
             expect(res.is).toEqualType(preset.int, ctx);
         });
@@ -162,13 +162,12 @@ describe('typeApply', () => {
             );
             expect(ctx.warnings).toHaveLength(0);
             expect(termToString(ctx, res)).toMatchInlineSnapshot(`
-hello#48cfb00a<int#builtin>(
-    x: <(int#builtin, float#builtin) ={}> int#builtin>[
-        (a#:4: int#builtin, b#:5: float#builtin): int#builtin ={}> a#:4,
-    ],
-)
-`);
-            expect(res.is).toEqualType(preset.int, ctx);
+                hello#93fc64f8<int#builtin>(
+                    x: <(int#builtin, float#builtin) ={}> int#builtin>[
+                        (a#:4: int#builtin, b#:5: float#builtin): int#builtin ={}> a#:4,
+                    ],
+                )
+            `);
         });
 
         // ok
@@ -185,7 +184,7 @@ hello#48cfb00a<int#builtin>(
             const res = parseExpression(ctx, `hello(2, true)`);
             expect(ctx.warnings).toHaveLength(0);
             expect(termToString(ctx, res)).toMatchInlineSnapshot(
-                `hello#4bf0e7d0<int#builtin>(x: 2, y: true)`,
+                `hello#c09546b0<int#builtin>(x: 2, y: true)`,
             );
             expect(res.is).toEqualType(preset.int, ctx);
             expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
@@ -209,7 +208,7 @@ hello#48cfb00a<int#builtin>(
         const res = parseExpression(ctx, `hello{What}(() ={What}> 10)`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `hello#130eb59c{What#b54d969c}(f: (): int#builtin ={What#b54d969c}> 10)`,
+            `hello#0dfef846{What#b54d969c}(f: (): int#builtin ={What#b54d969c}> 10)`,
         );
         expect(res.is).toEqualType(preset.int, ctx);
         expect(res).toNotHaveErrors(ctx);
@@ -230,7 +229,7 @@ hello#48cfb00a<int#builtin>(
         let res = parseExpression(ctx, `hello{What}(() ={}> 10)`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `hello#130eb59c{What#b54d969c}(f: (): int#builtin ={}> 10)`,
+            `hello#0dfef846{What#b54d969c}(f: (): int#builtin ={}> 10)`,
         );
         expect(res.is).toEqualType(preset.int, ctx);
         expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
@@ -238,7 +237,7 @@ hello#48cfb00a<int#builtin>(
         );
         res = parseExpression(ctx, `hello{}(() ={What}> 10)`);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `hello#130eb59c{}(f: (): int#builtin ={What#b54d969c}> 10)`,
+            `hello#0dfef846{}(f: (): int#builtin ={What#b54d969c}> 10)`,
         );
         expect(res.is).toEqualType(preset.int, ctx);
         expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(

@@ -190,7 +190,7 @@ export const _lambdaTypeFromTermType = (
             note: 'from with effects',
             args: type.args.map(mapType),
             effects: type.effects,
-            effectVbls: type.effectVbls,
+            effectVbls: type.effectVbls.map((e) => e.sym.unique),
             returnValue: mapType(type.res),
         };
     }

@@ -262,7 +262,7 @@ export const bindTypeAndEffectVbls = (
     }
     const bindings = { ...ctx.bindings };
     const typeVbls: Array<t.TypeVblDecl> = [];
-    const effectVbls: Array<number> = [];
+    const effectVbls: Array<t.EffectVblDecl> = [];
     if (typeVblsRaw) {
         bindings.types = bindings.types.concat(
             typeVblsRaw.map((vbl) => {
@@ -295,10 +295,11 @@ export const bindTypeAndEffectVbls = (
         bindings.effects = bindings.effects.concat(
             effectVblsRaw.map((efv) => {
                 const unique = parseSym(efv.hash) || bindings.unique.current++;
-                effectVbls.push(unique);
+                const sym = { unique, name: efv.text };
+                effectVbls.push({ sym, location: efv.location });
                 return {
                     location: efv.location,
-                    sym: { unique, name: efv.text },
+                    sym,
                 };
             }),
         );

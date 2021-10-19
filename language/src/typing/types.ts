@@ -235,7 +235,7 @@ export type Self =
           name: string;
           ann: Type;
       }
-    | { type: 'Effect'; name: string; vbls: Array<number> }
+    | { type: 'Effect'; name: string; vbls: Array<EffectVblDecl> }
     | {
           type: 'Type';
           name: string;
@@ -994,7 +994,7 @@ export type EnumDef = {
     type: 'Enum';
     location: Location;
     typeVbls: Array<TypeVblDecl>;
-    effectVbls: Array<number>;
+    effectVbls: Array<EffectVblDecl>;
     extends: Array<UserTypeReference>;
     items: Array<UserTypeReference>;
     decorators?: Decorators;
@@ -1014,7 +1014,7 @@ export type RecordDef = {
     unique: number;
     location: Location;
     typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
-    effectVbls: Array<number>;
+    effectVbls: Array<EffectVblDecl>;
     extends: Array<UserTypeReference>;
     items: Array<Type>;
     ffi: { tag: string; names: Array<string> } | null;
@@ -1249,6 +1249,11 @@ export type TypeVblDecl = {
     location: Location;
     decorators?: Decorators;
 };
+export type EffectVblDecl = {
+    sym: Symbol;
+    location: Location;
+    decorators?: Decorators;
+};
 
 export type LambdaType = {
     type: 'lambda';
@@ -1256,7 +1261,7 @@ export type LambdaType = {
     // TODO: this shouldn't be an array,
     // we don't have to be order dependent here.
     typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
-    effectVbls: Array<number>;
+    effectVbls: Array<EffectVblDecl>;
     // TODO optional arguments!
     // TODO modular implicits!
     // TODO: Make this required, this is just for backwards compat

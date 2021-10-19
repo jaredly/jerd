@@ -151,7 +151,7 @@ export const typeApply = (
         }
         const effectMapping =
             is.effectVbls.length === 1
-                ? { [is.effectVbls[0]]: effectVbls || [] }
+                ? { [is.effectVbls[0].sym.unique]: effectVbls || [] }
                 : {};
         is = mapTypeAndEffectVariablesInType(
             mapping,

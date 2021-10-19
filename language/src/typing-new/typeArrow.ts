@@ -68,7 +68,7 @@ export const typeArrow = (
                 location: id.location,
                 sym,
             });
-            return sym.unique;
+            return { sym, location: id.location };
         }) || [];
 
     const typeVbls: Array<TypeVblDecl> =

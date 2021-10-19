@@ -129,7 +129,7 @@ describe('typeType', () => {
         [ctx.library] = addRecord(ctx.library, okVbl, 'ok', []);
         const res = parseType(ctx, 'ok<int>');
         const printed = typeToString(ctx, res);
-        expect(printed).toMatchInlineSnapshot(`ok#fe7af268<int#builtin>`);
+        expect(printed).toMatchInlineSnapshot(`ok#d1135b72<int#builtin>`);
         expect(res).toNotHaveErrorsT(ctx);
         expect(typeToString(ctx, parseType(ctx, printed))).toEqual(printed);
     });
@@ -178,7 +178,7 @@ describe('typeType', () => {
         const res = parseType(ctx, 'ok<base, base2>');
         const printed = typeToString(ctx, res);
         expect(printed).toMatchInlineSnapshot(
-            `ok#c4cc162c<base#59f7c4d4, base2#87518ee4>`,
+            `ok#4c37c9d6<base#59f7c4d4, base2#87518ee4>`,
         );
         expect(res).toNotHaveErrorsT(ctx);
         expect(typeToString(ctx, parseType(ctx, printed))).toEqual(printed);
@@ -200,7 +200,7 @@ describe('typeType', () => {
         );
         const printed = typeToString(ctx, res);
         expect(printed).toMatchInlineSnapshot(
-            `(what: int#builtin, who: int#builtin, when: ok#fe7af268<int#builtin>) ={}> int#builtin`,
+            `(what: int#builtin, who: int#builtin, when: ok#d1135b72<int#builtin>) ={}> int#builtin`,
         );
         expect(res).toNotHaveErrorsT(ctx);
         expect(typeToString(ctx, parseType(ctx, printed))).toEqual(printed);
@@ -216,7 +216,7 @@ describe('typeType', () => {
         );
         const printed = typeToString(ctx, res);
         expect(printed).toMatchInlineSnapshot(
-            `<A#:0, B#:1>(what: A#:0, who: int#builtin, when: ok#fe7af268<B#:1>) ={}> B#:1`,
+            `<A#:0, B#:1>(what: A#:0, who: int#builtin, when: ok#d1135b72<B#:1>) ={}> B#:1`,
         );
         expect(res).toNotHaveErrorsT(ctx);
         expect(typeToString(ctx, parseType(ctx, printed))).toEqual(printed);
@@ -258,7 +258,7 @@ describe('typeType', () => {
             <A#:0: Base1#59f7c4d4, B#:1>{e#:2}(
                 what: A#:0,
                 who: () ={e#:2}> int#builtin,
-                when: ok#fe7af268<B#:1>,
+                when: ok#d1135b72<B#:1>,
             ) ={e#:2, Eff#20bf83b4}> B#:1
         `);
         expect(res).toNotHaveErrorsT(ctx);
@@ -276,7 +276,7 @@ describe('typeType', () => {
             [ctx.library] = addRecord(ctx.library, okVbl, 'ok', []);
             const res = parseType(ctx, 'ok');
             const printed = typeToString(ctx, res);
-            expect(printed).toMatchInlineSnapshot(`ok#fe7af268<[type hole]>`);
+            expect(printed).toMatchInlineSnapshot(`ok#d1135b72<[type hole]>`);
             expect(showTypeErrors(ctx, res)).toMatchInlineSnapshot(
                 `[type hole] at 1:10-1:12`,
             );
@@ -289,10 +289,10 @@ describe('typeType', () => {
             const res = parseType(ctx, 'ok<int, int>');
             const printed = typeToString(ctx, res);
             expect(printed).toMatchInlineSnapshot(
-                `[extra vbls ok#fe7af268<int#builtin> (int#builtin)]`,
+                `[extra vbls ok#d1135b72<int#builtin> (int#builtin)]`,
             );
             expect(showTypeErrors(ctx, res)).toMatchInlineSnapshot(
-                `[extra vbls ok#fe7af268<int#builtin> (int#builtin)] at 1:10-1:22`,
+                `[extra vbls ok#d1135b72<int#builtin> (int#builtin)] at 1:10-1:22`,
             );
         });
 

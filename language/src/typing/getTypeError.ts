@@ -155,7 +155,7 @@ export const getTypeError = (
                 e.typeVbls[i].sym.unique;
         }
         found.effectVbls.forEach((ev, i) => {
-            mapping.effects[ev] = e.effectVbls[i];
+            mapping.effects[ev.sym.unique] = e.effectVbls[i].sym.unique;
         });
 
         for (let i = 0; i < found.args.length; i++) {

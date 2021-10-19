@@ -419,7 +419,7 @@ describe('generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#966e3926#e3800aa8#0 3`,
+            `2 /#35cbfb14#6e97893a#0 3`,
         );
     });
 
@@ -435,7 +435,7 @@ describe('generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#966e3926#e3800aa8#0 3`,
+            `2 /#35cbfb14#6e97893a#0 3`,
         );
     });
 
@@ -511,7 +511,7 @@ describe('generic examples', () => {
         const res = parseExpression(ctx, `1.2 / 2.3 / 2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `1.2 /#aa1f8bf4#2243e894#0 2.3 /#2ec4d076#2243e894#0 2 /#2ec4d076#2243e894#0 3`,
+            `1.2 /#96e39c78#627c3bcc#0 2.3 /#69881e54#627c3bcc#0 2 /#69881e54#627c3bcc#0 3`,
         );
     });
 
@@ -552,7 +552,7 @@ describe('generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#09a00684#49d8f77e#0 3`,
+            `2 /#06ca643e#eec7a598#0 3`,
         );
         // Explicit now
         const res2 = parseExpression(
@@ -561,7 +561,7 @@ describe('generic examples', () => {
         );
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res2)).toMatchInlineSnapshot(
-            `2 /#09a00684#49d8f77e#0 3`,
+            `2 /#06ca643e#eec7a598#0 3`,
         );
     });
 

@@ -689,7 +689,7 @@ export const applyTypeVariablesToRecord = (
     }
     const effMapping =
         type.effectVbls.length === 1
-            ? { [type.effectVbls[0]]: effectVbls }
+            ? { [type.effectVbls[0].sym.unique]: effectVbls }
             : {};
     return {
         ...type,

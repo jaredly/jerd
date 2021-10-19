@@ -18,6 +18,7 @@ import {
     Type,
     Var,
     ToplevelT,
+    EffectVblDecl,
 } from './types';
 
 export type Visitor<Ctx> = {
@@ -546,7 +547,8 @@ export const withNoEffects = (env: Env, term: Lambda): Lambda => {
         if (t.type === 'apply') {
             if (t.effectVbls) {
                 t.effectVbls = t.effectVbls.filter(
-                    (e) => e.type !== 'var' || e.sym.unique !== vbls[0],
+                    (e) =>
+                        e.type !== 'var' || e.sym.unique !== vbls[0].sym.unique,
                 );
             }
             // t.effectVbls;
@@ -569,11 +571,13 @@ export const withNoEffects = (env: Env, term: Lambda): Lambda => {
 };
 
 const clearEffects = (
-    vbls: Array<number>,
+    vbls: Array<EffectVblDecl>,
     effects: Array<EffectRef>,
 ): Array<EffectRef> => {
     return effects.filter(
-        (e) => e.type !== 'var' || !vbls.includes(e.sym.unique),
+        (e) =>
+            e.type !== 'var' ||
+            !vbls.find((v) => v.sym.unique === e.sym.unique),
     );
 };
 

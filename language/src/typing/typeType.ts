@@ -17,6 +17,7 @@ import {
     Id,
     nullLocation,
     TypeVblDecl,
+    EffectVblDecl,
 } from './types';
 import { showLocation } from './typeExpr';
 import { idFromName, idName, resolveEffect, symPrefix } from './env';
@@ -321,7 +322,7 @@ export const newEnvWithTypeAndEffectVbls = (
             location: id.location,
         });
     });
-    const effectVbls: Array<number> = [];
+    const effectVbls: Array<EffectVblDecl> = [];
     effvbls.forEach((id) => {
         const unique = parseUnique(
             id.hash,
@@ -331,7 +332,7 @@ export const newEnvWithTypeAndEffectVbls = (
         );
         const sym: Symbol = { name: id.text, unique };
         typeInner.local.effectVbls[id.text] = sym;
-        effectVbls.push(sym.unique);
+        effectVbls.push({ sym, location: id.location });
     });
     return { typeInner, typeVbls, effectVbls };
 };

@@ -170,7 +170,7 @@ export const applyEffectVariables = (
             );
         }
 
-        mapping[type.effectVbls[0]] = vbls;
+        mapping[type.effectVbls[0].sym.unique] = vbls;
 
         return {
             ...type,

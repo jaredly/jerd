@@ -177,7 +177,7 @@ describe('type descriptions', () => {
             }
         `),
         ).toMatchInlineSnapshot(`
-            @unique(0.5661807692527293) type Something#c8389130<A#:0, B#:1> = {
+            @unique(0.5661807692527293) type Something#41bbd8d8<A#:0, B#:1> = {
                 one: A#:0,
                 two: B#:1,
                 three: <C#:2, D#:3>(name: C#:2, age: D#:3) ={}> Tuple2#builtin<C#:2, D#:3>,
@@ -376,7 +376,7 @@ describe('expression types', () => {
                 read: () => string#builtin,
                 write: (string#builtin) => void#builtin,
             };
-            const respondWith#6f2f4a68 = (responseValue#:0: string#builtin): <T#:0>{e#:0}(
+            const respondWith#0d62240e = (responseValue#:0: string#builtin): <T#:0>{e#:0}(
                 default: T#:0,
                 fn: () ={Stdio#1da337a2, e#:0}> T#:0,
             ) ={e#:0}> T#:0 ={}> <T#:0>{e#:0}(default#:1: T#:0, fn#:2: () ={Stdio#1da337a2, e#:0}> T#:0): T#:0 ={
@@ -403,8 +403,8 @@ describe('expression types', () => {
                 );
                 raise!(Stdio#1da337a2.read());
             };
-            const test1#8a69f32c = (): string#builtin ={}> {
-                respondWith#6f2f4a68(responseValue: "<read>")<string#builtin>{}(
+            const test1#493e8fa0 = (): string#builtin ={}> {
+                respondWith#0d62240e(responseValue: "<read>")<string#builtin>{}(
                     "what",
                     (): string#builtin ={Stdio#1da337a2}> inner#ca3493ea(name: "Yes"),
                 );
@@ -557,7 +557,7 @@ describe('Decorators', () => {
                 ...Vec3#53b2e6a0,
                 w: float#builtin,
             };
-            @unique(0.5383562320075749) decorator alternates#2d1ef174<T#:0>(
+            @unique(0.5383562320075749) decorator alternates#bd86bc50<T#:0>(
                 options: Constant#builtin<Array#builtin<Tuple2#builtin<string#builtin, T#:0>>>,
             ) T#:0;
             @unique(0.969424254802974) decorator slider#1d9fcfd2(
@@ -589,10 +589,10 @@ describe('Decorators', () => {
             const goForIt#32a8fb20 = (pos#:0: Vec2#4284214c): float#builtin ={}> {
                 pos#:0.x#4284214c#0 *#builtin @slider#1d9fcfd2(min: 0.0, max: 10.0, step: 0.1) 2.3;
             };
-            const oneThing#b1904fe4 = @alternates#2d1ef174(
+            const oneThing#732875f4 = @alternates#bd86bc50(
                 options: <Tuple2#builtin<string#builtin, int#builtin>>[("hello", 2), ("sadness", -2)],
             ) 23;
-            const oneThing#243d9adb = @alternates#2d1ef174(
+            const oneThing#6865c905 = @alternates#bd86bc50(
                 options: <Tuple2#builtin<string#builtin, float#builtin>>[("hello", 2.0), ("sadness", -2.0)],
             ) 23.0
         `);
