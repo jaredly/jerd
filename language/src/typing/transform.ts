@@ -227,6 +227,19 @@ export const transformWithCtx = <Ctx>(
             return body !== term.body ? { ...term, body } : term;
         }
         case 'Record': {
+            // let changed = false;
+            // const spreads = term.spreads.map((spread) => {
+            //     const ns = transformWithCtx(spread, visitor, ctx);
+            //     changed = changed || ns !== spread;
+            //     return ns;
+            // });
+            // const items = term.items.map((item) => {
+            //     const value = transformWithCtx(item.value, visitor, ctx);
+            //     changed = changed || value !== item.value;
+            //     return item.value !== value ? { ...item, value } : item;
+            // });
+            // return changed ? { ...term, spreads, items } : term;
+
             const subTypes = { ...term.subTypes };
             let base = term.base;
             if (base.spread) {
@@ -455,6 +468,8 @@ export const walkTerm = (
         case 'lambda':
             return walkTerm(term.body, handle);
         case 'Record':
+            // term.spreads.forEach((term) => walkTerm(term, handle));
+            // term.items.forEach((item) => walkTerm(item.value, handle));
             if (term.base.spread) {
                 walkTerm(term.base.spread, handle);
             }

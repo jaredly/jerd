@@ -1,4 +1,4 @@
-import {Term, Location, Loc, Type, TypeVblDecl, Id, Symbol, Decorators, Decorator, DecoratorArg, Pattern, TypeReference, Reference, UserReference, RecordPatternItem, Literal, Boolean, EffectRef, ErrorType, TypeHole, RecordBaseConcrete, RecordSubType, SwitchCase, LambdaType, AmbiguousType, Case, LiteralWithTemplateString, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
+import {Term, Location, Loc, Type, TypeVblDecl, Id, Symbol, Decorators, Decorator, DecoratorArg, Pattern, TypeReference, Reference, UserReference, RecordPatternItem, Literal, Boolean, EffectVblDecl, EffectRef, ErrorType, TypeHole, RecordBaseConcrete, RecordSubType, SwitchCase, LambdaType, AmbiguousType, Case, LiteralWithTemplateString, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
 
 export type Visitor<Ctx> = {
     Term?: (node: Term, ctx: Ctx) => null | false | Term | [Term | null, Ctx]
@@ -958,6 +958,39 @@ export const transformTypeVblDecl = <Ctx>(node: TypeVblDecl, visitor: Visitor<Ct
         return updatedNode;
     }
 
+export const transformEffectVblDecl = <Ctx>(node: EffectVblDecl, visitor: Visitor<Ctx>, ctx: Ctx): EffectVblDecl => {
+        if (!node) {
+            throw new Error('No EffectVblDecl provided');
+        }
+        
+        let changed0 = false;
+        
+            let updatedNode = node;
+            {
+                let changed1 = false;
+                
+                const updatedNode$location = transformLocation(node.location, visitor, ctx);
+                changed1 = changed1 || updatedNode$location !== node.location;
+
+                
+        let updatedNode$decorators = undefined;
+        const updatedNode$decorators$current = node.decorators;
+        if (updatedNode$decorators$current != null) {
+            
+                const updatedNode$decorators$1$ = transformDecorators(updatedNode$decorators$current, visitor, ctx);
+                changed1 = changed1 || updatedNode$decorators$1$ !== updatedNode$decorators$current;
+            updatedNode$decorators = updatedNode$decorators$1$;
+        }
+        
+                if (changed1) {
+                    updatedNode =  {...updatedNode, location: updatedNode$location, decorators: updatedNode$decorators};
+                    changed0 = true;
+                }
+            }
+            
+        return updatedNode;
+    }
+
 export const transformEffectRef = <Ctx>(node: EffectRef, visitor: Visitor<Ctx>, ctx: Ctx): EffectRef => {
         if (!node) {
             throw new Error('No EffectRef provided');
@@ -1321,6 +1354,23 @@ export const transformType = <Ctx>(node: Type, visitor: Visitor<Ctx>, ctx: Ctx):
                 
 
                 
+                let updatedNode$0node$effectVbls = updatedNode$0specified.effectVbls;
+                {
+                    let changed3 = false;
+                    const arr2 = updatedNode$0specified.effectVbls.map((updatedNode$0node$effectVbls$item2) => {
+                        
+                const result = transformEffectVblDecl(updatedNode$0node$effectVbls$item2, visitor, ctx);
+                changed3 = changed3 || result !== updatedNode$0node$effectVbls$item2;
+                        return result
+                    })
+                    if (changed3) {
+                        updatedNode$0node$effectVbls = arr2;
+                        changed2 = true;
+                    }
+                }
+                
+
+                
         let updatedNode$0node$argNames = undefined;
         const updatedNode$0node$argNames$current = updatedNode$0specified.argNames;
         if (updatedNode$0node$argNames$current != null) {
@@ -1421,7 +1471,7 @@ export const transformType = <Ctx>(node: Type, visitor: Visitor<Ctx>, ctx: Ctx):
         }
         
                 if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, typeVbls: updatedNode$0node$typeVbls, argNames: updatedNode$0node$argNames, args: updatedNode$0node$args, effects: updatedNode$0node$effects, rest: updatedNode$0node$rest, res: updatedNode$0node$res, decorators: updatedNode$0node$decorators};
+                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, typeVbls: updatedNode$0node$typeVbls, effectVbls: updatedNode$0node$effectVbls, argNames: updatedNode$0node$argNames, args: updatedNode$0node$args, effects: updatedNode$0node$effects, rest: updatedNode$0node$rest, res: updatedNode$0node$res, decorators: updatedNode$0node$decorators};
                     changed1 = true;
                 }
             }
@@ -1754,6 +1804,23 @@ export const transformLambdaType = <Ctx>(node: LambdaType, visitor: Visitor<Ctx>
                 
 
                 
+                let updatedNode$effectVbls = node.effectVbls;
+                {
+                    let changed2 = false;
+                    const arr1 = node.effectVbls.map((updatedNode$effectVbls$item1) => {
+                        
+                const result = transformEffectVblDecl(updatedNode$effectVbls$item1, visitor, ctx);
+                changed2 = changed2 || result !== updatedNode$effectVbls$item1;
+                        return result
+                    })
+                    if (changed2) {
+                        updatedNode$effectVbls = arr1;
+                        changed1 = true;
+                    }
+                }
+                
+
+                
         let updatedNode$argNames = undefined;
         const updatedNode$argNames$current = node.argNames;
         if (updatedNode$argNames$current != null) {
@@ -1854,7 +1921,7 @@ export const transformLambdaType = <Ctx>(node: LambdaType, visitor: Visitor<Ctx>
         }
         
                 if (changed1) {
-                    updatedNode =  {...updatedNode, location: updatedNode$location, typeVbls: updatedNode$typeVbls, argNames: updatedNode$argNames, args: updatedNode$args, effects: updatedNode$effects, rest: updatedNode$rest, res: updatedNode$res, decorators: updatedNode$decorators};
+                    updatedNode =  {...updatedNode, location: updatedNode$location, typeVbls: updatedNode$typeVbls, effectVbls: updatedNode$effectVbls, argNames: updatedNode$argNames, args: updatedNode$args, effects: updatedNode$effects, rest: updatedNode$rest, res: updatedNode$res, decorators: updatedNode$decorators};
                     changed0 = true;
                 }
             }
@@ -3959,6 +4026,23 @@ export const transformEnumDef = <Ctx>(node: EnumDef, visitor: Visitor<Ctx>, ctx:
                 
 
                 
+                let updatedNode$effectVbls = node.effectVbls;
+                {
+                    let changed2 = false;
+                    const arr1 = node.effectVbls.map((updatedNode$effectVbls$item1) => {
+                        
+                const result = transformEffectVblDecl(updatedNode$effectVbls$item1, visitor, ctx);
+                changed2 = changed2 || result !== updatedNode$effectVbls$item1;
+                        return result
+                    })
+                    if (changed2) {
+                        updatedNode$effectVbls = arr1;
+                        changed1 = true;
+                    }
+                }
+                
+
+                
                 let updatedNode$extends = node.extends;
                 {
                     let changed2 = false;
@@ -4003,7 +4087,7 @@ export const transformEnumDef = <Ctx>(node: EnumDef, visitor: Visitor<Ctx>, ctx:
         }
         
                 if (changed1) {
-                    updatedNode =  {...updatedNode, location: updatedNode$location, typeVbls: updatedNode$typeVbls, extends: updatedNode$extends, items: updatedNode$items, decorators: updatedNode$decorators};
+                    updatedNode =  {...updatedNode, location: updatedNode$location, typeVbls: updatedNode$typeVbls, effectVbls: updatedNode$effectVbls, extends: updatedNode$extends, items: updatedNode$items, decorators: updatedNode$decorators};
                     changed0 = true;
                 }
             }
@@ -4037,6 +4121,23 @@ export const transformRecordDef = <Ctx>(node: RecordDef, visitor: Visitor<Ctx>, 
                     })
                     if (changed2) {
                         updatedNode$typeVbls = arr1;
+                        changed1 = true;
+                    }
+                }
+                
+
+                
+                let updatedNode$effectVbls = node.effectVbls;
+                {
+                    let changed2 = false;
+                    const arr1 = node.effectVbls.map((updatedNode$effectVbls$item1) => {
+                        
+                const result = transformEffectVblDecl(updatedNode$effectVbls$item1, visitor, ctx);
+                changed2 = changed2 || result !== updatedNode$effectVbls$item1;
+                        return result
+                    })
+                    if (changed2) {
+                        updatedNode$effectVbls = arr1;
                         changed1 = true;
                     }
                 }
@@ -4129,7 +4230,7 @@ export const transformRecordDef = <Ctx>(node: RecordDef, visitor: Visitor<Ctx>, 
         }
         
                 if (changed1) {
-                    updatedNode =  {...updatedNode, location: updatedNode$location, typeVbls: updatedNode$typeVbls, extends: updatedNode$extends, items: updatedNode$items, decorators: updatedNode$decorators, defaults: updatedNode$defaults};
+                    updatedNode =  {...updatedNode, location: updatedNode$location, typeVbls: updatedNode$typeVbls, effectVbls: updatedNode$effectVbls, extends: updatedNode$extends, items: updatedNode$items, decorators: updatedNode$decorators, defaults: updatedNode$defaults};
                     changed0 = true;
                 }
             }

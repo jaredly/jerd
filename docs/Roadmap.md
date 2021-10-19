@@ -8,6 +8,69 @@
 - [ ] recorddddddddddddddddddddddddd
 
 
+
+## Array algebra, let's get it
+
+```ts
+const range = <N: 0..>(i: N): Array<int, N> => {
+  if i == 0 {
+    <int, N>[] // SEE the type refinement!
+    // what we're doing is, IF N == 0,
+    // then we return a thing of length 0,
+    // which works!
+  } else {
+    <int, N>[...range<N - 1>(i - 1), i]
+  }
+}
+```
+
+How ... do I keep track of i being a thing of N?
+And do I get into predicate functions and whatnot?
+
+Because it would be a function that /gives feedback/ to my
+N type.
+
+Anyway, I think when setting up the bindings for a type variable,
+if it's a numeric type variable, I also check to see what arguments
+are ... related to it?
+I'd start with just literally i: N, so that if i shows up in an if condition, I can
+refine the definition of N within that scope.
+
+Do i have to special-case `-` to do the right updates to the type?
+e.g., can I define `-` for vecs in a way that preserves some things?
+
+```ts
+// ugh ok I don't like this. I don't like ... hmm the subtyping this suggests?
+type Vec2<X:.. = .., Y:.. = ..> {
+  x: X,
+  y: Y,
+}
+
+// Yeah ok I would need ... I don't even know.
+// I think this is getting toward typeclasses again.
+const m: Sub<Vec2, Vec2>{
+  '-': <A, B, C, D>(one: Vec2<A, B>, two: Vec2<C, D>): Vec2<A - C, B - D>{x: one.x - two.x, y: one.y - two.y}
+}
+```
+
+yeah ok let's not do that right now. I'm not adding a `Type`, just a type of `var`. We can think about the other stuff at some other time.
+
+QUESTION: We want to be able to represent 0...3, do we want to be able to represent 0 | 3?
+Is that too complex?
+Is it fine?
+
+```ts
+const twoOrThree = (b: bool): Array<2 | 3> => {
+  if b {
+    [1, 2]
+  } else {
+    [3, 4, 5]
+  }
+}
+```
+
+
+
 ## EDITOR DUMP
 
 - [ ] tuple type parsing ambiguity! ugh this is annoying.
@@ -41,7 +104,7 @@ AST CHANGES:
 - [ ] Lambdas shouldn't have a separate `.is`, the dupication between args and is.args is bad news.
     change all expr.is to a function to get the type of an expr.
   - [ ] same story for 'Raise' and 'attribute'
-- [ ] effectVbls shouldn't be numbers, lets get ids in there
+- [x] effectVbls shouldn't be numbers, lets get ids in there
 - [x] TypeVblDecl should have better attributes
 - [ ] oooh should sym have a location? 🤔
 - [ ] a basic algebra of effects! () ={A + B}> {}

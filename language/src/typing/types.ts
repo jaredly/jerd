@@ -588,9 +588,17 @@ export type RecordSubType = {
     spread: Term | null;
     rows: Array<Term | null>;
 };
+// spreads .. all before the items
+export type RecordItem = {
+    id: Id;
+    idx: number;
+    value: Term;
+};
 export type Record = {
     type: 'Record';
     base: RecordBaseConcrete;
+    // spreads: Array<Term>;
+    // items: Array<RecordItem>;
     is: Type;
     // For each subtype, we might have members defined
     subTypes: {
@@ -1390,8 +1398,12 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
                     row ? effects.push(...getEffects(row)) : null,
                 );
             }
-
             return effects;
+
+            // return effects.concat(
+            //     ...t.spreads.map(getEffects),
+            //     ...t.items.map((item) => getEffects(item.value)),
+            // );
         }
         case 'Enum':
         case 'unary':
@@ -1465,6 +1477,8 @@ export const walkTerm = (
         case 'lambda':
             return walkTerm(term.body, handle);
         case 'Record':
+            // term.spreads.forEach((term) => walkTerm(term, handle));
+            // term.items.forEach((item) => walkTerm(item.value, handle));
             if (term.base.spread) {
                 walkTerm(term.base.spread, handle);
             }
