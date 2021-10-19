@@ -280,9 +280,11 @@ export const bindTypeAndEffectVbls = (
                             .filter(Boolean) as Array<Id>) || [],
                 };
                 typeVbls.push({
-                    name: vbl.id.text,
                     subTypes: res.subTypes,
-                    unique,
+                    sym: {
+                        name: vbl.id.text,
+                        unique,
+                    },
                     location: vbl.location,
                 });
                 return res;

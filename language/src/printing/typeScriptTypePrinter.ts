@@ -228,7 +228,7 @@ export const typeVblsToParameters = (
                       )
                     : null,
                 null,
-                `T_${vbl.unique}`,
+                vbl.sym.name,
             ),
         ),
     );

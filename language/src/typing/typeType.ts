@@ -9,7 +9,15 @@ import {
 // TODO come up with a sourcemappy notion of "unique location in the parse tree"
 // that doesn't mean keeping track of column & line.
 // because we'll need it in a web ui.
-import { Env, Symbol, subEnv, Type, Id, nullLocation } from './types';
+import {
+    Env,
+    Symbol,
+    subEnv,
+    Type,
+    Id,
+    nullLocation,
+    TypeVblDecl,
+} from './types';
 import { showLocation } from './typeExpr';
 import { idFromName, idName, resolveEffect, symPrefix } from './env';
 import { LocatedError } from './errors';
@@ -284,12 +292,7 @@ export const newEnvWithTypeAndEffectVbls = (
     // });
 
     const typeInner = subEnv(env);
-    const typeVbls: Array<{
-        unique: number;
-        subTypes: Array<Id>;
-        name: string;
-        location: Location;
-    }> = [];
+    const typeVbls: Array<TypeVblDecl> = [];
     typevbls.forEach(({ id, subTypes }) => {
         // console.log(id.hash);
         const unique = parseUnique(
@@ -313,9 +316,8 @@ export const newEnvWithTypeAndEffectVbls = (
         typeInner.local.typeVbls[sym.unique] = { subTypes: st };
         typeInner.local.typeVblNames[id.text] = sym;
         typeVbls.push({
-            unique: sym.unique,
+            sym,
             subTypes: st,
-            name: id.text,
             location: id.location,
         });
     });

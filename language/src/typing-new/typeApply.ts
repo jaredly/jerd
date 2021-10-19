@@ -26,7 +26,7 @@ export const inferTypeVblIfPossible = (
     // We assume that it will show up in one of the args
     let found: Type | null = null;
     for (let i = 0; i < is.args.length && i < args.length; i++) {
-        const resolved = resolveTypeVbl(is.args[i], args[i].is, vbl.unique);
+        const resolved = resolveTypeVbl(is.args[i], args[i].is, vbl.sym.unique);
         if (resolved != null) {
             return resolved;
         }

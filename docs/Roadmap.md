@@ -1,4 +1,13 @@
 
+## New Typing
+
+- [x] int/float/bool
+- [x] Array literal
+- [x] lambda
+- [x] apply
+- [ ] recorddddddddddddddddddddddddd
+
+
 ## EDITOR DUMP
 
 - [ ] tuple type parsing ambiguity! ugh this is annoying.
@@ -33,11 +42,16 @@ AST CHANGES:
     change all expr.is to a function to get the type of an expr.
   - [ ] same story for 'Raise' and 'attribute'
 - [ ] effectVbls shouldn't be numbers, lets get ids in there
-- [ ] TypeVblDecl should have better attributes
+- [x] TypeVblDecl should have better attributes
+- [ ] oooh should sym have a location? 🤔
 - [ ] a basic algebra of effects! () ={A + B}> {}
     {e}() ={e + A}> {}
     whatsit{A + B}()
     {e}() ={e - A}> {}
+    THIS WAY, `handle` can be {e} => {e - A}
+    which seems nice.
+    whereas now it's {e, A} => e
+    which is maybe just as fine? idk.
 
 AST CHANGES FOR BETTER ERROR REPORTING:
 - [ ] raise's target should be allowed to be "invalid"

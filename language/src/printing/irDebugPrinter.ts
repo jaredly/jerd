@@ -224,9 +224,7 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
                 [
                     expr.is.typeVbls.length
                         ? args(
-                              expr.is.typeVbls.map((v, i) =>
-                                  atom(v.name || `T${i}`),
-                              ),
+                              expr.is.typeVbls.map((v, i) => atom(v.sym.name)),
                               '<',
                               '>',
                           )

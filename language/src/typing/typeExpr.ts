@@ -301,7 +301,7 @@ export const applyTypeVariables = (
                     }
                 }
             }
-            mapping[t.typeVbls[i].unique] = typ;
+            mapping[t.typeVbls[i].sym.unique] = typ;
         });
         return {
             ...type,
@@ -984,7 +984,7 @@ export const createTypeVblMapping = (
                 throw new Error(`Expected a subtype of ${idName(sub)}`);
             }
         }
-        mapping[typeVbls[i].unique] = typ;
+        mapping[typeVbls[i].sym.unique] = typ;
     });
 
     return mapping;

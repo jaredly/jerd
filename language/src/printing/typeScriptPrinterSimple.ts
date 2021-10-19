@@ -1036,7 +1036,7 @@ export const typeDeclarations = (
                     ref: { type: 'user', id },
                     typeVbls: constr.typeVbls.map((t, i) => ({
                         type: 'var',
-                        sym: { name: 'T', unique: t.unique },
+                        sym: t.sym,
                         location: constr.location,
                     })),
                     location: constr.location,

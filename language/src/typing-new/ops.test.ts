@@ -122,7 +122,7 @@ const fakeAnyOp = preset.lambdaLiteral(
         location: nullLocation,
     },
     undefined,
-    [{ unique, subTypes: [] }],
+    [{ sym: { unique, name: 'T' }, subTypes: [], location: nullLocation }],
 );
 
 describe('non-generic examples', () => {
@@ -383,10 +383,11 @@ const simpleGeneric = () => {
     const ctx = newContext();
 
     const unique = 1;
+    const sym = { unique, name: 'T' };
     const T: Type = {
         type: 'var',
         location: nullLocation,
-        sym: { unique, name: 'T' },
+        sym,
     };
 
     let slash; // const slash = idFromName('slash');
@@ -395,7 +396,7 @@ const simpleGeneric = () => {
         preset.recordDefn(
             [preset.pureFunction([T, T], T)],
             [],
-            [{ unique, subTypes: [] }],
+            [{ sym, subTypes: [], location: nullLocation }],
         ),
         'slash',
         ['/'],
@@ -442,24 +443,27 @@ describe('generic examples', () => {
         const ctx = newContext();
 
         const unique = 1;
+        const sym = { unique, name: 'A' };
         const A: Type = {
             type: 'var',
             location: nullLocation,
-            sym: { unique, name: 'A' },
+            sym,
         };
 
         const uniqueB = 2;
+        const symB = { unique: uniqueB, name: 'B' };
         const B: Type = {
             type: 'var',
             location: nullLocation,
-            sym: { unique: uniqueB, name: 'B' },
+            sym: symB,
         };
 
         const uniqueC = 3;
+        const symC = { unique: uniqueC, name: 'C' };
         const C: Type = {
             type: 'var',
             location: nullLocation,
-            sym: { unique: uniqueC, name: 'C' },
+            sym: symC,
         };
 
         let slash; // const slash = idFromName('slash');
@@ -469,9 +473,9 @@ describe('generic examples', () => {
                 [preset.pureFunction([A, B], C)],
                 [],
                 [
-                    { unique, subTypes: [] },
-                    { unique: uniqueB, subTypes: [] },
-                    { unique: uniqueC, subTypes: [] },
+                    { sym, subTypes: [], location: nullLocation },
+                    { sym: symB, subTypes: [], location: nullLocation },
+                    { sym: symC, subTypes: [], location: nullLocation },
                 ],
             ),
             'slash',
@@ -515,17 +519,22 @@ describe('generic examples', () => {
         const ctx = newContext();
 
         const unique = 1;
+        const sym = { unique, name: 'T' };
         const T: Type = {
             type: 'var',
             location: nullLocation,
-            sym: { unique, name: 'T' },
+            sym,
         };
 
         let slash; // const slash = idFromName('slash');
         [ctx.library, slash] = addRecord(
             ctx.library,
             preset.recordDefn(
-                [preset.pureFunction([T, T], T, [{ unique, subTypes: [] }])],
+                [
+                    preset.pureFunction([T, T], T, [
+                        { sym, subTypes: [], location: nullLocation },
+                    ]),
+                ],
                 [],
                 [],
             ),

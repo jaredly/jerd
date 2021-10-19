@@ -114,7 +114,10 @@ describe('typeType', () => {
         [
             {
                 subTypes: [],
-                unique: 10,
+                sym: {
+                    unique: 10,
+                    name: 'a',
+                },
                 location: nullLocation,
             },
         ],
@@ -138,12 +141,18 @@ describe('typeType', () => {
             [
                 {
                     subTypes: [sub],
-                    unique: 10,
+                    sym: {
+                        unique: 20,
+                        name: 'a',
+                    },
                     location: nullLocation,
                 },
                 {
                     subTypes: [sub],
-                    unique: 20,
+                    sym: {
+                        unique: 20,
+                        name: 'a',
+                    },
                     location: nullLocation,
                 },
             ],

@@ -59,7 +59,7 @@ export const symbolsEqual = (one: Symbol, two: Symbol) =>
     one.unique === two.unique;
 
 export const typeVblDeclsEqual = (one: TypeVblDecl, two: TypeVblDecl) =>
-    one.unique === two.unique &&
+    one.sym.unique === two.sym.unique &&
     one.subTypes.length === two.subTypes.length &&
     one.subTypes.every((s, i) => idsEqual(s, two.subTypes[i]));
 
@@ -1245,10 +1245,8 @@ export type Kind =
 
 export type TypeVblDecl = {
     subTypes: Array<Id>;
-    unique: number;
-    // TODO: make these required
-    name?: string;
-    location?: Location;
+    sym: Symbol;
+    location: Location;
     decorators?: Decorators;
 };
 

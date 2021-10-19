@@ -151,7 +151,8 @@ export const getTypeError = (
                     );
                 }
             }
-            mapping.types[found.typeVbls[i].unique] = e.typeVbls[i].unique;
+            mapping.types[found.typeVbls[i].sym.unique] =
+                e.typeVbls[i].sym.unique;
         }
         found.effectVbls.forEach((ev, i) => {
             mapping.effects[ev] = e.effectVbls[i];

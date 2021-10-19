@@ -335,8 +335,8 @@ export const typeVblDeclsToPretty = (
         typeVbls.map((v, i) =>
             items([
                 idPretty(
-                    v.name || `T${i}`,
-                    ':' + v.unique.toString(),
+                    v.sym.name,
+                    ':' + v.sym.unique.toString(),
                     'sym',
                     v.location,
                 ),

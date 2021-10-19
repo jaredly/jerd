@@ -191,15 +191,19 @@ export function presetEnv(builtins: { [key: string]: Type }) {
     // env.global.builtins['intToFloat'] = pureFunction([int], float);
 
     const T: TypeVblDecl = {
-        unique: 10000,
+        sym: {
+            unique: 10000,
+            name: 'T',
+        },
         subTypes: [],
-        name: 'T',
         location: nullLocation,
     };
     const Y: TypeVblDecl = {
-        unique: 10001,
+        sym: {
+            unique: 10001,
+            name: 'Y',
+        },
         subTypes: [],
-        name: 'Y',
         location: nullLocation,
     };
     const Y0: Type = {

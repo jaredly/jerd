@@ -870,9 +870,7 @@ export const declarationToGo = (
             idToGo(env, opts, idFromName(idRaw), false),
             term.is.typeVbls.length
                 ? args(
-                      term.is.typeVbls.map((t) =>
-                          atom(t.name ? t.name : `T${t.unique}`),
-                      ),
+                      term.is.typeVbls.map((t) => atom(t.sym.name)),
                       '<',
                       '>',
                   )

@@ -84,8 +84,7 @@ export const typeArrow = (
                 subTypes,
             });
             return {
-                unique: sym.unique,
-                name: sym.name,
+                sym,
                 location: item.location,
                 subTypes,
             };

@@ -724,7 +724,7 @@ export const createTypeVblMapping = (
                 throw new Error(`Expected a subtype of ${idName(sub)}`);
             }
         }
-        mapping[typeVbls[i].unique] = typ;
+        mapping[typeVbls[i].sym.unique] = typ;
     });
 
     return mapping;

@@ -804,7 +804,7 @@ export const typeToPretty = (env: Env, type: Type): PP => {
 function typeVblDeclsToPretty(env: Env, typeVbls: TypeVblDecl[]): PP | null {
     return items([
         atom('<'),
-        args(typeVbls.map((t) => atom('T_' + t.unique))),
+        args(typeVbls.map((t) => atom(t.sym.name))),
         atom('>'),
     ]);
 }
@@ -824,7 +824,7 @@ export const makeTypeVblMapping = (
         //         throw new Error(`Expected a subtype of ${idName(sub)}`);
         //     }
         // }
-        mapping[declared[i].unique] = typ;
+        mapping[declared[i].sym.unique] = typ;
     });
 
     return mapping;
@@ -855,7 +855,7 @@ export const createTypeVblMapping = (
         //         throw new Error(`Expected a subtype of ${idName(sub)}`);
         //     }
         // }
-        mapping[typeVbls[i].unique] = typ;
+        mapping[typeVbls[i].sym.unique] = typ;
     });
 
     return mapping;
