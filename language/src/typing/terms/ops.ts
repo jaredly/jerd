@@ -201,7 +201,7 @@ const typeNewOp = (
         if (op.hash === '#builtin') {
             return null;
         }
-        const [baseHash, attrHash, idxRaw] = op.hash.slice(1).split('#');
+        let [baseHash, attrHash, idxRaw] = op.hash.slice(1).split('#');
         const idx = +idxRaw;
         if (isNaN(idx)) {
             throw new LocatedError(
@@ -223,6 +223,9 @@ const typeNewOp = (
         }
         if (target.is.type !== 'ref') {
             throw new LocatedError(op.location, `binop target is not a ref`);
+        }
+        if (env.global.idRemap[attrHash]) {
+            attrHash = idName(env.global.idRemap[attrHash]);
         }
         const id = idFromName(attrHash);
         let t = env.global.types[idName(id)] as RecordDef;
