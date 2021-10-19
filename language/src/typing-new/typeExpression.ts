@@ -118,6 +118,13 @@ export const typeExpression = (
                 },
                 expected,
             );
+        case 'Boolean':
+            return {
+                type: 'boolean',
+                is: preset.bool,
+                location: term.location,
+                value: term.v === 'true',
+            };
         case 'ArrayLiteral':
             return typeArrayLiteral(ctx, term, expected);
     }

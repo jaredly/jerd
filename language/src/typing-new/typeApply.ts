@@ -7,13 +7,32 @@ import {
     Term,
     Type,
     typesEqual,
+    TypeVblDecl,
 } from '../typing/types';
 import { Context } from './Context';
+import { resolveTypeVbl } from './dependencies';
 import { createTypeVblMapping, mapTypeAndEffectVariablesInType } from './ops';
 import { resolveEffectId } from './resolve';
 import { typeExpression, wrapExpected } from './typeExpression';
 import { typeIdentifierMany } from './typeIdentifier';
 import { typeType } from './typeType';
+
+export const inferTypeVblIfPossible = (
+    ctx: Context,
+    is: LambdaType,
+    args: Array<Term>,
+    vbl: TypeVblDecl,
+) => {
+    // We assume that it will show up in one of the args
+    let found: Type | null = null;
+    for (let i = 0; i < is.args.length && i < args.length; i++) {
+        const resolved = resolveTypeVbl(is.args[i], args[i].is, vbl.unique);
+        if (resolved != null) {
+            return resolved;
+        }
+    }
+    return null;
+};
 
 export const typeApply = (
     ctx: Context,
@@ -105,9 +124,12 @@ export const typeApply = (
         // wrap the target in an invalidTypeApplication?
     }
 
-    const allTypeVbls: Array<Type> = is.typeVbls.map((_, i) =>
+    const allTypeVbls: Array<Type> = is.typeVbls.map((vbl, i) =>
         i >= typeVbls.length
-            ? { type: 'THole', location: suffix.location }
+            ? inferTypeVblIfPossible(ctx, is as LambdaType, typedArgs, vbl) || {
+                  type: 'THole',
+                  location: suffix.location,
+              }
             : typeVbls[i],
     );
 

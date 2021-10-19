@@ -53,3 +53,56 @@ export const dependenciesVisitor = (collection: {
         return null;
     },
 });
+
+export const resolveTypeVbl = (
+    typeWithVbl: Type,
+    concreteType: Type,
+    vbl: number,
+): null | Type => {
+    switch (typeWithVbl.type) {
+        case 'var':
+            return typeWithVbl.sym.unique === vbl ? concreteType : null;
+        case 'ref': {
+            if (concreteType.type !== 'ref') {
+                return null;
+            }
+            for (
+                let i = 0;
+                i < typeWithVbl.typeVbls.length &&
+                i < concreteType.typeVbls.length;
+                i++
+            ) {
+                const inner = resolveTypeVbl(
+                    typeWithVbl.typeVbls[i],
+                    concreteType.typeVbls[i],
+                    vbl,
+                );
+                if (inner != null) {
+                    return inner;
+                }
+            }
+            return null;
+        }
+        case 'lambda': {
+            if (concreteType.type !== 'lambda') {
+                return null;
+            }
+            for (
+                let i = 0;
+                i < Math.min(typeWithVbl.args.length, concreteType.args.length);
+                i++
+            ) {
+                const inner = resolveTypeVbl(
+                    typeWithVbl.args[i],
+                    concreteType.args[i],
+                    vbl,
+                );
+                if (inner != null) {
+                    return inner;
+                }
+            }
+            return resolveTypeVbl(typeWithVbl.res, concreteType.res, vbl);
+        }
+    }
+    return null;
+};
