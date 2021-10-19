@@ -588,6 +588,16 @@ export type RecordSubType = {
     spread: Term | null;
     rows: Array<Term | null>;
 };
+
+// export type Record2 = {
+//     type: 'Record2';
+//     spreads: Array<Term>;
+//     items: Array<RecordItem>;
+//     is: Type;
+//     location: Location;
+//     decorators?: Decorators;
+// };
+
 // spreads .. all before the items
 export type RecordItem = {
     id: Id;

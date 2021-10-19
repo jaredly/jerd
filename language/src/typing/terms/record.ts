@@ -14,6 +14,7 @@ import {
     RecordBase,
     isRecord,
     idsEqual,
+    RecordSubType,
 } from '../types';
 import { Record } from '../../parsing/parser';
 import { showType } from '../unify';
@@ -27,6 +28,8 @@ import { getTypeError } from '../getTypeError';
 import { LocatedError, TypeError } from '../errors';
 
 // export const recordNamesAndSuch =
+
+// export const typeRecord = (env: Env, expr: Record): RecordTerm
 
 export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     const names: { [key: string]: { i: number; id: Id | null } } = {};
@@ -332,13 +335,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         throw new Error(`Cannot create a new record of a variable type.`);
     }
 
-    const finishedSubTypes: {
-        [id: string]: {
-            covered: boolean;
-            spread: Term | null;
-            rows: Array<Term | null>;
-        };
-    } = {};
+    const finishedSubTypes: { [id: string]: RecordSubType } = {};
 
     // This will initialized the finishedSubTypes object
     // with the subtypes in the proper order to preserve spreads.
@@ -385,6 +382,8 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             });
         }
     });
+
+    // START HERE:::::: MAKE THIS WORK AGAIN FOLKS
 
     return {
         type: 'Record',

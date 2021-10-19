@@ -2,7 +2,7 @@
 
 import { Location } from '../../parsing/parser';
 import { idName, newSym, refName } from '../../typing/env';
-import { LocatedError } from '../../typing/errors';
+import { LocatedError, TypeError } from '../../typing/errors';
 import { binOps } from '../../typing/preset';
 import { applyEffectVariables } from '../../typing/typeExpr';
 import {
@@ -672,6 +672,9 @@ export const callExpression = (
                 loc,
             ) as LambdaType;
         } catch (err) {
+            if (!(err instanceof TypeError)) {
+                throw err;
+            }
             // console.log(target.is);
             // console.log(typeVbls);
             // debugger;
