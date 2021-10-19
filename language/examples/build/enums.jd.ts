@@ -12,103 +12,103 @@ type t_280d2df4 = {
 
 /**
 ```
-@unique(0.6911171338613936) type Some#df443d10<T#:0> = {
+@unique(0.6911171338613936) type Some#a0b4d1b4<T#:0> = {
     value: T#:0,
 }
 ```
 */
-type t_df443d10<T_0> = {
-  type: "df443d10";
-  hdf443d10_0: T_0;
+type t_a0b4d1b4<T> = {
+  type: "a0b4d1b4";
+  ha0b4d1b4_0: T_0;
 };
 
 /**
 ```
-@unique(0.22735088588829966) type Twice#4c44569a<T#:0> = {
+@unique(0.22735088588829966) type Twice#3444f780<T#:0> = {
     one: T#:0,
     two: T#:0,
 }
 ```
 */
-type t_4c44569a<T_0> = {
-  type: "4c44569a";
-  h4c44569a_0: T_0;
-  h4c44569a_1: T_0;
+type t_3444f780<T> = {
+  type: "3444f780";
+  h3444f780_0: T_0;
+  h3444f780_1: T_0;
 };
 
-/*enum Option#012fd7d0<T#:0> {
-    Some#df443d10<T#:0>,
+/*enum Option#9854cdf0<T#:0> {
+    Some#a0b4d1b4<T#:0>,
     None#280d2df4,
 }*/
-type t_012fd7d0<T_0> = t_df443d10<T_0> | t_280d2df4;
+type t_9854cdf0<T> = t_a0b4d1b4<T_0> | t_280d2df4;
 
-/*enum OptionOrTwice#fb0d03e0<T#:0> {
-    ...Option#012fd7d0<T#:0>,
-    Twice#4c44569a<T#:0>,
+/*enum OptionOrTwice#58d5ae20<T#:0> {
+    ...Option#9854cdf0<T#:0>,
+    Twice#3444f780<T#:0>,
 }*/
-type t_fb0d03e0<T_0> = t_4c44569a<T_0> | t_df443d10<T_0> | t_280d2df4;
+type t_58d5ae20<T> = t_3444f780<T_0> | t_a0b4d1b4<T_0> | t_280d2df4;
 
 /**
 ```
-@unique(0.5383562320075749) type Eq#51ea2a36<T#:0> = {
+@unique(0.5383562320075749) type Eq#3b6b23ae<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_51ea2a36<T_0> = {
-  type: "51ea2a36";
-  h51ea2a36_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_3b6b23ae<T> = {
+  type: "3b6b23ae";
+  h3b6b23ae_0: (arg_0: T_0, arg_1: T_0) => boolean;
 };
 
 /**
 ```
-const IntEq#ec95f154 = Eq#51ea2a36<int#builtin>{"=="#51ea2a36#0: intEq#builtin}
-Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: intEq}
+const IntEq#6d46a318 = Eq#3b6b23ae<int#builtin>{"=="#3b6b23ae#0: intEq#builtin}
+Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: intEq}
 ```
 */
-export const hash_ec95f154: t_51ea2a36<number> = ({
-  type: "51ea2a36",
-  h51ea2a36_0: intEq
-} as t_51ea2a36<number>);
+export const hash_6d46a318: t_3b6b23ae<number> = ({
+  type: "3b6b23ae",
+  h3b6b23ae_0: intEq
+} as t_3b6b23ae<number>);
 
 /**
 ```
-const StringEq#da00b310 = Eq#51ea2a36<string#builtin>{"=="#51ea2a36#0: stringEq#builtin}
-Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: stringEq}
+const StringEq#0d81b26d = Eq#3b6b23ae<string#builtin>{"=="#3b6b23ae#0: stringEq#builtin}
+Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: stringEq}
 ```
 */
-export const hash_da00b310: t_51ea2a36<string> = ({
-  type: "51ea2a36",
-  h51ea2a36_0: stringEq
-} as t_51ea2a36<string>);
+export const hash_0d81b26d: t_3b6b23ae<string> = ({
+  type: "3b6b23ae",
+  h3b6b23ae_0: stringEq
+} as t_3b6b23ae<string>);
 
 /**
 ```
-const y#36988134 = Option#012fd7d0<int#builtin>:None#280d2df4
-Option#🏅🎮☺️<int>:None#🐩🛣️🥔{TODO SPREADs}{}
+const y#668420b6 = Option#9854cdf0<int#builtin>:None#280d2df4
+Option#🐶<int>:None#🐩🛣️🥔{TODO SPREADs}{}
 ```
 */
-export const hash_36988134: t_012fd7d0<number> = ({
+export const hash_668420b6: t_9854cdf0<number> = ({
   type: "280d2df4"
-} as t_012fd7d0<number>);
+} as t_9854cdf0<number>);
 
 /**
 ```
-const check#0a3a535c = (y1#:0: OptionOrTwice#fb0d03e0<int#builtin>): bool#builtin ={}> switch y1#:0 {
-    Twice#4c44569a{two: 5} => false,
-    Twice#4c44569a => false,
-    Option#012fd7d0 as x#:1 => switch x#:1 {Some#df443d10 => false, None#280d2df4 => true},
+const check#34e4fc8e = (y1#:0: OptionOrTwice#58d5ae20<int#builtin>): bool#builtin ={}> switch y1#:0 {
+    Twice#3444f780{two: 5} => false,
+    Twice#3444f780 => false,
+    Option#9854cdf0 as x#:1 => switch x#:1 {Some#a0b4d1b4 => false, None#280d2df4 => true},
 }
-(y1#:0: OptionOrTwice#🏒<int>): bool => {
-    if isRecord!(y1#:0, Twice#🍕👩‍🏭👅😃) && y1#:0.#Twice#🍕👩‍🏭👅😃#1 == 5 {
+(y1#:0: OptionOrTwice#🐻‍❄️💆🧖‍♂️😃<int>): bool => {
+    if isRecord!(y1#:0, Twice#🕖👳‍♂️🦽) && y1#:0.#Twice#🕖👳‍♂️🦽#1 == 5 {
         return false;
     };
-    if isRecord!(y1#:0, Twice#🍕👩‍🏭👅😃) {
+    if isRecord!(y1#:0, Twice#🕖👳‍♂️🦽) {
         return false;
     };
-    if isRecord!(y1#:0, Some#🧑‍🔧) || isRecord!(y1#:0, None#🐩🛣️🥔) {
-        const x#:1: OptionOrTwice#🏒<int> = Option#🏅🎮☺️ <- y1#:0;
-        if isRecord!(x#:1, Some#🧑‍🔧) {
+    if isRecord!(y1#:0, Some#🤽) || isRecord!(y1#:0, None#🐩🛣️🥔) {
+        const x#:1: OptionOrTwice#🐻‍❄️💆🧖‍♂️😃<int> = Option#🐶 <- y1#:0;
+        if isRecord!(x#:1, Some#🤽) {
             return false;
         };
         if isRecord!(x#:1, None#🐩🛣️🥔) {
@@ -120,19 +120,19 @@ const check#0a3a535c = (y1#:0: OptionOrTwice#fb0d03e0<int#builtin>): bool#builti
 }
 ```
 */
-export const hash_0a3a535c: (arg_0: t_fb0d03e0<number>) => boolean = (y1: t_fb0d03e0<number>) => {
-  if (y1.type === "4c44569a" && y1.h4c44569a_1 === 5) {
+export const hash_34e4fc8e: (arg_0: t_58d5ae20<number>) => boolean = (y1: t_58d5ae20<number>) => {
+  if (y1.type === "3444f780" && y1.h3444f780_1 === 5) {
     return false;
   }
 
-  if (y1.type === "4c44569a") {
+  if (y1.type === "3444f780") {
     return false;
   }
 
-  if (y1.type === "df443d10" || y1.type === "280d2df4") {
-    let x: t_fb0d03e0<number> = y1;
+  if (y1.type === "a0b4d1b4" || y1.type === "280d2df4") {
+    let x: t_58d5ae20<number> = y1;
 
-    if (x.type === "df443d10") {
+    if (x.type === "a0b4d1b4") {
       return false;
     }
 
@@ -148,13 +148,13 @@ export const hash_0a3a535c: (arg_0: t_fb0d03e0<number>) => boolean = (y1: t_fb0d
 
 /**
 ```
-const isAs#8d498684 = (y#:0: Option#012fd7d0<int#builtin>): bool#builtin ={}> switch y#:0 {
-    Some#df443d10 as x#:1 => x#:1.value#df443d10#0 ==#ec95f154#51ea2a36#0 2,
+const isAs#d18ba174 = (y#:0: Option#9854cdf0<int#builtin>): bool#builtin ={}> switch y#:0 {
+    Some#a0b4d1b4 as x#:1 => x#:1.value#a0b4d1b4#0 ==#6d46a318#3b6b23ae#0 2,
     None#280d2df4 => true,
 }
-(y#:0: Option#🏅🎮☺️<int>): bool => {
-    if isRecord!(y#:0, Some#🧑‍🔧) {
-        return IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0(Some#🧑‍🔧 <- y#:0.#Some#🧑‍🔧#0, 2);
+(y#:0: Option#🐶<int>): bool => {
+    if isRecord!(y#:0, Some#🤽) {
+        return IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0(Some#🤽 <- y#:0.#Some#🤽#0, 2);
     };
     if isRecord!(y#:0, None#🐩🛣️🥔) {
         return true;
@@ -163,9 +163,9 @@ const isAs#8d498684 = (y#:0: Option#012fd7d0<int#builtin>): bool#builtin ={}> sw
 }
 ```
 */
-export const hash_8d498684: (arg_0: t_012fd7d0<number>) => boolean = (y: t_012fd7d0<number>) => {
-  if (y.type === "df443d10") {
-    return hash_ec95f154.h51ea2a36_0(y.hdf443d10_0, 2);
+export const hash_d18ba174: (arg_0: t_9854cdf0<number>) => boolean = (y: t_9854cdf0<number>) => {
+  if (y.type === "a0b4d1b4") {
+    return hash_6d46a318.h3b6b23ae_0(y.ha0b4d1b4_0, 2);
   }
 
   if (y.type === "280d2df4") {
@@ -199,27 +199,27 @@ export const hash_0932d938: (arg_0: boolean) => boolean = (n: boolean) => {
 
 /**
 ```
-const isSomeYes#647eeb02 = (v#:0: Option#012fd7d0<string#builtin>): bool#builtin ={}> switch v#:0 {
-    Some#df443d10{value: "no"} => false,
+const isSomeYes#07649480 = (v#:0: Option#9854cdf0<string#builtin>): bool#builtin ={}> switch v#:0 {
+    Some#a0b4d1b4{value: "no"} => false,
     None#280d2df4 => false,
-    Some#df443d10{value: v#:1} => v#:1 ==#da00b310#51ea2a36#0 "yes",
+    Some#a0b4d1b4{value: v#:1} => v#:1 ==#0d81b26d#3b6b23ae#0 "yes",
 }
-(v#:0: Option#🏅🎮☺️<string>): bool => {
-    if isRecord!(v#:0, Some#🧑‍🔧) && v#:0.#Some#🧑‍🔧#0 == "no" {
+(v#:0: Option#🐶<string>): bool => {
+    if isRecord!(v#:0, Some#🤽) && v#:0.#Some#🤽#0 == "no" {
         return false;
     };
     if isRecord!(v#:0, None#🐩🛣️🥔) {
         return false;
     };
-    if isRecord!(v#:0, Some#🧑‍🔧) {
-        return StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0(v#:0.#Some#🧑‍🔧#0, "yes");
+    if isRecord!(v#:0, Some#🤽) {
+        return StringEq#🍇😽🧑‍🦳.#Eq#☂️🍰🔥#0(v#:0.#Some#🤽#0, "yes");
     };
     match_fail!();
 }
 ```
 */
-export const hash_647eeb02: (arg_0: t_012fd7d0<string>) => boolean = (v: t_012fd7d0<string>) => {
-  if (v.type === "df443d10" && v.hdf443d10_0 === "no") {
+export const hash_07649480: (arg_0: t_9854cdf0<string>) => boolean = (v: t_9854cdf0<string>) => {
+  if (v.type === "a0b4d1b4" && v.ha0b4d1b4_0 === "no") {
     return false;
   }
 
@@ -227,8 +227,8 @@ export const hash_647eeb02: (arg_0: t_012fd7d0<string>) => boolean = (v: t_012fd
     return false;
   }
 
-  if (v.type === "df443d10") {
-    return hash_da00b310.h51ea2a36_0(v.hdf443d10_0, "yes");
+  if (v.type === "a0b4d1b4") {
+    return hash_0d81b26d.h3b6b23ae_0(v.ha0b4d1b4_0, "yes");
   }
 
   throw "Math failed";
@@ -266,12 +266,12 @@ export const hash_5bea934a: (arg_0: number) => boolean = (n: number) => {
 
 /**
 ```
-const getWithDefault#17b49b53 = <T#:0>(x#:0: Option#012fd7d0<T#:0>, default#:1: T#:0): T#:0 ={}> {
-    switch x#:0 {Some#df443d10{value: v#:2} => v#:2, None#280d2df4 => default#:1};
+const getWithDefault#429d376a = <T#:0>(x#:0: Option#9854cdf0<T#:0>, default#:1: T#:0): T#:0 ={}> {
+    switch x#:0 {Some#a0b4d1b4{value: v#:2} => v#:2, None#280d2df4 => default#:1};
 }
-<T>(x#:0: Option#🏅🎮☺️<[var]T#:0>, default#:1: [var]T#:0): [var]T#:0 => {
-    if isRecord!(x#:0, Some#🧑‍🔧) {
-        return x#:0.#Some#🧑‍🔧#0;
+<T>(x#:0: Option#🐶<[var]T#:0>, default#:1: [var]T#:0): [var]T#:0 => {
+    if isRecord!(x#:0, Some#🤽) {
+        return x#:0.#Some#🤽#0;
     };
     if isRecord!(x#:0, None#🐩🛣️🥔) {
         return default#:1;
@@ -280,9 +280,9 @@ const getWithDefault#17b49b53 = <T#:0>(x#:0: Option#012fd7d0<T#:0>, default#:1: 
 }
 ```
 */
-export const hash_17b49b53: <T_0>(arg_0: t_012fd7d0<T_0>, arg_1: T_0) => T_0 = <T_0>(x$0: t_012fd7d0<T_0>, default$1: T_0) => {
-  if (x$0.type === "df443d10") {
-    return x$0.hdf443d10_0;
+export const hash_429d376a: <T>(arg_0: t_9854cdf0<T_0>, arg_1: T_0) => T_0 = <T>(x$0: t_9854cdf0<T_0>, default$1: T_0) => {
+  if (x$0.type === "a0b4d1b4") {
+    return x$0.ha0b4d1b4_0;
   }
 
   if (x$0.type === "280d2df4") {
@@ -294,11 +294,11 @@ export const hash_17b49b53: <T_0>(arg_0: t_012fd7d0<T_0>, arg_1: T_0) => T_0 = <
 
 /**
 ```
-const isPresent#4d0d9570 = <T#:0>(x#:0: Option#012fd7d0<T#:0>): bool#builtin ={}> {
-    switch x#:0 {Some#df443d10 => true, None#280d2df4 => false};
+const isPresent#078ebb0c = <T#:0>(x#:0: Option#9854cdf0<T#:0>): bool#builtin ={}> {
+    switch x#:0 {Some#a0b4d1b4 => true, None#280d2df4 => false};
 }
-<T>(x#:0: Option#🏅🎮☺️<[var]T#:0>): bool => {
-    if isRecord!(x#:0, Some#🧑‍🔧) {
+<T>(x#:0: Option#🐶<[var]T#:0>): bool => {
+    if isRecord!(x#:0, Some#🤽) {
         return true;
     };
     if isRecord!(x#:0, None#🐩🛣️🥔) {
@@ -308,8 +308,8 @@ const isPresent#4d0d9570 = <T#:0>(x#:0: Option#012fd7d0<T#:0>): bool#builtin ={}
 }
 ```
 */
-export const hash_4d0d9570: <T_0>(arg_0: t_012fd7d0<T_0>) => boolean = <T_0>(x$0: t_012fd7d0<T_0>) => {
-  if (x$0.type === "df443d10") {
+export const hash_078ebb0c: <T>(arg_0: t_9854cdf0<T_0>) => boolean = <T>(x$0: t_9854cdf0<T_0>) => {
+  if (x$0.type === "a0b4d1b4") {
     return true;
   }
 
@@ -322,22 +322,22 @@ export const hash_4d0d9570: <T_0>(arg_0: t_012fd7d0<T_0>) => boolean = <T_0>(x$0
 
 /**
 ```
-const y1#65177da4 = OptionOrTwice#fb0d03e0<int#builtin>:y#36988134
-OptionOrTwice#🏒<int>:y#💂🐻‍❄️🛎️
+const y1#340b0d4e = OptionOrTwice#58d5ae20<int#builtin>:y#668420b6
+OptionOrTwice#🐻‍❄️💆🧖‍♂️😃<int>:y#🤳👨‍⚖️☘️😃
 ```
 */
-export const hash_65177da4: t_fb0d03e0<number> = hash_36988134;
+export const hash_340b0d4e: t_58d5ae20<number> = hash_668420b6;
 
 /**
 ```
-const y1t#155edfe8 = (y1#:0: OptionOrTwice#fb0d03e0<int#builtin>): int#builtin ={}> switch y1#:0 {
-    Twice#4c44569a{one: one#:1, two: two#:2} => one#:1 +#builtin two#:2,
+const y1t#08fab53e = (y1#:0: OptionOrTwice#58d5ae20<int#builtin>): int#builtin ={}> switch y1#:0 {
+    Twice#3444f780{one: one#:1, two: two#:2} => one#:1 +#builtin two#:2,
     None#280d2df4 => 2,
     _ => 0,
 }
-(y1#:0: OptionOrTwice#🏒<int>): int => {
-    if isRecord!(y1#:0, Twice#🍕👩‍🏭👅😃) {
-        return y1#:0.#Twice#🍕👩‍🏭👅😃#0 + y1#:0.#Twice#🍕👩‍🏭👅😃#1;
+(y1#:0: OptionOrTwice#🐻‍❄️💆🧖‍♂️😃<int>): int => {
+    if isRecord!(y1#:0, Twice#🕖👳‍♂️🦽) {
+        return y1#:0.#Twice#🕖👳‍♂️🦽#0 + y1#:0.#Twice#🕖👳‍♂️🦽#1;
     };
     if isRecord!(y1#:0, None#🐩🛣️🥔) {
         return 2;
@@ -346,9 +346,9 @@ const y1t#155edfe8 = (y1#:0: OptionOrTwice#fb0d03e0<int#builtin>): int#builtin =
 }
 ```
 */
-export const hash_155edfe8: (arg_0: t_fb0d03e0<number>) => number = (y1: t_fb0d03e0<number>) => {
-  if (y1.type === "4c44569a") {
-    return y1.h4c44569a_0 + y1.h4c44569a_1;
+export const hash_08fab53e: (arg_0: t_58d5ae20<number>) => number = (y1: t_58d5ae20<number>) => {
+  if (y1.type === "3444f780") {
+    return y1.h3444f780_0 + y1.h3444f780_1;
   }
 
   if (y1.type === "280d2df4") {
@@ -360,102 +360,96 @@ export const hash_155edfe8: (arg_0: t_fb0d03e0<number>) => number = (y1: t_fb0d0
 
 /**
 ```
-const y2#a570b050 = OptionOrTwice#fb0d03e0<int#builtin>:Twice#4c44569a<int#builtin>{
-    one#4c44569a#0: 3,
-    two#4c44569a#1: 10,
+const y2#99ff79ce = OptionOrTwice#58d5ae20<int#builtin>:Twice#3444f780<int#builtin>{
+    one#3444f780#0: 3,
+    two#3444f780#1: 10,
 }
-OptionOrTwice#🏒<int>:Twice#🍕👩‍🏭👅😃{TODO SPREADs}{h4c44569a_0: 3, h4c44569a_1: 10}
+OptionOrTwice#🐻‍❄️💆🧖‍♂️😃<int>:Twice#🕖👳‍♂️🦽{TODO SPREADs}{h3444f780_0: 3, h3444f780_1: 10}
 ```
 */
-export const hash_a570b050: t_fb0d03e0<number> = ({
-  type: "4c44569a",
-  h4c44569a_0: 3,
-  h4c44569a_1: 10
-} as t_fb0d03e0<number>);
+export const hash_99ff79ce: t_58d5ae20<number> = ({
+  type: "3444f780",
+  h3444f780_0: 3,
+  h3444f780_1: 10
+} as t_58d5ae20<number>);
 
 /*
-switch y2#a570b050 {Twice#4c44569a{one: one#:0, two: two#:1} => one#:0 +#builtin two#:1, _ => 0} 
-    ==#ec95f154#51ea2a36#0 13
+switch y2#99ff79ce {Twice#3444f780{one: one#:0, two: two#:1} => one#:0 +#builtin two#:1, _ => 0} 
+    ==#6d46a318#3b6b23ae#0 13
 assertCall(
-    IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0,
+    IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0,
     ((): int => {
-        if isRecord!(y2#😖, Twice#🍕👩‍🏭👅😃) {
-            return y2#😖.#Twice#🍕👩‍🏭👅😃#0 + y2#😖.#Twice#🍕👩‍🏭👅😃#1;
+        if isRecord!(y2#👪, Twice#🕖👳‍♂️🦽) {
+            return y2#👪.#Twice#🕖👳‍♂️🦽#0 + y2#👪.#Twice#🕖👳‍♂️🦽#1;
         };
         return 0;
     })(),
     13,
 )
 */
-assertCall(hash_ec95f154.h51ea2a36_0, (() => {
-  if (hash_a570b050.type === "4c44569a") {
-    return hash_a570b050.h4c44569a_0 + hash_a570b050.h4c44569a_1;
+assertCall(hash_6d46a318.h3b6b23ae_0, (() => {
+  if (hash_99ff79ce.type === "3444f780") {
+    return hash_99ff79ce.h3444f780_0 + hash_99ff79ce.h3444f780_1;
   }
 
   return 0;
 })(), 13);
 
 /*
-y1t#155edfe8(y1#65177da4) ==#ec95f154#51ea2a36#0 2
-assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, y1t#⛸️💧🦹‍♀️(y1#⛹️‍♀️👨‍👦‍👦🦗😃), 2)
+y1t#08fab53e(y1#340b0d4e) ==#6d46a318#3b6b23ae#0 2
+assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, y1t#👳‍♀️🍘💣(y1#🤶🍧🚜), 2)
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_155edfe8(hash_65177da4), 2);
+assertCall(hash_6d46a318.h3b6b23ae_0, hash_08fab53e(hash_340b0d4e), 2);
 
 /*
-isPresent#4d0d9570<int#builtin>(
-        x: Option#012fd7d0<int#builtin>:Some#df443d10<int#builtin>{value#df443d10#0: 3},
+isPresent#078ebb0c<int#builtin>(
+        x: Option#9854cdf0<int#builtin>:Some#a0b4d1b4<int#builtin>{value#a0b4d1b4#0: 3},
     ) 
     ==#builtin true
-assertEqual(
-    isPresent#💇‍♀️🚡👨‍🦳😃<int>(Option#🏅🎮☺️<int>:Some#🧑‍🔧{TODO SPREADs}{hdf443d10_0: 3}),
-    true,
-)
+assertEqual(isPresent#💒☂️💗<int>(Option#🐶<int>:Some#🤽{TODO SPREADs}{ha0b4d1b4_0: 3}), true)
 */
-assertEqual(hash_4d0d9570(({
-  type: "df443d10",
-  hdf443d10_0: 3
-} as t_012fd7d0<number>)), true);
+assertEqual(hash_078ebb0c(({
+  type: "a0b4d1b4",
+  ha0b4d1b4_0: 3
+} as t_9854cdf0<number>)), true);
 
 /*
-isPresent#4d0d9570<int#builtin>(x: Option#012fd7d0<int#builtin>:None#280d2df4) ==#builtin false
-assertEqual(isPresent#💇‍♀️🚡👨‍🦳😃<int>(Option#🏅🎮☺️<int>:None#🐩🛣️🥔{TODO SPREADs}{}), false)
+isPresent#078ebb0c<int#builtin>(x: Option#9854cdf0<int#builtin>:None#280d2df4) ==#builtin false
+assertEqual(isPresent#💒☂️💗<int>(Option#🐶<int>:None#🐩🛣️🥔{TODO SPREADs}{}), false)
 */
-assertEqual(hash_4d0d9570(({
+assertEqual(hash_078ebb0c(({
   type: "280d2df4"
-} as t_012fd7d0<number>)), false);
+} as t_9854cdf0<number>)), false);
 
 /*
-getWithDefault#17b49b53<int#builtin>(x: Option#012fd7d0<int#builtin>:None#280d2df4, default: 20) 
-    ==#ec95f154#51ea2a36#0 20
+getWithDefault#429d376a<int#builtin>(x: Option#9854cdf0<int#builtin>:None#280d2df4, default: 20) 
+    ==#6d46a318#3b6b23ae#0 20
 assertCall(
-    IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0,
-    getWithDefault#🚧👨‍✈️👨‍🦯<int>(Option#🏅🎮☺️<int>:None#🐩🛣️🥔{TODO SPREADs}{}, 20),
+    IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0,
+    getWithDefault#🧳🛢️🤥😃<int>(Option#🐶<int>:None#🐩🛣️🥔{TODO SPREADs}{}, 20),
     20,
 )
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_17b49b53(({
+assertCall(hash_6d46a318.h3b6b23ae_0, hash_429d376a(({
   type: "280d2df4"
-} as t_012fd7d0<number>), 20), 20);
+} as t_9854cdf0<number>), 20), 20);
 
 /*
-getWithDefault#17b49b53<int#builtin>(
-        x: Option#012fd7d0<int#builtin>:Some#df443d10<int#builtin>{value#df443d10#0: 3},
+getWithDefault#429d376a<int#builtin>(
+        x: Option#9854cdf0<int#builtin>:Some#a0b4d1b4<int#builtin>{value#a0b4d1b4#0: 3},
         default: 20,
     ) 
-    ==#ec95f154#51ea2a36#0 3
+    ==#6d46a318#3b6b23ae#0 3
 assertCall(
-    IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0,
-    getWithDefault#🚧👨‍✈️👨‍🦯<int>(
-        Option#🏅🎮☺️<int>:Some#🧑‍🔧{TODO SPREADs}{hdf443d10_0: 3},
-        20,
-    ),
+    IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0,
+    getWithDefault#🧳🛢️🤥😃<int>(Option#🐶<int>:Some#🤽{TODO SPREADs}{ha0b4d1b4_0: 3}, 20),
     3,
 )
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_17b49b53(({
-  type: "df443d10",
-  hdf443d10_0: 3
-} as t_012fd7d0<number>), 20), 3);
+assertCall(hash_6d46a318.h3b6b23ae_0, hash_429d376a(({
+  type: "a0b4d1b4",
+  ha0b4d1b4_0: 3
+} as t_9854cdf0<number>), 20), 3);
 
 /*
 switch None#280d2df4 {None#280d2df4 => true}
@@ -485,19 +479,16 @@ assertEqual(isTen#🚏🥘🧘‍♂️😃(10), true)
 assertEqual(hash_5bea934a(10), true);
 
 /*
-isSomeYes#647eeb02(
-        v: Option#012fd7d0<string#builtin>:Some#df443d10<string#builtin>{value#df443d10#0: "yes"},
+isSomeYes#07649480(
+        v: Option#9854cdf0<string#builtin>:Some#a0b4d1b4<string#builtin>{value#a0b4d1b4#0: "yes"},
     ) 
     ==#builtin true
-assertEqual(
-    isSomeYes#🏥🎄🐡😃(Option#🏅🎮☺️<string>:Some#🧑‍🔧{TODO SPREADs}{hdf443d10_0: "yes"}),
-    true,
-)
+assertEqual(isSomeYes#🧡🧑‍✈️💝(Option#🐶<string>:Some#🤽{TODO SPREADs}{ha0b4d1b4_0: "yes"}), true)
 */
-assertEqual(hash_647eeb02(({
-  type: "df443d10",
-  hdf443d10_0: "yes"
-} as t_012fd7d0<string>)), true);
+assertEqual(hash_07649480(({
+  type: "a0b4d1b4",
+  ha0b4d1b4_0: "yes"
+} as t_9854cdf0<string>)), true);
 
 /*
 isNotFalse#0932d938(n: true) ==#builtin true
@@ -506,13 +497,13 @@ assertEqual(isNotFalse#👷‍♂️🤳🗯️(true), true)
 assertEqual(hash_0932d938(true), true);
 
 /*
-isAs#8d498684(y#36988134)
-assertCall(isAs#🥒, y#💂🐻‍❄️🛎️)
+isAs#d18ba174(y#668420b6)
+assertCall(isAs#🧍, y#🤳👨‍⚖️☘️😃)
 */
-assertCall(hash_8d498684, hash_36988134);
+assertCall(hash_d18ba174, hash_668420b6);
 
 /*
-check#0a3a535c(y1#65177da4)
-assertCall(check#✈️🍖👉, y1#⛹️‍♀️👨‍👦‍👦🦗😃)
+check#34e4fc8e(y1#340b0d4e)
+assertCall(check#🕳️👲⛽, y1#🤶🍧🚜)
 */
-assertCall(hash_0a3a535c, hash_65177da4);
+assertCall(hash_34e4fc8e, hash_340b0d4e);

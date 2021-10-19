@@ -3,54 +3,54 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-@unique(0.5383562320075749) type Eq#51ea2a36<T#:0> = {
+@unique(0.5383562320075749) type Eq#3b6b23ae<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_51ea2a36<T_0> = {
-  type: "51ea2a36";
-  h51ea2a36_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_3b6b23ae<T> = {
+  type: "3b6b23ae";
+  h3b6b23ae_0: (arg_0: T_0, arg_1: T_0) => boolean;
 };
 
 /**
 ```
-const IntEq#ec95f154 = Eq#51ea2a36<int#builtin>{"=="#51ea2a36#0: intEq#builtin}
-Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: intEq}
+const IntEq#6d46a318 = Eq#3b6b23ae<int#builtin>{"=="#3b6b23ae#0: intEq#builtin}
+Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: intEq}
 ```
 */
-export const hash_ec95f154: t_51ea2a36<number> = ({
-  type: "51ea2a36",
-  h51ea2a36_0: intEq
-} as t_51ea2a36<number>);
+export const hash_6d46a318: t_3b6b23ae<number> = ({
+  type: "3b6b23ae",
+  h3b6b23ae_0: intEq
+} as t_3b6b23ae<number>);
 
 /**
 ```
-const identity#78e99602 = <T#:0>(x#:0: T#:0): T#:0 ={}> x#:0
+const identity#3ded3b40 = <T#:0>(x#:0: T#:0): T#:0 ={}> x#:0
 <T>(x#:0: [var]T#:0): [var]T#:0 => x#:0
 ```
 */
-export const hash_78e99602: <T_0>(arg_0: T_0) => T_0 = <T_0>(x: T_0) => x;
+export const hash_3ded3b40: <T>(arg_0: T_0) => T_0 = <T>(x: T_0) => x;
 
 /**
 ```
-const FloatEq#9ca984ce = Eq#51ea2a36<float#builtin>{"=="#51ea2a36#0: floatEq#builtin}
-Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: floatEq}
+const FloatEq#000a9fb6 = Eq#3b6b23ae<float#builtin>{"=="#3b6b23ae#0: floatEq#builtin}
+Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: floatEq}
 ```
 */
-export const hash_9ca984ce: t_51ea2a36<number> = ({
-  type: "51ea2a36",
-  h51ea2a36_0: floatEq
-} as t_51ea2a36<number>);
+export const hash_000a9fb6: t_3b6b23ae<number> = ({
+  type: "3b6b23ae",
+  h3b6b23ae_0: floatEq
+} as t_3b6b23ae<number>);
 
 /*
-identity#78e99602<float#builtin>(x: 1.0) ==#9ca984ce#51ea2a36#0 1.0
-assertCall(FloatEq#👨‍🦰.#Eq#🦩🥜👩‍💻😃#0, identity#🦓🌵🌕😃<float>(1), 1)
+identity#3ded3b40<float#builtin>(x: 1.0) ==#000a9fb6#3b6b23ae#0 1.0
+assertCall(FloatEq#🔥🥗.#Eq#☂️🍰🔥#0, identity#🚜⛽🏏<float>(1), 1)
 */
-assertCall(hash_9ca984ce.h51ea2a36_0, hash_78e99602(1), 1);
+assertCall(hash_000a9fb6.h3b6b23ae_0, hash_3ded3b40(1), 1);
 
 /*
-identity#78e99602<int#builtin>(x: 2) ==#ec95f154#51ea2a36#0 2
-assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, identity#🦓🌵🌕😃<int>(2), 2)
+identity#3ded3b40<int#builtin>(x: 2) ==#6d46a318#3b6b23ae#0 2
+assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, identity#🚜⛽🏏<int>(2), 2)
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_78e99602(2), 2);
+assertCall(hash_6d46a318.h3b6b23ae_0, hash_3ded3b40(2), 2);

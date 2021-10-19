@@ -3,14 +3,14 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-@unique(0.5383562320075749) type Eq#51ea2a36<T#:0> = {
+@unique(0.5383562320075749) type Eq#3b6b23ae<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_51ea2a36<T_0> = {
-  type: "51ea2a36";
-  h51ea2a36_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_3b6b23ae<T> = {
+  type: "3b6b23ae";
+  h3b6b23ae_0: (arg_0: T_0, arg_1: T_0) => boolean;
 };
 
 /**
@@ -20,7 +20,7 @@ type t_51ea2a36<T_0> = {
 }
 ```
 */
-type t_As<T_10000, T_10001> = {
+type t_As<T, Y> = {
   type: "As";
   hAs_0: (arg_0: T_10000) => T_10001;
 };
@@ -54,22 +54,22 @@ export const hash_6f186ad1: t_As<number, number> = ({
 
 /**
 ```
-const FloatEq#9ca984ce = Eq#51ea2a36<float#builtin>{"=="#51ea2a36#0: floatEq#builtin}
-Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: floatEq}
+const FloatEq#000a9fb6 = Eq#3b6b23ae<float#builtin>{"=="#3b6b23ae#0: floatEq#builtin}
+Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: floatEq}
 ```
 */
-export const hash_9ca984ce: t_51ea2a36<number> = ({
-  type: "51ea2a36",
-  h51ea2a36_0: floatEq
-} as t_51ea2a36<number>);
+export const hash_000a9fb6: t_3b6b23ae<number> = ({
+  type: "3b6b23ae",
+  h3b6b23ae_0: floatEq
+} as t_3b6b23ae<number>);
 
 /*
 one#353b9e6c(a: 2) as#6f186ad1 float#builtin +#builtin one#5c58851a(a: 3.0) 
-    ==#9ca984ce#51ea2a36#0 11.0
+    ==#000a9fb6#3b6b23ae#0 11.0
 assertCall(
-    FloatEq#👨‍🦰.#Eq#🦩🥜👩‍💻😃#0,
+    FloatEq#🔥🥗.#Eq#☂️🍰🔥#0,
     IntAsFloat#🥛🐰🗻😃.#As#😉#0(one#🍃🌍🚧(2)) + one#👨‍🔬🐨👬😃(3),
     11,
 )
 */
-assertCall(hash_9ca984ce.h51ea2a36_0, hash_6f186ad1.hAs_0(hash_353b9e6c(2)) + hash_5c58851a(3), 11);
+assertCall(hash_000a9fb6.h3b6b23ae_0, hash_6f186ad1.hAs_0(hash_353b9e6c(2)) + hash_5c58851a(3), 11);

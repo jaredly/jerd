@@ -4,14 +4,14 @@ type handle22024b72 = [(arg_0: (arg_0: handle22024b72, arg_1: string) => void) =
 
 /**
 ```
-@unique(0.5383562320075749) type Eq#51ea2a36<T#:0> = {
+@unique(0.5383562320075749) type Eq#3b6b23ae<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_51ea2a36<T_0> = {
-  type: "51ea2a36";
-  h51ea2a36_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_3b6b23ae<T> = {
+  type: "3b6b23ae";
+  h3b6b23ae_0: (arg_0: T_0, arg_1: T_0) => boolean;
 };
 
 /**
@@ -70,22 +70,22 @@ export const hash_706cdc48: (arg_0: string, arg_1:
 
 /**
 ```
-const StringEq#da00b310 = Eq#51ea2a36<string#builtin>{"=="#51ea2a36#0: stringEq#builtin}
-Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: stringEq}
+const StringEq#0d81b26d = Eq#3b6b23ae<string#builtin>{"=="#3b6b23ae#0: stringEq#builtin}
+Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: stringEq}
 ```
 */
-export const hash_da00b310: t_51ea2a36<string> = ({
-  type: "51ea2a36",
-  h51ea2a36_0: stringEq
-} as t_51ea2a36<string>);
+export const hash_0d81b26d: t_3b6b23ae<string> = ({
+  type: "3b6b23ae",
+  h3b6b23ae_0: stringEq
+} as t_3b6b23ae<string>);
 
 /*
 provideString#706cdc48(v: "Yes", fn: getString#64605d94) 
-    ==#da00b310#51ea2a36#0 "Yesgotbackpureprovided"
+    ==#0d81b26d#3b6b23ae#0 "Yesgotbackpureprovided"
 assertCall(
-    StringEq#🕌.#Eq#🦩🥜👩‍💻😃#0,
+    StringEq#🍇😽🧑‍🦳.#Eq#☂️🍰🔥#0,
     provideString#😦🚓🏪😃("Yes", getString#⛷️😛🐠😃),
     "Yesgotbackpureprovided",
 )
 */
-assertCall(hash_da00b310.h51ea2a36_0, hash_706cdc48("Yes", hash_64605d94), "Yesgotbackpureprovided");
+assertCall(hash_0d81b26d.h3b6b23ae_0, hash_706cdc48("Yes", hash_64605d94), "Yesgotbackpureprovided");
