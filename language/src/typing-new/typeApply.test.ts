@@ -127,39 +127,71 @@ describe('typeApply', () => {
         // expect(res).toNotHaveErrors(ctx);
     });
 
-    // ok
-    it('should infer type for missing type variables where possible', () => {
-        const ctx = newContext();
-        ctx.builtins.types.int = 0;
-        ctx.builtins.types.float = 0;
-        ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
-        ctx.library = parseToplevels(ctx, `const hello = <T>(x: T) => x`);
+    describe('inference', () => {
+        // ok
+        it('should infer type for missing type variables where possible', () => {
+            const ctx = newContext();
+            ctx.builtins.types.int = 0;
+            ctx.builtins.types.float = 0;
+            ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
+            ctx.library = parseToplevels(ctx, `const hello = <T>(x: T) => x`);
 
-        const res = parseExpression(ctx, `hello(2)`);
-        expect(ctx.warnings).toHaveLength(0);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `hello#49d35b73<int#builtin>(x: 2)`,
-        );
-        expect(res.is).toEqualType(preset.int, ctx);
-    });
+            const res = parseExpression(ctx, `hello(2)`);
+            expect(ctx.warnings).toHaveLength(0);
+            expect(termToString(ctx, res)).toMatchInlineSnapshot(
+                `hello#49d35b73<int#builtin>(x: 2)`,
+            );
+            expect(res.is).toEqualType(preset.int, ctx);
+        });
 
-    // ok
-    it('should have a type error when inferring a type that conflicts', () => {
-        const ctx = newContext();
-        ctx.builtins.types.int = 0;
-        ctx.builtins.types.float = 0;
-        ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
-        ctx.library = parseToplevels(ctx, `const hello = <T>(x: T, y: T) => x`);
+        // ok
+        it('should infer more complex', () => {
+            const ctx = newContext();
+            ctx.builtins.types.int = 0;
+            ctx.builtins.types.float = 0;
+            ctx.builtins.types.Array = 1;
+            ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
+            ctx.library = parseToplevels(
+                ctx,
+                `const hello = <T>(x: Array<(int, float) => T>) => x`,
+            );
 
-        const res = parseExpression(ctx, `hello(2, true)`);
-        expect(ctx.warnings).toHaveLength(0);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `hello#4bf0e7d0<int#builtin>(x: 2, y: true)`,
-        );
-        expect(res.is).toEqualType(preset.int, ctx);
-        expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
-            `Expected int#builtin, found bool#builtin : true at 1:10-1:14`,
-        );
+            const res = parseExpression(
+                ctx,
+                `hello([(a: int, b: float) => a])`,
+            );
+            expect(ctx.warnings).toHaveLength(0);
+            expect(termToString(ctx, res)).toMatchInlineSnapshot(`
+hello#48cfb00a<int#builtin>(
+    x: <(int#builtin, float#builtin) ={}> int#builtin>[
+        (a#:4: int#builtin, b#:5: float#builtin): int#builtin ={}> a#:4,
+    ],
+)
+`);
+            expect(res.is).toEqualType(preset.int, ctx);
+        });
+
+        // ok
+        it('should have a type error when inferring a type that conflicts', () => {
+            const ctx = newContext();
+            ctx.builtins.types.int = 0;
+            ctx.builtins.types.float = 0;
+            ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);
+            ctx.library = parseToplevels(
+                ctx,
+                `const hello = <T>(x: T, y: T) => x`,
+            );
+
+            const res = parseExpression(ctx, `hello(2, true)`);
+            expect(ctx.warnings).toHaveLength(0);
+            expect(termToString(ctx, res)).toMatchInlineSnapshot(
+                `hello#4bf0e7d0<int#builtin>(x: 2, y: true)`,
+            );
+            expect(res.is).toEqualType(preset.int, ctx);
+            expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
+                `Expected int#builtin, found bool#builtin : true at 1:10-1:14`,
+            );
+        });
     });
 
     it('should work with effects n stuff', () => {

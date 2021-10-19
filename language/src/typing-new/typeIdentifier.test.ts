@@ -163,7 +163,7 @@ describe('typeIdentifier', () => {
 
         const res = parseExpression(ctx, `what`, [preset.string]);
         expect(showTermErrors(ctx, res!)).toMatchInlineSnapshot(
-            `what#6e9352f2 at 1:1-1:5`,
+            `Expected string#builtin, found int#builtin : what#6e9352f2 at 1:1-1:5`,
         );
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toEqual(`what#${idName(id)}`);

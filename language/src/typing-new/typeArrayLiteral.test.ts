@@ -137,7 +137,7 @@ describe('typeArrayLiteral', () => {
             const res = parseExpression(ctx, `[[1], 2]`);
             expect(ctx.warnings).toHaveLength(0);
             expect(showTermErrors(ctx, res!)).toMatchInlineSnapshot(
-                `2 at 1:7-1:8`,
+                `Expected Array#builtin<int#builtin>, found int#builtin : 2 at 1:7-1:8`,
             );
             expect(termToString(ctx, res)).toMatchInlineSnapshot(
                 `<Array#builtin<int#builtin>>[<int#builtin>[1], 2]`,
@@ -150,7 +150,7 @@ describe('typeArrayLiteral', () => {
             const res = parseExpression(ctx, `[...2]`);
             expect(ctx.warnings).toHaveLength(0);
             expect(showTermErrors(ctx, res!)).toMatchInlineSnapshot(
-                `2 at 1:5-1:6`,
+                `Expected Array#builtin<void#builtin>, found int#builtin : 2 at 1:5-1:6`,
             );
             expect(termToString(ctx, res)).toMatchInlineSnapshot(
                 `<void#builtin>[...2]`,
