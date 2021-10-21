@@ -1056,6 +1056,28 @@ export const _termToPretty = (env: Env, term: Term): PP => {
             ]);
         case 'Hole':
             return atom('HOLE');
+        case 'InvalidRecordAttributes':
+            return items([
+                atom('INVALID_RECORD_ATTRIBUTES['),
+                termToPretty(env, term.inner),
+                args(
+                    term.extraSpreads.map((v) =>
+                        items([atom('...'), termToPretty(env, v)]),
+                    ),
+                ),
+                args(
+                    term.extraAttributes.map((v) =>
+                        items([
+                            v.ref.type === 'unknown'
+                                ? atom(v.ref.text)
+                                : refToPretty(env, v.ref, 'attribute'),
+                            atom(': '),
+                            termToPretty(env, v.value),
+                        ]),
+                    ),
+                ),
+                atom(']'),
+            ]);
         case 'InvalidApplication':
             return items([
                 atom('INVALID_APPLICATION['),

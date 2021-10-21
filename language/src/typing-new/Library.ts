@@ -228,12 +228,18 @@ export const addRecord = (
     attrNames: Array<string>,
 ): [Library, Id] => {
     const id = idFromName(hashObject(record));
+    if (lib.types.defns[idName(id)] != null) {
+        console.warn(`Redefining record!`);
+    }
     const names = {
         ...lib.types.constructors.names,
     };
     attrNames.forEach((name, i) => {
-        names[name] = (names[name] || []).concat({ id, idx: i });
+        names[name] = [{ id, idx: i }].concat(names[name] || []);
     });
+    if (attrNames.length !== record.items.length) {
+        throw new Error(`Wrong number of attrNames for record definition.`);
+    }
     const superTypes: Library['types']['superTypes'] = {
         ...lib.types.superTypes,
         [idName(id)]: [],
@@ -267,7 +273,7 @@ export const addRecord = (
                 },
                 names: {
                     ...lib.types.names,
-                    [name]: (lib.types.names[name] || []).concat([id]),
+                    [name]: [id].concat(lib.types.names[name] || []),
                 },
                 constructors: {
                     idToNames: {

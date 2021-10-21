@@ -29,7 +29,6 @@ import { showType } from '../typing/unify';
 import {
     customMatchers,
     errorTypeSerilaizer,
-    findErrors,
     findTypeErrors,
     newContext,
     rawSnapshotSerializer,

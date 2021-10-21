@@ -6,6 +6,8 @@
 - [x] lambda
 - [x] apply
 - [ ] recorddddddddddddddddddddddddd
+  - huh maybe I don't want .. to flatten them?
+    I just need a way to order the spreads .. 🤔
 
 
 

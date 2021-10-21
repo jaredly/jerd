@@ -1,4 +1,4 @@
-import {Term, Location, Loc, Type, TypeVblDecl, Id, Symbol, Decorators, Decorator, DecoratorArg, Pattern, TypeReference, Reference, UserReference, RecordPatternItem, Literal, Boolean, EffectVblDecl, EffectRef, ErrorType, TypeHole, RecordBaseConcrete, RecordSubType, SwitchCase, LambdaType, AmbiguousType, Case, LiteralWithTemplateString, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
+import {Term, Location, Loc, Type, TypeVblDecl, Id, Symbol, Decorators, Decorator, DecoratorArg, Pattern, TypeReference, Reference, UserReference, RecordPatternItem, Literal, Boolean, EffectVblDecl, EffectRef, ErrorType, TypeHole, RecordBaseConcrete, RecordSubType, SwitchCase, LambdaType, AmbiguousType, Record, UnusedAttribute, Case, LiteralWithTemplateString, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
 
 export type Visitor<Ctx> = {
     Term?: (node: Term, ctx: Ctx) => null | false | Term | [Term | null, Ctx]
@@ -1962,6 +1962,89 @@ export const transformAmbiguousType = <Ctx>(node: AmbiguousType, visitor: Visito
         return updatedNode;
     }
 
+export const transformRecord = <Ctx>(node: Record, visitor: Visitor<Ctx>, ctx: Ctx): Record => {
+        if (!node) {
+            throw new Error('No Record provided');
+        }
+        
+        let changed0 = false;
+        
+            let updatedNode = node;
+            {
+                let changed1 = false;
+                
+                const updatedNode$base = transformRecordBaseConcrete(node.base, visitor, ctx);
+                changed1 = changed1 || updatedNode$base !== node.base;
+
+                
+                const updatedNode$is = transformType(node.is, visitor, ctx);
+                changed1 = changed1 || updatedNode$is !== node.is;
+
+                
+            let updatedNode$subTypes = node.subTypes;
+            {
+                let changed2 = false;
+                
+                const spread: {[key: string]: RecordSubType} = {};
+                Object.keys(node.subTypes).forEach(key => {
+                    
+                const updatedNode$subTypes$value = transformRecordSubType(node.subTypes[key], visitor, ctx);
+                changed2 = changed2 || updatedNode$subTypes$value !== node.subTypes[key];
+                    spread[key] = updatedNode$subTypes$value
+                })
+                
+                if (changed2) {
+                    updatedNode$subTypes =  {...updatedNode$subTypes, ...spread};
+                    changed1 = true;
+                }
+            }
+            
+
+                
+                const updatedNode$location = transformLocation(node.location, visitor, ctx);
+                changed1 = changed1 || updatedNode$location !== node.location;
+
+                
+        let updatedNode$decorators = undefined;
+        const updatedNode$decorators$current = node.decorators;
+        if (updatedNode$decorators$current != null) {
+            
+                const updatedNode$decorators$1$ = transformDecorators(updatedNode$decorators$current, visitor, ctx);
+                changed1 = changed1 || updatedNode$decorators$1$ !== updatedNode$decorators$current;
+            updatedNode$decorators = updatedNode$decorators$1$;
+        }
+        
+                if (changed1) {
+                    updatedNode =  {...updatedNode, base: updatedNode$base, is: updatedNode$is, subTypes: updatedNode$subTypes, location: updatedNode$location, decorators: updatedNode$decorators};
+                    changed0 = true;
+                }
+            }
+            
+        return updatedNode;
+    }
+
+export const transformUnusedAttribute = <Ctx>(node: UnusedAttribute, visitor: Visitor<Ctx>, ctx: Ctx): UnusedAttribute => {
+        if (!node) {
+            throw new Error('No UnusedAttribute provided');
+        }
+        
+        let changed0 = false;
+        
+            let updatedNode = node;
+            {
+                let changed1 = false;
+                
+                const updatedNode$value = transformTerm(node.value, visitor, ctx);
+                changed1 = changed1 || updatedNode$value !== node.value;
+                if (changed1) {
+                    updatedNode =  {...updatedNode, value: updatedNode$value};
+                    changed0 = true;
+                }
+            }
+            
+        return updatedNode;
+    }
+
 export const transformCase = <Ctx>(node: Case, visitor: Visitor<Ctx>, ctx: Ctx): Case => {
         if (!node) {
             throw new Error('No Case provided');
@@ -3081,6 +3164,79 @@ export const transformTerm = <Ctx>(node: Term, visitor: Visitor<Ctx>, ctx: Ctx):
         
                 if (changed2) {
                     updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
+            case 'InvalidRecordAttributes': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
+
+                
+                const updatedNode$0node$inner = transformRecord(updatedNode$0specified.inner, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$inner !== updatedNode$0specified.inner;
+
+                
+                let updatedNode$0node$extraAttributes = updatedNode$0specified.extraAttributes;
+                {
+                    let changed3 = false;
+                    const arr2 = updatedNode$0specified.extraAttributes.map((updatedNode$0node$extraAttributes$item2) => {
+                        
+                const result = transformUnusedAttribute(updatedNode$0node$extraAttributes$item2, visitor, ctx);
+                changed3 = changed3 || result !== updatedNode$0node$extraAttributes$item2;
+                        return result
+                    })
+                    if (changed3) {
+                        updatedNode$0node$extraAttributes = arr2;
+                        changed2 = true;
+                    }
+                }
+                
+
+                
+                let updatedNode$0node$extraSpreads = updatedNode$0specified.extraSpreads;
+                {
+                    let changed3 = false;
+                    const arr2 = updatedNode$0specified.extraSpreads.map((updatedNode$0node$extraSpreads$item2) => {
+                        
+                const result = transformTerm(updatedNode$0node$extraSpreads$item2, visitor, ctx);
+                changed3 = changed3 || result !== updatedNode$0node$extraSpreads$item2;
+                        return result
+                    })
+                    if (changed3) {
+                        updatedNode$0node$extraSpreads = arr2;
+                        changed2 = true;
+                    }
+                }
+                
+
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, inner: updatedNode$0node$inner, extraAttributes: updatedNode$0node$extraAttributes, extraSpreads: updatedNode$0node$extraSpreads, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
                     changed1 = true;
                 }
             }

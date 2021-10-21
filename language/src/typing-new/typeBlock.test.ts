@@ -6,7 +6,6 @@ import { addTerm } from './Library';
 import {
     customMatchers,
     errorSerilaizer,
-    findErrors,
     newContext,
     parseExpression,
     rawSnapshotSerializer,

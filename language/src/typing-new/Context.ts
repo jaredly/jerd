@@ -95,19 +95,23 @@ export const emptyBindings = (): Bindings => ({
     effects: [],
 });
 
+export type TypeBinding = {
+    location: Location;
+    sym: typed.Symbol;
+    subTypes: Array<typed.Id>;
+};
+
+export type ValueBinding = {
+    location: Location;
+    sym: typed.Symbol;
+    type: typed.Type | null; // TODO: allow type | null here, for more inference
+};
+
 export type Bindings = {
     unique: { current: number };
     self: null | { type: typed.Type; name: string };
-    values: Array<{
-        location: Location;
-        sym: typed.Symbol;
-        type: typed.Type | null; // TODO: allow type | null here, for more inference
-    }>;
-    types: Array<{
-        location: Location;
-        sym: typed.Symbol;
-        subTypes: Array<typed.Id>;
-    }>;
+    values: Array<ValueBinding>;
+    types: Array<TypeBinding>;
     effects: Array<{ location: Location; sym: typed.Symbol }>;
 };
 

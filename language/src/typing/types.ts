@@ -768,6 +768,21 @@ export type TermHole = {
     location: Location;
     decorators?: Decorators;
 };
+export type UnusedAttribute = {
+    ref: { type: 'unknown'; text: string } | UserReference;
+    idx: number;
+    value: Term;
+};
+
+export type InvalidRecordAttributes = {
+    type: 'InvalidRecordAttributes';
+    is: Type;
+    inner: Record;
+    extraAttributes: Array<UnusedAttribute>;
+    extraSpreads: Array<Term>;
+    location: Location;
+    decorators?: Decorators;
+};
 
 export type InvalidApplication = {
     type: 'InvalidApplication';
@@ -799,6 +814,7 @@ export type ErrorTerm =
     | TypeError
     | NotFound
     | TermHole
+    | InvalidRecordAttributes
     | InvalidApplication;
 
 export const isErrorTerm = (type: Term) => {
@@ -808,6 +824,7 @@ export const isErrorTerm = (type: Term) => {
         case 'TypeError':
         case 'Ambiguous':
         case 'InvalidApplication':
+        case 'InvalidRecordAttributes':
             return true;
     }
     return false;
@@ -1370,6 +1387,7 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
         case 'var':
         case 'NotFound':
         case 'InvalidApplication':
+        case 'InvalidRecordAttributes':
         case 'Hole':
             return [];
         case 'handle':
@@ -1546,6 +1564,7 @@ export const walkTerm = (
         case 'var':
         case 'NotFound':
         case 'InvalidApplication':
+        case 'InvalidRecordAttributes':
         case 'Hole':
             return;
         case 'TemplateString':

@@ -9,6 +9,7 @@ import { typeBlock } from './typeBlock';
 import { typeArrow } from './typeArrow';
 import { typeRaise } from './typeRaise';
 import { typeSuffix } from './typeSuffix';
+import { typeRecord } from './typeRecord';
 
 export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
     if (expected.length && !expected.some((t) => typesEqual(t, term.is))) {
@@ -28,6 +29,8 @@ export const typeExpression = (
     expected: Array<Type>,
 ): Term => {
     switch (term.type) {
+        case 'RecordLiteral':
+            return typeRecord(ctx, term, expected);
         case 'Block':
             return typeBlock(ctx, term, expected);
         case 'Identifier': {

@@ -30,12 +30,12 @@ import {
     customMatchers,
     errorSerilaizer,
     fakeOp,
-    findErrors,
     newContext,
     parseExpression,
     rawSnapshotSerializer,
     warningsSerializer,
 } from './test-utils';
+import { findErrors } from './typeRecord';
 
 expect.extend(customMatchers);
 expect.addSnapshotSerializer(rawSnapshotSerializer);

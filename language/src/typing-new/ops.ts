@@ -678,9 +678,9 @@ export const applyTypeVariablesToRecord = (
     effectVbls: Array<t.EffectRef>,
     location: Location,
     selfHash: string,
-): t.RecordDef | null => {
+): t.RecordDef => {
     if (type.typeVbls.length !== vbls.length) {
-        return null;
+        return type;
     }
     const mapping = createTypeVblMapping(ctx, type.typeVbls, vbls, location);
     // const effMapping = createEffectVblMapping(ctx, type.effectVbls, effVbls, location);

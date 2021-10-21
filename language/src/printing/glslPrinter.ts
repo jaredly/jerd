@@ -540,6 +540,7 @@ export const printRecord = (
         }
         args = builtinTypes[idRaw].args.map(
             (arg): ir.Expr => {
+                // record.items.map
                 if (arg.sub) {
                     const item = record.subTypes[arg.sub].rows[arg.idx];
                     if (item) {

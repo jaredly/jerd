@@ -34,6 +34,7 @@ import {
 } from '../typing/auto-transform';
 import { showType } from '../typing/unify';
 import { typeToplevel } from './typeFile';
+import { findErrors } from './typeRecord';
 
 declare global {
     namespace jest {
@@ -241,26 +242,6 @@ export const findTermTypeErrors = (term: Term | null | void) => {
     }
     const errors: Array<ErrorType> = [];
     transformTerm(term, typeErrorVisitor(errors), null);
-    return errors;
-};
-
-export const findErrors = (term: Term | null | void) => {
-    if (!term) {
-        return [];
-    }
-    const errors: Array<ErrorTerm> = [];
-    transformTerm(
-        term,
-        {
-            Term(node: Term, _) {
-                if (isErrorTerm(node)) {
-                    errors.push(node as ErrorTerm);
-                }
-                return null;
-            },
-        },
-        null,
-    );
     return errors;
 };
 
