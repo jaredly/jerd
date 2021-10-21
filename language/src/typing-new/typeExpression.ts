@@ -1,6 +1,6 @@
 import { Expression } from '../parsing/parser-new';
 import * as preset from '../typing/preset';
-import { Term, Type, typesEqual } from '../typing/types';
+import { Term, Type, typesEqual, UserTypeReference } from '../typing/types';
 import { reGroupOps, typeGroup } from './ops';
 import { typeArrayLiteral } from './typeArrayLiteral';
 import { Context } from './Context';
@@ -10,6 +10,7 @@ import { typeArrow } from './typeArrow';
 import { typeRaise } from './typeRaise';
 import { typeSuffix } from './typeSuffix';
 import { typeRecord } from './typeRecord';
+import { typeUnary } from './typeUnary';
 
 export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
     if (expected.length && !expected.some((t) => typesEqual(t, term.is))) {
@@ -49,12 +50,9 @@ export const typeExpression = (
         case 'Raise': {
             return typeRaise(ctx, term, expected);
         }
-        // case 'WithUnary': {
-        //     if (term.op != null) {
-        //         throw new Error('no unary');
-        //     }
-        //     return typeExpression(ctx, term.inner, expected);
-        // }
+        case 'WithUnary': {
+            return typeUnary(ctx, term, expected);
+        }
         case 'WithSuffix': {
             // Ok, we're going to type these from the outside in, so that
             // we get out expecteds right.
@@ -130,6 +128,43 @@ export const typeExpression = (
             };
         case 'ArrayLiteral':
             return typeArrayLiteral(ctx, term, expected);
+        case 'Trace':
+            console.warn(`IGNORING TRACE, I DONT LIKE IT`);
+            return typeExpression(ctx, term.args.items[0], expected);
+        case 'TupleLiteral':
+            const expectedTuple: null | UserTypeReference = expected.find(
+                (t) =>
+                    t.type === 'ref' &&
+                    t.typeVbls.length === term.items.items.length &&
+                    t.ref.type === 'builtin' &&
+                    t.ref.name === `Tuple${term.items.items.length}`,
+            ) as UserTypeReference | null;
+            const values = term.items.items.map((item, i) => {
+                return typeExpression(
+                    ctx,
+                    item,
+                    expectedTuple ? [expectedTuple.typeVbls[i]] : [],
+                );
+            });
+            return wrapExpected(
+                {
+                    type: 'Tuple',
+                    is: {
+                        type: 'ref',
+                        location: term.location,
+                        ref: {
+                            type: 'builtin',
+                            name: `Tuple${term.items.items.length}`,
+                        },
+                        typeVbls: values.map((v) => v.is),
+                    },
+                    items: values,
+                    location: term.location,
+                },
+                expected,
+            );
+        default:
+            let _x: never = term;
     }
     throw new Error('no absub: ' + term.type);
 };
