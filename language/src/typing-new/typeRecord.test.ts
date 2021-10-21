@@ -15,6 +15,7 @@ import {
     termToString,
     warningsSerializer,
 } from './test-utils';
+import { findErrors } from './typeRecord';
 
 expect.extend(customMatchers);
 expect.addSnapshotSerializer(rawSnapshotSerializer);
@@ -58,6 +59,64 @@ describe('typeRecord', () => {
         expect(termToString(ctx, res)).toEqual(`Hello#${idName(id)}`);
         expect(res.is).toEqualType(preset.refType(id), ctx);
         expect(res).toNotHaveErrors(ctx);
+    });
+
+    it(`record all defaults!`, () => {
+        const ctx = newContext();
+
+        let id;
+        [ctx.library, id] = addRecord(
+            ctx.library,
+            {
+                ...preset.recordDefn([preset.int]),
+                defaults: {
+                    '0': {
+                        id: null,
+                        idx: 0,
+                        value: preset.intLiteral(10, nullLocation),
+                    },
+                },
+            },
+            'Hello',
+            ['ten'],
+        );
+
+        const res = parseExpression(ctx, `Hello`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toEqual(`Hello#${idName(id)}`);
+        expect(res.is).toEqualType(preset.refType(id), ctx);
+        expect(res).toNotHaveErrors(ctx);
+    });
+
+    it(`record some defaults!`, () => {
+        const ctx = newContext();
+
+        let id;
+        [ctx.library, id] = addRecord(
+            ctx.library,
+            {
+                ...preset.recordDefn([preset.int, preset.float]),
+                defaults: {
+                    '0': {
+                        id: null,
+                        idx: 0,
+                        value: preset.intLiteral(10, nullLocation),
+                    },
+                },
+            },
+            'Hello',
+            ['ten', 'what'],
+        );
+
+        const res = parseExpression(ctx, `Hello`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toEqual(
+            `Hello#${idName(id)}{what#${idName(id)}#1: _}`,
+        );
+        expect(res.is).toEqualType(preset.refType(id), ctx);
+        expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
+            `[Hole] at 1:1-1:6`,
+        );
     });
 
     it(`more recent record gets precedence`, () => {

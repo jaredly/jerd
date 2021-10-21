@@ -1055,7 +1055,7 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                 atom('"', ['string']),
             ]);
         case 'Hole':
-            return atom('HOLE');
+            return atom('_');
         case 'InvalidRecordAttributes':
             return items([
                 atom('INVALID_RECORD_ATTRIBUTES['),

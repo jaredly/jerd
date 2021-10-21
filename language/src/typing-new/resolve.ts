@@ -5,6 +5,7 @@ import * as t from '../typing/types';
 import { Identifier, Location } from '../parsing/parser-new';
 import { idFromName, idName } from '../typing/env';
 import { wrapExpected } from './typeExpression';
+import { getAllSubTypes } from './typeRecord';
 
 export type ResolvedType =
     | { type: 'id'; id: t.Id; typeVbls: Array<t.TypeVblDecl> }
@@ -145,7 +146,12 @@ export const resolveValue = (
         if (idOrSym.type === 'id') {
             const defn = ctx.library.types.defns[idName(idOrSym.id)];
             if (defn && defn.defn.type === 'Record') {
-                const record = emptyRecord(idOrSym.id, defn.defn, location);
+                const record = emptyRecord(
+                    ctx.library,
+                    idOrSym.id,
+                    defn.defn,
+                    location,
+                );
                 if (record) {
                     return wrapExpected(record, expected);
                 }
@@ -153,34 +159,6 @@ export const resolveValue = (
         }
         return null;
     }
-};
-
-export const emptyRecord = (
-    id: t.Id,
-    defn: t.RecordDef,
-    location: Location,
-): t.Record | null => {
-    if (defn.items.length === 0 && defn.extends.length === 0) {
-        return {
-            type: 'Record',
-            base: {
-                type: 'Concrete',
-                location,
-                ref: { type: 'user', id },
-                rows: [],
-                spread: null,
-            },
-            is: {
-                type: 'ref',
-                ref: { type: 'user', id },
-                location,
-                typeVbls: [],
-            },
-            location,
-            subTypes: {},
-        };
-    }
-    return null;
 };
 
 export const resolveNamedValue = (
@@ -240,7 +218,7 @@ export const resolveNamedValue = (
     for (let id of ctx.library.types.names[name] || []) {
         const defn = ctx.library.types.defns[idName(id)];
         if (defn && defn.defn.type === 'Record') {
-            const record = emptyRecord(id, defn.defn, location);
+            const record = emptyRecord(ctx.library, id, defn.defn, location);
             if (record) {
                 return wrapExpected(record, expectedTypes);
             }
@@ -256,4 +234,57 @@ export const resolveNamedValue = (
     }
     // TODO: find the /closest/ one, and put it in here w/ a typeError
     return null;
+};
+
+// hmmmmm what about type variables? ... hmmm
+export const emptyRecord = (
+    lib: Library,
+    id: t.Id,
+    defn: t.RecordDef,
+    location: Location,
+): t.Record => {
+    const subTypes: { [key: string]: t.RecordSubType } = {};
+    const ref: t.UserReference = { type: 'user', id };
+    const rows: Array<t.Term | null> = defn.items.map((item, i) => {
+        if (defn.defaults && defn.defaults[i.toString()]) {
+            return null;
+        }
+        return { type: 'Hole', is: item, location };
+    });
+    getAllSubTypes(
+        lib,
+        defn.extends.map((m) => m.ref.id),
+    ).forEach((id) => {
+        const defn = lib.types.defns[idName(id)].defn as t.RecordDef;
+        subTypes[idName(id)] = {
+            covered: false,
+            rows: defn.items.map((item, i) => {
+                const k = `${idName(id)}#${i}`;
+                if (defn.defaults && defn.defaults[k]) {
+                    return null;
+                }
+                return { type: 'Hole', is: item, location };
+            }),
+            spread: null,
+        };
+    });
+
+    return {
+        type: 'Record',
+        base: {
+            type: 'Concrete',
+            location,
+            ref,
+            rows,
+            spread: null,
+        },
+        is: {
+            type: 'ref',
+            ref,
+            location,
+            typeVbls: [],
+        },
+        location,
+        subTypes,
+    };
 };

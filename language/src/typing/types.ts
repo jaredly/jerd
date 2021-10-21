@@ -1055,6 +1055,8 @@ export type RecordDef = {
     ffi: { tag: string; names: Array<string> } | null;
     decorators?: Decorators;
     defaults?: {
+        // For the toplevel record, it's just idx.toString()
+        // For subTypes, it's `${idName(id)}#${idx}`
         [idAndNumber: string]: {
             // Null for the toplevel record
             id: null | Id;

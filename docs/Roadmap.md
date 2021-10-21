@@ -109,6 +109,7 @@ AST CHANGES:
 - [x] effectVbls shouldn't be numbers, lets get ids in there
 - [x] TypeVblDecl should have better attributes
 - [ ] oooh should sym have a location? 🤔
+- [ ] OH the recordDefn "defaults" should be non-null
 - [ ] a basic algebra of effects! () ={A + B}> {}
     {e}() ={e + A}> {}
     whatsit{A + B}()
