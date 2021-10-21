@@ -1,9 +1,15 @@
 import { Expression, Suffix } from '../parsing/parser-new';
-import { Term, Type } from '../typing/types';
+import { idFromName, idName } from '../typing/env';
+import { bool } from '../typing/preset';
+import { Id, LambdaType, Term, Type, typesEqual } from '../typing/types';
 import { Context } from './Context';
 import { parseIdOrSym } from './hashes';
 import { resolveValue } from './resolve';
 import { typeApply } from './typeApply';
+import { typeAs } from './typeAs';
+import { typeExpression, wrapExpected } from './typeExpression';
+import { asAs } from './typeTemplateString';
+import { typeType } from './typeType';
 
 export const typeSuffix = (
     ctx: Context,
@@ -17,6 +23,7 @@ export const typeSuffix = (
             // suffix.
         }
         case 'AsSuffix': {
+            return typeAs(ctx, suffix, inner, expected);
         }
     }
     throw new Error(`nope suffixed ${suffix.type}`);
