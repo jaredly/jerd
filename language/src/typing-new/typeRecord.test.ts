@@ -42,7 +42,7 @@ describe('typeRecord', () => {
         expect(res).toNotHaveErrors(ctx);
     });
 
-    it(`let's try something simple`, () => {
+    it(`record without items!`, () => {
         const ctx = newContext();
 
         let id;

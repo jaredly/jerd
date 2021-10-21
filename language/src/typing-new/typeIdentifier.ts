@@ -7,12 +7,6 @@ import { Context } from './Context';
 import { wrapExpected } from './typeExpression';
 import { idName } from '../typing/env';
 
-export const emptyRecord = (
-    ctx: Context,
-    id: Id,
-    defn: RecordDef,
-): Record => {};
-
 // // - hash (sym or term)
 // // - text match for bindings
 // // - text match for defines
@@ -127,15 +121,6 @@ export const typeIdentifier = (
 
             if (resolved) {
                 return resolved;
-            }
-            if (idOrSym.type === 'id') {
-                const defn = ctx.library.types.defns[idName(idOrSym.id)];
-                if (defn && defn.defn.type === 'Record') {
-                    return wrapExpected(
-                        emptyRecord(ctx, idOrSym.id, defn.defn),
-                        expected,
-                    );
-                }
             }
         }
         ctx.warnings.push({

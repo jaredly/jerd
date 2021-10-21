@@ -316,13 +316,13 @@ export const typeRecord = (
     }
 
     const results: Array<{
-        record: Record;
+        record: Term;
         errors: Array<ErrorTerm>;
         fits: boolean;
     }> = [];
 
     for (let option of options) {
-        let result: Record;
+        let result: Term;
         if (option.type === 'sym') {
             const binding = ctx.bindings.types.find(
                 (t) => t.sym.unique === (option as any).unique,

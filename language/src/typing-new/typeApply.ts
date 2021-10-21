@@ -14,7 +14,6 @@ import { resolveTypeVbl } from './dependencies';
 import { createTypeVblMapping, mapTypeAndEffectVariablesInType } from './ops';
 import { resolveEffectId } from './resolve';
 import { typeExpression, wrapExpected } from './typeExpression';
-import { typeIdentifierMany } from './typeIdentifier';
 import { typeType } from './typeType';
 
 export const inferTypeVblIfPossible = (
