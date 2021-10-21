@@ -29,6 +29,7 @@ import { Context, TypeBinding } from './Context';
 import { IdOrSym, parseIdOrSym } from './hashes';
 import { Library } from './Library';
 import { applyTypeVariablesToRecord } from './ops';
+import { termToString } from './test-utils';
 import { typeExpression, wrapExpected } from './typeExpression';
 import { typeType, typeVariablesMatch } from './typeType';
 
@@ -219,7 +220,7 @@ export const typeConcreteRecord = (
                 return true;
             }
             const attrName = parseIdTextOrString(row.id.text);
-            const idx = baseNames.indexOf(attrName);
+            const idx = attrName === '_' ? i : baseNames.indexOf(attrName);
             if (idx !== -1) {
                 baseRows[idx] = typeExpression(ctx, row.value, [
                     defn.items[idx],
@@ -259,7 +260,20 @@ export const typeConcreteRecord = (
                 location: record.id.location,
                 spread: spread.type === 'Hole' ? null : spread,
                 ref: { type: 'user', id },
-                rows: baseRows,
+                rows: baseRows.map((row, i) => {
+                    if (
+                        row !== null ||
+                        spread.type !== 'Hole' ||
+                        baseDefaults[i.toString()]
+                    ) {
+                        return row;
+                    }
+                    return {
+                        type: 'Hole',
+                        location: record.location,
+                        is: defn.items[i],
+                    };
+                }),
             },
             is: goalType,
             location: record.location,
@@ -339,6 +353,13 @@ export const typeRecord = (
             // NOTE:
             result = typeVariableRecord(ctx, binding, record);
         } else {
+            if (!ctx.library.types.defns[idName(option.id)]) {
+                ctx.warnings.push({
+                    location: record.location,
+                    text: `Unknown type id #${idName(option.id)}`,
+                });
+                continue;
+            }
             result = typeConcreteRecord(ctx, option.id, record);
         }
         const fits =
@@ -390,7 +411,7 @@ export const findErrors = (term: Term | null | void) => {
 };
 
 export const parseString = (string: String) =>
-    JSON.parse(string.contents.replace('\n', '\\n'));
+    JSON.parse('"' + string.contents.replace('\n', '\\n') + '"');
 
 const calculateSubTypes = (
     ctx: Context,

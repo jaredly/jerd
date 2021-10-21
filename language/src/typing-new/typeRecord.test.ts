@@ -30,13 +30,22 @@ describe('typeRecord', () => {
             ['hello'],
         );
 
-        const res = parseExpression(ctx, `Hello{hello: 10}`);
+        let res = parseExpression(ctx, `Hello{hello: 10}`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toEqual(
             `Hello#${idName(id)}{hello#${idName(id)}#0: 10}`,
         );
         expect(res.is).toEqualType(preset.refType(id), ctx);
         expect(res).toNotHaveErrors(ctx);
+        res = parseExpression(ctx, `Hello#123123{"hello": 10}`);
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:1-1:26: Unknown type id #123123`,
+        );
+
+        ctx.warnings = [];
+        res = parseExpression(ctx, `Hello{_: 10}`);
+        expect(res).toNotHaveErrors(ctx);
+        expect(ctx.warnings).toHaveLength(0);
     });
 
     it(`record without items!`, () => {
@@ -168,6 +177,54 @@ describe('typeRecord', () => {
         expect(res).toNotHaveErrors(ctx);
         expect(termToString(ctx, res)).toEqual(
             `Hello#${idName(id)}{hello#${idName(id)}#0: 10}`,
+        );
+    });
+
+    it(`toplevel missing get holes too`, () => {
+        const ctx = newContext();
+
+        let id;
+        [ctx.library, id] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.int, preset.float, preset.string]),
+            'Hello',
+            ['hello', 'other', 'whats'],
+        );
+
+        const res = parseExpression(ctx, `Hello{hello: 10.0}`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(res.is).toEqualType(preset.refType(id), ctx);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `Hello#${idName(id)}{hello#${idName(id)}#0: 10.0, other#${idName(
+                id,
+            )}#1: _, whats#${idName(id)}#2: _}`,
+        );
+    });
+
+    it(`record with fewest errors gets precedence`, () => {
+        const ctx = newContext();
+
+        let id;
+        [ctx.library, id] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.int, preset.float, preset.string]),
+            'Hello',
+            ['hello', 'other', 'whats'],
+        );
+
+        let id2;
+        [ctx.library, id2] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.int]),
+            'Hello',
+            ['hello'],
+        );
+
+        const res = parseExpression(ctx, `Hello{hello: 10.0}`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(res.is).toEqualType(preset.refType(id2), ctx);
+        expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
+            `Expected int#builtin, found float#builtin : 10.0 at 1:14-1:18`,
         );
     });
 
