@@ -52,4 +52,17 @@ describe('typeTemplateString', () => {
         expect(res).toNotHaveErrors(ctx);
         expect(termToString(ctx, res)).toEqual(`"he\$#${idName(id)}{10}lo"`);
     });
+
+    it(`builtin as?`, () => {
+        const ctx = newContext();
+        // What do I want to have builtin 'as'?
+        // bool, int, float ...
+        // I guess I could just say "if this is a builtin type, I'll know how to do it."
+        // yeah tbh that's probably fine.
+        let res = parseExpression(ctx, `"he\${10}lo"`);
+        expect(res.is).toEqualType(preset.string, ctx);
+        expect(res.type).toEqual('TemplateString');
+        expect(res).toNotHaveErrors(ctx);
+        expect(termToString(ctx, res)).toEqual(`"he\${10}lo"`);
+    });
 });

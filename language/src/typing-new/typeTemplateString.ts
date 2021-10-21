@@ -1,6 +1,6 @@
 import { Location, TemplateString } from '../parsing/parser-new';
 import { idFromName, idName } from '../typing/env';
-import { string } from '../typing/preset';
+import { bool, float, int, string } from '../typing/preset';
 import { Id, LambdaType, Term, Type, typesEqual } from '../typing/types';
 import { Context } from './Context';
 import { typeExpression, wrapExpected } from './typeExpression';
@@ -97,7 +97,7 @@ export const typeTemplateString = (
         let contents = typeExpression(
             ctx,
             item.inner,
-            [string].concat(convertibleTypes),
+            [string, int, float, bool].concat(convertibleTypes),
         );
         if (!typesEqual(contents.is, string)) {
             const found = asStrings.find((one) =>
@@ -106,7 +106,15 @@ export const typeTemplateString = (
             if (found) {
                 id = found.id;
             } else {
-                contents = wrapExpected(contents, [string]);
+                if (
+                    contents.is.type !== 'ref' ||
+                    contents.is.ref.type !== 'builtin' ||
+                    !['string', 'int', 'float', 'bool'].includes(
+                        contents.is.ref.name,
+                    )
+                ) {
+                    contents = wrapExpected(contents, [string]);
+                }
             }
         }
 
