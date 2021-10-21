@@ -1,21 +1,17 @@
 import { idName } from '../typing/env';
 import * as preset from '../typing/preset';
-import { LambdaType, nullLocation } from '../typing/types';
-import { addEffect, addRecord, addTerm } from './Library';
+import { nullLocation } from '../typing/types';
+import { addRecord } from './Library';
 import {
     customMatchers,
     errorSerilaizer,
-    fakeOp,
     newContext,
     parseExpression,
-    parseToplevels,
     rawSnapshotSerializer,
     showTermErrors,
-    showTypeErrors,
     termToString,
     warningsSerializer,
 } from './test-utils';
-import { findErrors } from './typeRecord';
 
 expect.extend(customMatchers);
 expect.addSnapshotSerializer(rawSnapshotSerializer);
@@ -175,6 +171,45 @@ describe('typeRecord', () => {
         );
     });
 
+    it(`ok got to do some variablesness`, () => {
+        const ctx = newContext();
+        const res = parseExpression(ctx, `<T>(v: T) => { T{...v} }`);
+        expect(res).toNotHaveErrors(ctx);
+    });
+
+    it(`now a variable with a couple of subtypes`, () => {
+        const ctx = newContext();
+        let age;
+        [ctx.library, age] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.int]),
+            'HasAge',
+            ['age'],
+        );
+        let height;
+        [ctx.library, height] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.float]),
+            'HasHeight',
+            ['height'],
+        );
+
+        const res = parseExpression(
+            ctx,
+            `<T: HasAge + HasHeight>(v: T) => {
+                T{...v, age: 2, height: 20.0}
+            }`,
+        );
+        expect(res).toNotHaveErrors(ctx);
+        expect(termToString(ctx, res)).toEqual(`\
+<T#:2: HasAge#${idName(age)} + HasHeight#${idName(
+            height,
+        )}>(v#:3: T#:2): T#:2 ={}> {
+    T#:2{...v#:3, age#${idName(age)}#0: 2, height#${idName(height)}#0: 20.0};
+}\
+`);
+    });
+
     it(`record with the right name wins`, () => {
         const ctx = newContext();
 
@@ -202,4 +237,136 @@ describe('typeRecord', () => {
             `Hello#${idName(id)}{hello#${idName(id)}#0: 10}`,
         );
     });
+
+    it('lets do a complicated record', () => {
+        const ctx = newContext();
+        ctx.builtins.types.int = 0;
+        ctx.builtins.types.float = 0;
+
+        let vec2;
+        [ctx.library, vec2] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.float, preset.float]),
+            'Vec2',
+            ['x', 'y'],
+        );
+        let vec3;
+        [ctx.library, vec3] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.float], [preset.refType(vec2)]),
+            'Vec3',
+            ['z'],
+        );
+
+        let res = parseExpression(ctx, `Vec3{x: 1.0, y: 2.0, z: 3.0}`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(res.is).toEqualType(preset.refType(vec3), ctx);
+        expect(res).toNotHaveErrors(ctx);
+        expect(termToString(ctx, res)).toEqual(
+            `Vec3#${idName(vec3)}{x#${idName(vec2)}#0: 1.0, y#${idName(
+                vec2,
+            )}#1: 2.0, z#${idName(vec3)}#0: 3.0}`,
+        );
+
+        res = parseExpression(
+            ctx,
+            `Vec3{...Vec2{x: 1.0, y: 4.0}, y: 2.0, z: 3.0}`,
+        );
+        expect(ctx.warnings).toHaveLength(0);
+        expect(res.is).toEqualType(preset.refType(vec3), ctx);
+        expect(res).toNotHaveErrors(ctx);
+        expect(termToString(ctx, res)).toEqual(
+            `Vec3#${idName(vec3)}{
+    ...Vec2#${idName(vec2)}{x#${idName(vec2)}#0: 1.0, y#${idName(vec2)}#1: 4.0},
+    y#${idName(vec2)}#1: 2.0,
+    z#${idName(vec3)}#0: 3.0,
+}`,
+        );
+
+        // Missing attribute
+        res = parseExpression(ctx, `Vec3{y: 2.0, z: 3.0}`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(res.is).toEqualType(preset.refType(vec3), ctx);
+        expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
+            `[Hole] at 1:1-1:21`,
+        );
+        expect(termToString(ctx, res)).toEqual(
+            `Vec3#${idName(vec3)}{x#${idName(vec2)}#0: _, y#${idName(
+                vec2,
+            )}#1: 2.0, z#${idName(vec3)}#0: 3.0}`,
+        );
+
+        res = parseExpression(ctx, `Vec3{y: 2.0, z: 3.0, m: 0.2}`);
+        expect(termToString(ctx, res))
+            .toEqual(`INVALID_RECORD_ATTRIBUTES[Vec3#${idName(vec3)}{x#${idName(
+            vec2,
+        )}#0: _, y#${idName(vec2)}#1: 2.0, z#${idName(vec3)}#0: 3.0}()(
+    m: 0.2,
+)]`);
+    });
+
+    it('with some nested defaults', () => {
+        const ctx = newContext();
+
+        let person;
+        [ctx.library, person] = addRecord(
+            ctx.library,
+            {
+                ...preset.recordDefn([preset.int, preset.float, preset.int]),
+                defaults: {
+                    '0': {
+                        id: null,
+                        idx: 0,
+                        value: preset.intLiteral(10, nullLocation),
+                    },
+                },
+            },
+            'Person',
+            ['kids', 'age', 'dogs'],
+        );
+        let child;
+        [ctx.library, child] = addRecord(
+            ctx.library,
+            {
+                ...preset.recordDefn(
+                    [preset.float, preset.int],
+                    [preset.refType(person)],
+                ),
+                defaults: {
+                    [`${idName(person)}#1`]: {
+                        id: person,
+                        idx: 1,
+                        value: preset.floatLiteral(2.3, nullLocation),
+                    },
+                    '1': {
+                        id: null,
+                        idx: 1,
+                        value: preset.floatLiteral(1, nullLocation),
+                    },
+                },
+            },
+            'Child',
+            ['shoeSize', 'grade'],
+        );
+
+        let res = parseExpression(ctx, `Person{age: 1.0, dogs: 2}`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(res.is).toEqualType(preset.refType(person), ctx);
+        expect(res).toNotHaveErrors(ctx);
+
+        res = parseExpression(ctx, `Child{dogs: 2, shoeSize: 1.0}`);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(termToString(ctx, res)).toEqual(
+            `Child#02479514{dogs#${idName(person)}#2: 2, shoeSize#${idName(
+                child,
+            )}#0: 1.0}`,
+        );
+        expect(res).toNotHaveErrors(ctx);
+        expect(res.is).toEqualType(preset.refType(child), ctx);
+    });
+
+    // This to test:
+    // - Spreads!
+    // - attributes with the wrong id, but right name
+    // - subTypes!
 });

@@ -47,7 +47,10 @@ export const builtinType = (
     // effectVbls: [],
 });
 
-export const refType = (id: Id, typeVbls: Array<Type> = []): TypeReference => ({
+export const refType = (
+    id: Id,
+    typeVbls: Array<Type> = [],
+): UserTypeReference => ({
     type: 'ref',
     ref: { type: 'user', id },
     location: builtinLocation,

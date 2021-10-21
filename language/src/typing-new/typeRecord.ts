@@ -133,7 +133,7 @@ export const typeVariableRecord = (
     const spread = findSpread(ctx, goalType, record, rows);
 
     // Also, we need to enumerate the possible subtypes
-    const subTypeIds = ([] as Array<Id>).concat(
+    const subTypeIds = binding.subTypes.concat(
         ...binding.subTypes.map((id) =>
             getAllSubTypes(
                 ctx.library,
@@ -238,11 +238,17 @@ export const typeConcreteRecord = (
         ),
     );
 
+    const baseDefaults: { [key: string]: boolean } = {};
+    if (defn.defaults) {
+        Object.keys(defn.defaults).map((k) => (baseDefaults[k] = true));
+    }
+
     const { subTypes, unusedAttributes, unusedSpreads } = calculateSubTypes(
         ctx,
         subTypeIds,
         rows,
         record,
+        baseDefaults,
     );
 
     return wrapUnused(
@@ -391,15 +397,28 @@ const calculateSubTypes = (
     subTypeIds: Id[],
     rows: RecordLiteralRow[],
     record: RecordLiteral,
+    baseDefaults: { [key: string]: boolean } = {},
 ) => {
     const names: { [key: string]: { i: number; id: Id } } = {};
 
     const subTypes: SubTypes = {};
     const subTypeTypes: { [id: string]: RecordDef } = {};
 
+    const defaults: { [key: string]: boolean } = { ...baseDefaults };
+
     subTypeIds.forEach((id) => {
         const t = ctx.library.types.defns[idName(id)].defn as RecordDef;
         subTypeTypes[idName(id)] = t;
+        if (t.defaults) {
+            Object.keys(t.defaults).forEach((k) => {
+                const v = t.defaults![k];
+                if (v.id) {
+                    defaults[k] = true;
+                } else {
+                    defaults[`${idName(id)}#${v.idx}`] = true;
+                }
+            });
+        }
         const rows = new Array(t.items.length);
         t.items.forEach((type, i) => {
             rows[i] = { type, value: null };
@@ -455,14 +474,6 @@ const calculateSubTypes = (
             rows: [],
         };
     });
-
-    const defaults: null | { [key: string]: boolean } =
-        // base.type === 'Concrete'
-        //     ? allDefaults(
-        //           env.global,
-        //           env.global.types[idName(base.ref.id)] as RecordDef,
-        //       )
-        null;
 
     Object.keys(subTypes).forEach((id) => {
         if (!subTypes[id].covered) {
