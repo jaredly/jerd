@@ -18,10 +18,10 @@ import {
     hashObject,
     idFromName,
     idName,
-    ToplevelT,
     typeToplevelT,
 } from '../typing/env';
 import { LocatedError } from '../typing/errors';
+import { findSliders } from '../typing/findSliders';
 import * as preset from '../typing/preset';
 import { applyTypeVariablesToRecord } from '../typing/typeExpr';
 // import { bool } from '../typing/preset';
@@ -33,6 +33,7 @@ import {
     // getAllSubTypes,
     Id,
     idsEqual,
+    ToplevelT,
     nullLocation,
     RecordDef as TermRecordDef,
     Reference,
@@ -269,7 +270,10 @@ export const recordToGo = (
     irOpts: IOutputOptions,
     id: Id,
 ) => {
-    const subTypes = getAllSubTypes(env.global, constr.extends);
+    const subTypes = getAllSubTypes(
+        env.global.types,
+        constr.extends.map((t) => t.ref.id),
+    );
 
     return pp.items([
         atom('type '),
@@ -475,7 +479,7 @@ export const printRecord = (
                 args.map((arg) => termToGo(env, opts, arg)),
                 '{',
                 '}',
-                false,
+                true,
             ),
         ]);
     }
@@ -497,7 +501,7 @@ export const printRecord = (
 
     return items([
         idToGo(env, opts, idFromName(idRaw), true),
-        pp.args(args, '{', '}', false),
+        pp.args(args, '{', '}', true),
     ]);
 };
 
@@ -866,9 +870,7 @@ export const declarationToGo = (
             idToGo(env, opts, idFromName(idRaw), false),
             term.is.typeVbls.length
                 ? args(
-                      term.is.typeVbls.map((t) =>
-                          atom(t.name ? t.name : `T${t.unique}`),
-                      ),
+                      term.is.typeVbls.map((t) => atom(t.sym.name)),
                       '<',
                       '>',
                   )
@@ -948,7 +950,7 @@ export const stmtToGo = (env: Env, opts: OutputOptions, stmt: ir.Stmt): PP => {
             }
             return items([
                 atom('for '),
-                atom('(int i=0; i<10000; i++) '),
+                atom('i := 0; i<10000; i++ '),
                 stmtToGo(env, opts, stmt.body),
             ]);
         // return items([
@@ -1113,8 +1115,8 @@ export const getMainTerm = (
     env: Env,
     expressions: Array<Term>,
 ): { mainTerm: Term; displayName: string | null } => {
-    console.log(env.global.decoratorNames);
-    console.log(expressions[0].decorators);
+    // console.log(env.global.decoratorNames);
+    // console.log(expressions[0].decorators);
     const displayDecorator = env.global.decoratorNames['display'][0];
     if (
         expressions.length === 1 &&
@@ -1155,7 +1157,6 @@ export const getMainTerm = (
                 },
                 is: preset.pureFunction([], preset.void_),
                 location: nullLocation,
-                idLocations: [],
             },
             displayName,
         };
@@ -1185,7 +1186,6 @@ export const getMainTerm = (
                         ),
                     ),
                 },
-                idLocations: [],
                 is: {
                     type: 'lambda',
                     args: [],
@@ -1209,7 +1209,7 @@ export const fileToGo = (
     assert: boolean,
 ) => {
     const env: Env = { ...tenv, typeDefs: {}, usedImports: {} };
-    const items: Array<PP> = []; // shaderTop(bufferCount);
+    const items: Array<PP> = [];
     const opts: OutputOptions = {};
     const irOpts: IOutputOptions = {};
     const includeComments = true;
@@ -1219,14 +1219,9 @@ export const fileToGo = (
     const mainHash = hashObject(mainTerm);
     env.global.terms[mainHash] = mainTerm;
     env.global.idNames[mainHash] = `main`;
-    // return idFromName(hash);
 
-    // const expressionIds: Array<Id> = expressions.map((term, i) => {
-    //     const hash = hashObject(term);
-    //     env.global.terms[hash] = term;
-    //     env.global.idNames[hash] = `toplevel_${i}`;
-    //     return idFromName(hash);
-    // });
+    const sliderData = findSliders(env, mainTerm);
+    // console.log(sliderData.found);
 
     const { inOrder, irTerms } = assembleItemsForFile(
         env,
@@ -1268,34 +1263,8 @@ export const fileToGo = (
     );
 
     items.push(...enumAliasesToGo(env, allTypes));
-    // Object.keys(env.global.types).forEach((idRaw) => {
-    //     const name = env.global.idNames[idRaw] || `T${idRaw}`;
-    //     const defn = env.global.types[idRaw];
-    //     if (defn.type === 'Enum') {
-    //         defn.items.forEach((t, idx) => {
-    //             const subName =
-    //                 env.global.idNames[idName(t.ref.id)] ||
-    //                 `T${idName(t.ref.id)}`;
-    //             items.push(
-    //                 pp.items([
-    //                     atom(`const `),
-    //                     atom(`${name}_${subName}`),
-    //                     atom(' int = '),
-    //                     atom(idx.toString()),
-    //                 ]),
-    //             );
-    //         });
-    //     }
-    // });
-
-    const invalidLocs: Array<Location> = [];
 
     inOrder.forEach((name) => {
-        // const loc = hasInvalidGLSL(irTerms[name].expr, name);
-        // if (loc) {
-        //     invalidLocs.push(loc);
-        // }
-
         const senv = env.global.terms[name]
             ? selfEnv(env, {
                   type: 'Term',
@@ -1305,8 +1274,6 @@ export const fileToGo = (
             : env;
         items.push(
             declarationToGo(
-                // Empty out the localNames
-                // { ...senv, local: { ...senv.local, localNames: {} } },
                 {
                     ...senv,
                     typeDefs: env.typeDefs,
@@ -1323,7 +1290,7 @@ export const fileToGo = (
             ),
         );
     });
-    // console.log('MAIN IR', irTerms[idName(mainTerm)]);
+
     return {
         pretty: pp.items(
             Object.keys(env.usedImports)
@@ -1334,51 +1301,4 @@ export const fileToGo = (
         ),
         displayName,
     };
-    //, mainType: irTerms[idName(mainTerm)].expr.is };
 };
-
-/*
-
-import (
-	"image/color"
-
-	"math"
-
-	"github.com/tdewolff/canvas"
-	"github.com/tdewolff/canvas/renderers"
-)
-
-
-func main() {
-	width := 1000.0
-	height := 1000.0
-	points := Vae2070ac(0, math.Pi*5.0/501.0, 10.0, 0.0, T08f7c2ac{500.0, 500.0}, []T08f7c2ac{}, 20000)
-
-	c := canvas.New(width, height)
-	ctx := canvas.NewContext(c)
-
-	ctx.SetStrokeWidth(1.0)
-	ctx.SetStrokeColor(color.RGBA{255, 0, 0, 255})
-
-	for i, point := range points {
-		if i == 0 {
-			ctx.MoveTo((point.x), (point.y))
-		} else {
-			ctx.LineTo((point.x), (point.y))
-		}
-	}
-	ctx.Stroke()
-
-	renderers.Write("hello.png", c, canvas.DPMM(8.0))
-}
-
-
-// And here's the go.mod:
-
-module jaredforsyth.com/example
-
-go 1.15
-
-require github.com/tdewolff/canvas v0.0.0-20210908183126-b9a5e3a05434
-
-*/

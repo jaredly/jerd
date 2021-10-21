@@ -497,8 +497,17 @@ export type Apply = {
     loc: Loc;
     is: Type;
 };
+
+// export type RecordItem = {
+//     id: Id,
+//     idx: number,
+//     value: Expr,
+// }
+
 export type Record = {
     type: 'record';
+    // spreads: Array<Expr>,
+    // items: Array<RecordItem>,
     base:
         | { type: 'Variable'; var: Symbol; spread: Expr }
         | {
@@ -513,6 +522,7 @@ export type Record = {
     };
     loc: Loc;
 };
+
 export type RecordSubType = {
     spread: Expr | null;
     rows: Array<Expr | null>;
@@ -533,7 +543,7 @@ export type RecordDef = {
     unique: number;
     location: Location;
     typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
-    extends: Array<Id>;
+    extends: Array<UserTypeReference>;
     items: Array<Type>;
     ffi: { tag: string; names: Array<string> } | null;
 };

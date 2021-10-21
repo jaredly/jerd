@@ -1,10 +1,11 @@
 import { hashObject, idName } from '../../../typing/env';
-import { Id } from '../../../typing/types';
+import { Id, newWithGlobal } from '../../../typing/types';
 import { debugExpr } from '../../irDebugPrinter';
 import { printToString } from '../../printer';
 import { reUnique } from '../../typeScriptPrinterSimple';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Expr, LambdaExpr, Stmt } from '../types';
+import { maxUnique } from './inline';
 import { Context } from './optimize';
 
 export const findCapturedVariables = (lambda: Expr): Array<number> => {
@@ -39,7 +40,12 @@ export const liftToTopLevel = (ctx: Context, lambda: LambdaExpr): Expr => {
     lambda = reUnique({ current: 0 }, lambda) as LambdaExpr;
     const hash = hashObject(lambda);
     const id: Id = { hash, size: 1, pos: 0 };
-    let expr: LambdaExpr = ctx.optimize({ ...ctx, id }, lambda) as LambdaExpr;
+    const senv = newWithGlobal(ctx.env.global);
+    senv.local.unique.current = maxUnique(lambda);
+    let expr: LambdaExpr = ctx.optimize(
+        { ...ctx, env: senv, id },
+        lambda,
+    ) as LambdaExpr;
     // const e = new Error();
     // expr.note = (expr.note || '') + '\nLifted to toplevel\n' + e.stack + '\n';
     // expr.note += printToString(debugExpr(ctx.env, expr), 100);

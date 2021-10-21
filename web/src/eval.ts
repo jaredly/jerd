@@ -19,7 +19,7 @@ import { EvalEnv } from './State';
 import { javascriptOpts } from '@jerd/language/src/printing/ir/optimize/optimize';
 import { liftEffects } from '@jerd/language/src/printing/pre-ir/lift-effectful';
 import { Expr } from '@jerd/language/src/printing/ir/types';
-import { Trace } from './Editor';
+import { Trace } from './Cell/Editor';
 import { optimizeRepeatedly } from '../../language/src/printing/ir/optimize/optimize';
 
 export class TimeoutError extends Error {}

@@ -4,8 +4,16 @@ import { jsx, css } from '@emotion/react';
 
 import * as React from 'react';
 import { Env } from '@jerd/language/src/typing/types';
-import { Content } from './State';
+import { Content, RenderPlugins } from './State';
 import { idFromName, idName } from '@jerd/language/src/typing/env';
+import { renderAttributedText } from './Cell/Render';
+import {
+    atom,
+    id,
+    items,
+    printToAttributedText,
+} from '@jerd/language/src/printing/printer';
+import { typeToPretty } from '@jerd/language/src/printing/printTsLike';
 
 const styles = {
     group: css({
@@ -60,8 +68,10 @@ const Library = ({
     env,
     onOpen,
     footer,
+    plugins,
 }: {
     env: Env;
+    plugins: RenderPlugins;
     onOpen: (c: Content) => void;
     footer: React.ReactChild;
 }) => {
@@ -134,6 +144,35 @@ const Library = ({
                                 </div>
                             );
                         })}
+                </div>
+            </div>
+            <div css={styles.group}>
+                <div css={styles.header}>Plugins</div>
+                <div css={styles.groupItems}>
+                    {Object.keys(plugins).map((k) => (
+                        <div
+                            style={{
+                                fontFamily: '"Source Code Pro", monospace',
+                                whiteSpace: 'pre-wrap',
+                                fontSize: '80%',
+                                padding: '2px 4px',
+                            }}
+                        >
+                            {renderAttributedText(
+                                env.global,
+                                printToAttributedText(
+                                    items([
+                                        atom(k + ': '),
+                                        typeToPretty(env, plugins[k].type),
+                                    ]),
+                                    100,
+                                ),
+                                // TODO onclick
+                                null,
+                                true,
+                            )}
+                        </div>
+                    ))}
                 </div>
             </div>
             <div css={styles.group}>

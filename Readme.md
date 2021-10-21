@@ -13,6 +13,33 @@ Web/editor (in the `web` directory)
 - `yarn start`
 - open up `http://localhost:4343`
 
+## Basic cool things
+
+- Code is typed, hashed AST in a database, not text in a file
+    - reference toplevel terms by hash, not by name
+    - type checking happens exactly once per term
+- Algebraic effects (full purity, no )
+- Compiles to _readable_ typescript, glsl, and go
+- {...extend type} for ~row polymorphism
+    - fancy enums and records
+    - records can have default values
+- generics (with ~bounds)
+- compile-time macros
+
+## Inspired by
+
+- Unison (algebraic effects)
+- Elm (purity)
+- Roc ()
+- Reason (compile to readable typescript)
+
+
+
+
+
+
+
+
 
 ## (intended) Features:
 
@@ -33,7 +60,7 @@ Web/editor (in the `web` directory)
 - [x] sum & product types (rich enums & structs/records)
 - [x] "row polymophism"-ish. subtyping on both enums and structs
 - [x] generics
-- [ ] well type-checked interface with typescript
+- [x] well type-checked interface with typescript
 - [ ] "partial" types for WIP development
     - if you have a type error, you can still compile, but your function
       will now require the "type error" effect, which isn't something you can
@@ -43,6 +70,8 @@ Web/editor (in the `web` directory)
       had a structured editor.
 - [ ] affine types for safe mutability
     - I might actually not do this... following roc's lead seems like the more reasonable approach.
+    - yeah, I don't think people are ready to think in linear types,
+
 
 
 

@@ -17,12 +17,24 @@ import {
     Location,
     TypeReference,
     Id,
+    Record,
+    RecordDef,
+    RecordSubType,
+    Lambda,
+    UserTypeReference,
 } from './types';
 
 export const builtinLocation: Location = {
     ...nullLocation,
     source: '<builtin>',
 };
+
+export const userTypeReference = (id: Id): UserTypeReference => ({
+    type: 'ref',
+    location: nullLocation,
+    ref: { type: 'user', id },
+    typeVbls: [],
+});
 
 export const builtinType = (
     name: string,
@@ -65,6 +77,23 @@ export const binOps = [
     '||',
 ];
 
+export const lambdaLiteral = (
+    args: Array<{ sym: Symbol; is: Type; location: Location }>,
+    body: Term,
+    location: Location = nullLocation,
+    typeVbls: Array<TypeVblDecl> = [],
+): Lambda => ({
+    type: 'lambda',
+    args: args.map((arg) => ({ sym: arg.sym, location: arg.location })),
+    body: body,
+    is: pureFunction(
+        args.map((arg) => arg.is),
+        body.is,
+        typeVbls,
+    ),
+    location,
+});
+
 export const pureFunction = (
     args: Array<Type>,
     res: Type,
@@ -82,6 +111,47 @@ export const pureFunction = (
         location: builtinLocation,
     };
 };
+
+export const recordDefn = (
+    items: Array<Type>,
+    extenders: Array<UserTypeReference> = [],
+    typeVbls: Array<TypeVblDecl> = [],
+    location: Location = nullLocation,
+    unique: number = 0,
+): RecordDef => ({
+    type: 'Record',
+    effectVbls: [],
+    extends: extenders,
+    ffi: null,
+    items: items,
+    location,
+    typeVbls,
+    unique,
+});
+
+export const recordLiteral = (
+    id: Id,
+    rows: Array<Term>,
+    subTypes: { [id: string]: RecordSubType } = {},
+    typeVbls: Array<Type> = [],
+): Record => ({
+    type: 'Record',
+    location: nullLocation,
+    subTypes,
+    is: {
+        type: 'ref',
+        ref: { type: 'user', id },
+        location: nullLocation,
+        typeVbls,
+    },
+    base: {
+        location: nullLocation,
+        ref: { type: 'user', id },
+        spread: null,
+        type: 'Concrete',
+        rows: rows,
+    },
+});
 
 // This seems like it would work, right?
 `
@@ -121,15 +191,19 @@ export function presetEnv(builtins: { [key: string]: Type }) {
     // env.global.builtins['intToFloat'] = pureFunction([int], float);
 
     const T: TypeVblDecl = {
-        unique: 10000,
+        sym: {
+            unique: 10000,
+            name: 'T',
+        },
         subTypes: [],
-        name: 'T',
         location: nullLocation,
     };
     const Y: TypeVblDecl = {
-        unique: 10001,
+        sym: {
+            unique: 10001,
+            name: 'Y',
+        },
         subTypes: [],
-        name: 'Y',
         location: nullLocation,
     };
     const Y0: Type = {

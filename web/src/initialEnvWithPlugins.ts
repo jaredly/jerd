@@ -6,7 +6,7 @@ import rawCanvas from './plugins/canvas/canvas.jd';
 import { typeFile } from '../../language/src/typing/typeFile';
 import { parse } from '../../language/src/parsing/parser';
 
-const tryParse = (text: string) => {
+export const tryParse = (text: string) => {
     try {
         return parse(text);
     } catch (err) {

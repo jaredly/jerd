@@ -1,6 +1,6 @@
 import { TypeDefs } from '../printing/ir/optimize/optimize';
 import { defaultVisitor } from '../printing/ir/transform';
-import { idFromName, idName, refName, ToplevelT } from './env';
+import { idFromName, idName, refName } from './env';
 import { void_ } from './preset';
 import {
     transform,
@@ -15,6 +15,7 @@ import {
     Id,
     nullLocation,
     Reference,
+    ToplevelT,
     Term,
     Type,
     UserReference,
@@ -68,15 +69,15 @@ export const makeIdxTree = (term: Term): IdxTree => {
     };
     transform(term, {
         let: (l) => {
-            if (!l.idLocation) {
-                l.idLocation = { ...l.location };
-            }
             children[l.location.idx!] = [
-                l.idLocation.idx!,
+                l.binding.location.idx!,
                 l.value.location.idx!,
             ];
             locs[l.location.idx!] = { kind: 'let', loc: l.location };
-            locs[l.idLocation.idx!] = { kind: 'let-sym', loc: l.idLocation };
+            locs[l.binding.location.idx!] = {
+                kind: 'let-sym',
+                loc: l.binding.location,
+            };
             return null;
         },
         term: (term) => {
@@ -169,11 +170,7 @@ export const makeIdxTree = (term: Term): IdxTree => {
 
                     children[term.location.idx!] = term.is.args
                         .map((t) => addLoc(t.location, 'arg-type'))
-                        .concat(
-                            term.idLocations
-                                ? term.idLocations.map((l) => addLoc(l, 'arg'))
-                                : [],
-                        )
+                        .concat(term.args.map((l) => addLoc(l.location, 'arg')))
                         .concat([
                             addLoc(term.is.res.location, 'res-type'),
                             term.body.location.idx!,
@@ -348,7 +345,7 @@ export const transformLocations = (
             if (term.type === 'lambda') {
                 let changed = false;
                 const location = mapper(term.location);
-                const args = term.is.args.map((arg) => {
+                const targs = term.is.args.map((arg) => {
                     const l = mapper(arg.location);
                     changed = changed || l !== arg.location;
                     return l !== arg.location ? { ...arg, location: l } : arg;
@@ -359,21 +356,19 @@ export const transformLocations = (
                     changed || res !== term.is.res.location
                         ? {
                               ...term.is,
-                              args,
+                              args: targs,
                               res: { ...term.is.res, location: res },
                           }
                         : term.is;
-                const idLocations = term.idLocations
-                    ? term.idLocations.map((l) => {
-                          let lm = mapper(l);
-                          changed = changed || lm !== l;
-                          return lm;
-                      })
-                    : [];
+                const args = term.args.map((l) => {
+                    let lm = mapper(l.location);
+                    changed = changed || lm !== l.location;
+                    return lm !== l.location ? { ...l, location: lm } : l;
+                });
                 return changed ||
                     location !== term.location ||
                     res !== term.is.res.location
-                    ? { ...term, location, idLocations, is }
+                    ? { ...term, location, args, is }
                     : term;
             }
             const location = mapper(term.location);
@@ -386,12 +381,12 @@ export const transformLocations = (
         },
         let: (l) => {
             const location = mapper(l.location);
-            const idLocation = mapper(l.idLocation);
-            return location !== l.location || idLocation !== l.idLocation
+            const idLocation = mapper(l.binding.location);
+            return location !== l.location || idLocation !== l.binding.location
                 ? {
                       ...l,
                       location,
-                      idLocation,
+                      binding: { ...l.binding, location: idLocation },
                   }
                 : null;
         },
@@ -448,6 +443,10 @@ export const allLiteral = (env: Env, type: Type): boolean => {
     switch (type.type) {
         case 'var':
             return false;
+        case 'THole':
+        case 'InvalidTypeApplication':
+        case 'TNotFound':
+        case 'NotASubType':
         case 'Ambiguous':
             return false;
         case 'ref': {
@@ -468,18 +467,7 @@ export const allLiteral = (env: Env, type: Type): boolean => {
                     null,
                     type.ref.id.hash,
                 );
-                if (
-                    rec.extends.some(
-                        (id) =>
-                            !allLiteral(env, {
-                                type: 'ref',
-                                ref: { type: 'user', id },
-                                location: nullLocation,
-                                typeVbls: [],
-                                // effectVbls: [],
-                            }),
-                    )
-                ) {
+                if (rec.extends.some((ref) => !allLiteral(env, ref))) {
                     return false;
                 }
                 return !rec.items.some((t) => !allLiteral(env, t));
@@ -614,7 +602,6 @@ export const expressionTypeDeps = (env: Env, terms: Array<Term>) => {
             populateTypeDependencyMap(env, allDeps, id),
         ),
     );
-    console.log(allDeps);
 
     return sortAllDeps(allDeps);
 };
@@ -675,7 +662,7 @@ export const populateTypeDependencyMap = (
             }
             // ir.RecordDef
             const d = types[k];
-            tDeps.push(...d.typeDef.extends);
+            tDeps.push(...d.typeDef.extends.map((t) => t.ref.id));
             d.typeDef.items.forEach((item) => {
                 if (item.type === 'ref' && item.ref.type === 'user') {
                     tDeps.push(item.ref.id);
@@ -683,7 +670,7 @@ export const populateTypeDependencyMap = (
             });
         } else {
             if (typeDef.type === 'Record') {
-                tDeps.push(...typeDef.extends);
+                tDeps.push(...typeDef.extends.map((t) => t.ref.id));
                 typeDef.items.forEach((item) => {
                     if (item.type === 'ref' && item.ref.type === 'user') {
                         tDeps.push(item.ref.id);
@@ -779,6 +766,10 @@ export const termDependencies = (term: Term): Array<Reference> => {
         case 'boolean':
         case 'self':
         case 'TemplateString':
+        case 'InvalidApplication':
+        case 'InvalidRecordAttributes':
+        case 'Hole':
+        case 'NotFound':
             return [];
         default:
             let _x: never = term;
@@ -923,10 +914,10 @@ export const insertAfterBindings = (
                         return;
                     }
                     if (st.type === 'Let') {
-                        ctx[st.binding.unique] = {
+                        ctx[st.binding.sym.unique] = {
                             type: st.is,
                             loc: st.location,
-                            name: st.binding.name,
+                            name: st.binding.sym.name,
                         };
                         if (bindings.every((u) => ctx[u] != null)) {
                             found = true;
@@ -948,7 +939,7 @@ export const usedLocalVariables = (term: Term) => {
     const bound: { [unique: number]: boolean } = {};
     transform(term, {
         let: (l) => {
-            bound[l.binding.unique] = true;
+            bound[l.binding.sym.unique] = true;
             return null;
         },
         switchCase: (k) => {
@@ -964,7 +955,7 @@ export const usedLocalVariables = (term: Term) => {
         },
         term: (t) => {
             if (t.type === 'lambda') {
-                t.args.forEach((s) => (bound[s.unique] = true));
+                t.args.forEach((s) => (bound[s.sym.unique] = true));
             }
             if (t.type === 'var') {
                 if (bound[t.sym.unique] !== true) {
@@ -1006,10 +997,10 @@ export const transformWithBindings = (
                 ctx,
                 {
                     ...ctx,
-                    [l.binding.unique]: {
+                    [l.binding.sym.unique]: {
                         loc: l.location,
                         type: l.is,
-                        name: l.binding.name,
+                        name: l.binding.sym.name,
                     },
                 },
             ];
@@ -1056,10 +1047,10 @@ export const transformWithBindings = (
                 const c2 = { ...ctx };
                 t.args.forEach(
                     (s, i) =>
-                        (c2[s.unique] = {
+                        (c2[s.sym.unique] = {
                             loc: t.is.args[i].location,
                             type: t.is.args[i],
-                            name: s.name,
+                            name: s.sym.name,
                         }),
                 );
                 return [ll, c2];

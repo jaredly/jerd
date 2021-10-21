@@ -41,7 +41,7 @@ describe('tailCall', () => {
             ]),
         );
         expect(result).toMatchInlineSnapshot(`
-const tailMe#🦽🖐️🕕😃: (int, Array<int>) => Array<int> = (
+const tailMe#🕌🌂🚟😃: (int, Array<int>) => Array<int> = (
     num#:0: int,
     collect#:1: Array<int>,
 ): Array<int> => {
@@ -54,12 +54,12 @@ const tailMe#🦽🖐️🕕😃: (int, Array<int>) => Array<int> = (
     return collect#:4;
 }
 
-const expr1#🤗: Array<int> = tailMe#🦽🖐️🕕😃(
+const expr1#🍮👩‍🦲❤️😃: Array<int> = tailMe#🕌🌂🚟😃(
     1,
     [],
 )
 
-const expr0#🍔👨‍🦽👫😃: Array<int> = tailMe#🦽🖐️🕕😃(
+const expr0#🏄🍈🌩️: Array<int> = tailMe#🕌🌂🚟😃(
     20,
     [],
 )

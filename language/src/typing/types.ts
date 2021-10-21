@@ -6,6 +6,7 @@ import seedrandom from 'seedrandom';
 import { applyEffectVariables } from './typeExpr';
 import { getTypeError } from './getTypeError';
 
+export { Loc };
 export type Location = { start: Loc; end: Loc; source?: string; idx?: number };
 export const nullLoc: Loc = { line: 1, column: 0, offset: 0 };
 
@@ -32,6 +33,7 @@ export const nullLocation: Location = {
     start: nullLoc,
     end: nullLoc,
     source: '<generated>',
+    idx: 0,
 };
 
 export const refsEqual = (one: Reference, two: Reference) => {
@@ -57,7 +59,7 @@ export const symbolsEqual = (one: Symbol, two: Symbol) =>
     one.unique === two.unique;
 
 export const typeVblDeclsEqual = (one: TypeVblDecl, two: TypeVblDecl) =>
-    one.unique === two.unique &&
+    one.sym.unique === two.sym.unique &&
     one.subTypes.length === two.subTypes.length &&
     one.subTypes.every((s, i) => idsEqual(s, two.subTypes[i]));
 
@@ -98,8 +100,11 @@ export type MetaData = {
     createdMs: number;
 };
 
+export type TypeMapping = { [idName: string]: TypeDef };
+
 export type GlobalEnv = {
     rng: () => number;
+    idRemap: { [key: string]: Id };
     names: { [humanName: string]: Array<Id> };
     idNames: { [idName: string]: string };
     terms: { [idName: string]: Term };
@@ -113,7 +118,7 @@ export type GlobalEnv = {
     builtinTypes: { [key: string]: number };
 
     typeNames: { [humanName: string]: Array<Id> };
-    types: { [idName: string]: TypeDef };
+    types: TypeMapping;
 
     // These are two ways of saying the same thing
     recordGroups: { [key: string]: Array<string> };
@@ -143,8 +148,8 @@ export const mergeGlobalEnvs = (
     newEnv: GlobalEnv,
 ): GlobalEnv => ({
     ...newEnv,
-    builtins: old.builtins,
-    builtinTypes: old.builtinTypes,
+    // builtins: newEnv.builtins,
+    // builtinTypes: newEnv.builtinTypes,
     metaData: { ...old.metaData, ...newEnv.metaData },
     rng: newEnv.rng,
     recordGroups: {
@@ -212,6 +217,7 @@ export type DecoratorDef = {
     unique: number;
     arguments: Array<DecoratorDefArg>;
     typeVbls: Array<TypeVblDecl>;
+    // typeargs is a weird name for this
     typeArgs: Array<{ sym: Symbol; location: Location }>;
     restArg: {
         argLocation: Location;
@@ -229,7 +235,7 @@ export type Self =
           name: string;
           ann: Type;
       }
-    | { type: 'Effect'; name: string; vbls: Array<number> }
+    | { type: 'Effect'; name: string; vbls: Array<EffectVblDecl> }
     | {
           type: 'Type';
           name: string;
@@ -259,6 +265,7 @@ export const newEnv = (self: Self | null, seed: string = 'seed'): Env => ({
     depth: 0,
     global: {
         rng: defaultRng(seed),
+        idRemap: {},
         names: {},
         idNames: {},
         exportedTerms: {},
@@ -318,6 +325,7 @@ export const newWithGlobal = (env: GlobalEnv): Env => ({
 export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
     return {
         rng: env.rng,
+        idRemap: { ...env.idRemap },
         attributeNames: { ...env.attributeNames },
         recordGroups: { ...env.recordGroups },
         exportedTerms: { ...env.exportedTerms },
@@ -379,6 +387,61 @@ export const subEnv = (env: Env): Env => {
         term: env.term,
     };
 };
+
+/********************** TYPE STUFF  *********** */
+
+export type ToplevelEffect = {
+    type: 'Effect';
+    id: Id;
+    effect: EffectDef;
+    location: Location;
+    name: string;
+    constrNames: Array<string>;
+};
+export type ToplevelDefine = {
+    type: 'Define';
+    id: Id;
+    term: Term;
+    location: Location;
+    name: string;
+    tags?: Array<string>;
+};
+export type ToplevelRecord = {
+    type: 'RecordDef';
+    def: RecordDef;
+    id: Id;
+    location: Location;
+    name: string;
+    attrNames: Array<string>;
+};
+export type ToplevelExpression = {
+    type: 'Expression';
+    id: Id;
+    term: Term;
+    location: Location;
+};
+export type ToplevelEnum = {
+    type: 'EnumDef';
+    def: EnumDef;
+    id: Id;
+    location: Location;
+    name: string;
+    inner: Array<ToplevelRecord>;
+};
+export type ToplevelDecorator = {
+    type: 'Decorator';
+    id: Id;
+    name: string;
+    location: Location;
+    defn: DecoratorDef;
+};
+export type ToplevelT =
+    | ToplevelEffect
+    | ToplevelDecorator
+    | ToplevelExpression
+    | ToplevelDefine
+    | ToplevelEnum
+    | ToplevelRecord;
 
 export type Case = {
     constr: number; // the index
@@ -474,8 +537,7 @@ export const apply = (
 export type Let = {
     type: 'Let';
     location: Location;
-    idLocation: Location;
-    binding: Symbol; // TODO patterns folks
+    binding: { sym: Symbol; location: Location }; // TODO patterns folks
     value: Term;
     is: Type;
     decorators?: Decorators;
@@ -490,15 +552,17 @@ export type Var = {
 };
 
 export const getAllSubTypes = (
-    env: GlobalEnv,
+    types: TypeMapping,
     extend: Array<Id>,
 ): Array<Id> => {
     return ([] as Array<Id>).concat(
         ...extend.map((id) =>
             [id].concat(
                 getAllSubTypes(
-                    env,
-                    (env.types[idName(id)] as RecordDef).extends,
+                    types,
+                    (types[idName(id)] as RecordDef).extends.map(
+                        (t) => t.ref.id,
+                    ),
                 ),
             ),
         ),
@@ -515,18 +579,40 @@ export type ConcreteBase<Contents> = {
 export type RecordBase<Contents> =
     | ConcreteBase<Contents>
     | { type: 'Variable'; var: Symbol; spread: Term; location: Location };
+export type RecordBaseConcrete =
+    | ConcreteBase<Term | null>
+    | { type: 'Variable'; var: Symbol; spread: Term; location: Location };
 
+export type RecordSubType = {
+    covered: boolean;
+    spread: Term | null;
+    rows: Array<Term | null>;
+};
+
+// export type Record2 = {
+//     type: 'Record2';
+//     spreads: Array<Term>;
+//     items: Array<RecordItem>;
+//     is: Type;
+//     location: Location;
+//     decorators?: Decorators;
+// };
+
+// spreads .. all before the items
+export type RecordItem = {
+    id: Id;
+    idx: number;
+    value: Term;
+};
 export type Record = {
     type: 'Record';
-    base: RecordBase<Term | null>;
+    base: RecordBaseConcrete;
+    // spreads: Array<Term>;
+    // items: Array<RecordItem>;
     is: Type;
     // For each subtype, we might have members defined
     subTypes: {
-        [id: string]: {
-            covered: boolean;
-            spread: Term | null;
-            rows: Array<Term | null>;
-        };
+        [id: string]: RecordSubType;
     };
     location: Location;
     decorators?: Decorators;
@@ -660,6 +746,14 @@ export type TypeError = {
     decorators?: Decorators;
 };
 
+export type NotFound = {
+    type: 'NotFound';
+    is: Type;
+    text: string;
+    location: Location;
+    decorators?: Decorators;
+};
+
 export type Ambiguous = {
     type: 'Ambiguous';
     options: Array<Term>;
@@ -668,7 +762,85 @@ export type Ambiguous = {
     decorators?: Decorators;
 };
 
-export type ErrorTerm = Ambiguous | TypeError;
+export type TermHole = {
+    type: 'Hole';
+    is: Type;
+    location: Location;
+    decorators?: Decorators;
+};
+export type UnusedAttribute = {
+    ref: { type: 'unknown'; text: string } | UserReference;
+    idx: number;
+    value: Term;
+};
+
+export type InvalidRecordAttributes = {
+    type: 'InvalidRecordAttributes';
+    is: Type;
+    inner: Record;
+    extraAttributes: Array<UnusedAttribute>;
+    extraSpreads: Array<Term>;
+    location: Location;
+    decorators?: Decorators;
+};
+
+export type InvalidApplication = {
+    type: 'InvalidApplication';
+    is: Type;
+    // This is either not a function, or a function call
+    // where too many args were supplied
+    target: Term;
+    extraArgs: Array<Term>;
+    extraTypeArgs: Array<Type>;
+    // hmmmmmm maybe I want to establish an arithmetic of effects?
+    // like A + B {A + B}
+    // that's one more character than A, B
+    // is that ok?
+    // so () ={A, B}> {} wouldn't make sense, right?
+    // but, then we could do multiple effects variables.
+    // sounds legit.
+    // and then {e}() ={A + B + e}> {}
+    // would make sense, sure.
+    // oooh.
+    // we can use subtraction too. is that too weird?
+    // {e}(n: () ={e}> {}) ={e - Stdio}> {}
+    extraEffectArgs: Array<EffectRef>;
+    location: Location;
+    decorators?: Decorators;
+};
+
+export type ErrorTerm =
+    | Ambiguous
+    | TypeError
+    | NotFound
+    | TermHole
+    | InvalidRecordAttributes
+    | InvalidApplication;
+
+export const isErrorTerm = (type: Term) => {
+    switch (type.type) {
+        case 'Hole':
+        case 'NotFound':
+        case 'TypeError':
+        case 'Ambiguous':
+        case 'InvalidApplication':
+        case 'InvalidRecordAttributes':
+            return true;
+    }
+    return false;
+};
+
+export const isErrorType = (type: Type) => {
+    switch (type.type) {
+        case 'THole':
+        case 'InvalidTypeApplication':
+        case 'TNotFound':
+        case 'NotASubType':
+        case 'Ambiguous':
+            return true;
+    }
+    return false;
+};
 
 // some-term
 // : some-type
@@ -817,8 +989,7 @@ export type Boolean = {
 export type Lambda = {
     type: 'lambda';
     location: Location;
-    args: Array<Symbol>;
-    idLocations: Array<Location>;
+    args: Array<{ sym: Symbol; location: Location }>;
     body: Term;
     is: LambdaType;
     /**
@@ -858,11 +1029,19 @@ export type EnumDef = {
     type: 'Enum';
     location: Location;
     typeVbls: Array<TypeVblDecl>;
-    effectVbls: Array<number>;
+    effectVbls: Array<EffectVblDecl>;
     extends: Array<UserTypeReference>;
     items: Array<UserTypeReference>;
     decorators?: Decorators;
 };
+
+// oooh parsing ambiguity
+// tuple return type
+// (): (a, b) => a
+// function return type
+// (): (a, b) => a => b
+// but I neeed a way to indicate that this is a tuple
+// or that the other is a lambda.
 
 export type TypeDef = RecordDef | EnumDef;
 export type RecordDef = {
@@ -870,12 +1049,14 @@ export type RecordDef = {
     unique: number;
     location: Location;
     typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
-    effectVbls: Array<number>;
-    extends: Array<Id>;
+    effectVbls: Array<EffectVblDecl>;
+    extends: Array<UserTypeReference>;
     items: Array<Type>;
     ffi: { tag: string; names: Array<string> } | null;
     decorators?: Decorators;
     defaults?: {
+        // For the toplevel record, it's just idx.toString()
+        // For subTypes, it's `${idName(id)}#${idx}`
         [idAndNumber: string]: {
             // Null for the toplevel record
             id: null | Id;
@@ -986,11 +1167,13 @@ export const typesEqual = (one: Type | null, two: Type | null): boolean => {
     // return false;
 };
 
-const effectKey = (e: EffectRef) =>
+export const effectKey = (e: EffectRef) =>
     e.type === 'ref'
         ? 'ref:' + (e.ref.type === 'builtin' ? e.ref.name : idName(e.ref.id))
         : 'sym:' + e.sym.unique;
 
+export const effectsEqual = (one: EffectRef, two: EffectRef) =>
+    effectKey(one) === effectKey(two);
 // TODO: should I allow variables to be flexible here? idk
 export const effectsMatch = (
     one: Array<EffectRef>,
@@ -1039,7 +1222,7 @@ export type TypeReference = {
     decorators?: Decorators;
     // effectVbls: Array<EffectRef>;
 };
-export type TypeRef = UserTypeReference | TypeReference | TypeVar; // will also support vbls at some point I guess
+export type TypeRef = TypeReference | TypeVar; // will also support vbls at some point I guess
 
 export type TypeVar = {
     type: 'var';
@@ -1048,12 +1231,46 @@ export type TypeVar = {
     decorators?: Decorators;
 };
 
+// TODO: DELETE THIS
 export type AmbiguousType = {
     type: 'Ambiguous';
     location: Location;
     decorators?: Decorators;
 };
-export type Type = TypeRef | LambdaType | AmbiguousType;
+
+export type Type = TypeRef | LambdaType | ErrorType;
+export type ErrorType =
+    | AmbiguousType
+    | TypeNotFound
+    | InvalidTypeApplication
+    | NotASubType
+    | TypeHole;
+export type NotASubType = {
+    type: 'NotASubType';
+    subTypes: Array<Id>;
+    inner: Type;
+    location: Location;
+    decorators?: Decorators;
+};
+export type TypeHole = {
+    type: 'THole';
+    location: Location;
+    decorators?: Decorators;
+};
+export type TypeNotFound = {
+    type: 'TNotFound';
+    location: Location;
+    decorators?: Decorators;
+    text: string;
+};
+// There were extra type variables provided!
+export type InvalidTypeApplication = {
+    type: 'InvalidTypeApplication';
+    location: Location;
+    decorators?: Decorators;
+    inner: Type;
+    typeVbls: Array<Type>;
+};
 
 // Here's the basics folks
 // kind lambdas can't have effects, thank goodness
@@ -1065,10 +1282,13 @@ export type Kind =
 
 export type TypeVblDecl = {
     subTypes: Array<Id>;
-    unique: number;
-    // TODO: make these required
-    name?: string;
-    location?: Location;
+    sym: Symbol;
+    location: Location;
+    decorators?: Decorators;
+};
+export type EffectVblDecl = {
+    sym: Symbol;
+    location: Location;
     decorators?: Decorators;
 };
 
@@ -1078,7 +1298,7 @@ export type LambdaType = {
     // TODO: this shouldn't be an array,
     // we don't have to be order dependent here.
     typeVbls: Array<TypeVblDecl>; // TODO: kind, row etc.
-    effectVbls: Array<number>;
+    effectVbls: Array<EffectVblDecl>;
     // TODO optional arguments!
     // TODO modular implicits!
     // TODO: Make this required, this is just for backwards compat
@@ -1167,6 +1387,10 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
         case 'self':
         case 'ref':
         case 'var':
+        case 'NotFound':
+        case 'InvalidApplication':
+        case 'InvalidRecordAttributes':
+        case 'Hole':
             return [];
         case 'handle':
             // ok we also need to talk about ... the function we're calling
@@ -1204,8 +1428,12 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
                     row ? effects.push(...getEffects(row)) : null,
                 );
             }
-
             return effects;
+
+            // return effects.concat(
+            //     ...t.spreads.map(getEffects),
+            //     ...t.items.map((item) => getEffects(item.value)),
+            // );
         }
         case 'Enum':
         case 'unary':
@@ -1279,6 +1507,8 @@ export const walkTerm = (
         case 'lambda':
             return walkTerm(term.body, handle);
         case 'Record':
+            // term.spreads.forEach((term) => walkTerm(term, handle));
+            // term.items.forEach((item) => walkTerm(item.value, handle));
             if (term.base.spread) {
                 walkTerm(term.base.spread, handle);
             }
@@ -1334,6 +1564,10 @@ export const walkTerm = (
         case 'self':
         case 'ref':
         case 'var':
+        case 'NotFound':
+        case 'InvalidApplication':
+        case 'InvalidRecordAttributes':
+        case 'Hole':
             return;
         case 'TemplateString':
             term.pairs.forEach((item) => walkTerm(item.contents, handle));

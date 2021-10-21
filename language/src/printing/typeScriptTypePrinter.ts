@@ -228,7 +228,7 @@ export const typeVblsToParameters = (
                       )
                     : null,
                 null,
-                `T_${vbl.unique}`,
+                vbl.sym.name,
             ),
         ),
     );
@@ -255,7 +255,7 @@ export const allRecordMembers = (env: Env, id: Id) => {
     return constr.items
         .map((item, i: number) => ({ id, item, i }))
         .concat(
-            ...constr.extends.map((id) =>
+            ...constr.extends.map(({ ref: { id } }) =>
                 // um shouldn't this be recursive?
                 (env.global.types[idName(id)] as RecordDef).items.map(
                     (item, i) => ({

@@ -26,7 +26,7 @@ import { walkType } from '../typeType';
 import { float, int, numeric, string } from '../preset';
 
 // loosest at the top, tightest at the bottom
-const precedence = [
+export const precedence = [
     ['&'],
     ['|'],
     ['='],
@@ -201,7 +201,7 @@ const typeNewOp = (
         if (op.hash === '#builtin') {
             return null;
         }
-        const [baseHash, attrHash, idxRaw] = op.hash.slice(1).split('#');
+        let [baseHash, attrHash, idxRaw] = op.hash.slice(1).split('#');
         const idx = +idxRaw;
         if (isNaN(idx)) {
             throw new LocatedError(
@@ -223,6 +223,9 @@ const typeNewOp = (
         }
         if (target.is.type !== 'ref') {
             throw new LocatedError(op.location, `binop target is not a ref`);
+        }
+        if (env.global.idRemap[attrHash]) {
+            attrHash = idName(env.global.idRemap[attrHash]);
         }
         const id = idFromName(attrHash);
         let t = env.global.types[idName(id)] as RecordDef;
@@ -326,7 +329,7 @@ const typeOp = (
 ): Term => {
     // Shortcut
     let rarg =
-        right.type === 'ops' ? _typeOps(env, right) : typeExpr(env, right);
+        right.type === 'BinOp' ? _typeOps(env, right) : typeExpr(env, right);
 
     const result = typeNewOp(env, left, op, rarg, location);
     if (result != null) {
@@ -467,8 +470,16 @@ type Section = {
 // Takes a flat list of ops
 // and nests them
 // const organizeOps = (expr: Ops, groups: Array<Array<string>>): Ops => {
-
 // }
+
+/*
+
+Is this easiest to do as a binary tree that we're rebalancing?
+
+
+
+
+*/
 
 const organizeOps = (expr: Ops, groups: Array<Array<string>>): Ops => {
     if (!groups.length) {
@@ -485,7 +496,7 @@ const organizeOps = (expr: Ops, groups: Array<Array<string>>): Ops => {
     const sections: Array<Section> = [];
     let section: Section = {
         ops: {
-            type: 'ops',
+            type: 'BinOp',
             first: expr.first,
             rest: [],
             location: expr.location,
@@ -496,7 +507,7 @@ const organizeOps = (expr: Ops, groups: Array<Array<string>>): Ops => {
         if (group.includes(op.text[0])) {
             sections.push(section);
             section = {
-                ops: { type: 'ops', first: right, rest: [], location },
+                ops: { type: 'BinOp', first: right, rest: [], location },
                 op,
             };
         } else {
@@ -508,7 +519,7 @@ const organizeOps = (expr: Ops, groups: Array<Array<string>>): Ops => {
         throw new Error(`Why does the first section have an op`);
     }
     return {
-        type: 'ops',
+        type: 'BinOp',
         first: organizeOps(sections[0].ops, otherGroups),
         rest: sections.slice(1).map(({ op, ops }) => ({
             op: op!,
@@ -522,7 +533,7 @@ const organizeOps = (expr: Ops, groups: Array<Array<string>>): Ops => {
 
 const _typeOps = (env: Env, expr: Ops): Term => {
     let left: Term =
-        expr.first.type === 'ops'
+        expr.first.type === 'BinOp'
             ? _typeOps(env, expr.first)
             : typeExpr(env, expr.first);
     expr.rest.forEach(({ op, right, location }) => {
@@ -531,14 +542,14 @@ const _typeOps = (env: Env, expr: Ops): Term => {
     return left;
 };
 
-const organizeDeep = (ops: Ops): Ops => {
+export const organizeDeep = (ops: Ops): Ops => {
     let first = ops.first;
-    if (first.type === 'ops') {
+    if (first.type === 'BinOp') {
         // This might only solve 1 layer deep?
         first = organizeDeep(first);
     }
     const rest = ops.rest.map((item) => {
-        if (item.right.type === 'ops') {
+        if (item.right.type === 'BinOp') {
             return { ...item, right: organizeDeep(item.right) };
         }
         return item;

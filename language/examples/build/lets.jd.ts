@@ -3,38 +3,38 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-@unique(0.5383562320075749) type Eq#51ea2a36<T#:0> = {
+@unique(0.5383562320075749) type Eq#3b6b23ae<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_51ea2a36<T_0> = {
-  type: "51ea2a36";
-  h51ea2a36_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_3b6b23ae<T> = {
+  type: "3b6b23ae";
+  h3b6b23ae_0: (arg_0: T_0, arg_1: T_0) => boolean;
 };
 
 /**
 ```
-const IntEq#ec95f154 = Eq#51ea2a36<int#builtin>{"=="#51ea2a36#0: intEq#builtin}
-Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: intEq}
+const IntEq#6d46a318 = Eq#3b6b23ae<int#builtin>{"=="#3b6b23ae#0: intEq#builtin}
+Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: intEq}
 ```
 */
-export const hash_ec95f154: t_51ea2a36<number> = ({
-  type: "51ea2a36",
-  h51ea2a36_0: intEq
-} as t_51ea2a36<number>);
+export const hash_6d46a318: t_3b6b23ae<number> = ({
+  type: "3b6b23ae",
+  h3b6b23ae_0: intEq
+} as t_3b6b23ae<number>);
 
 /**
 ```
-const rec fib#f0fe98c2 = (prev#:0: int#builtin, cur#:1: int#builtin, n#:2: int#builtin): int#builtin ={}> if n#:2 
-    ==#ec95f154#51ea2a36#0 0 {
+const rec fib#874a44e2 = (prev#:0: int#builtin, cur#:1: int#builtin, n#:2: int#builtin): int#builtin ={}> if n#:2 
+    ==#6d46a318#3b6b23ae#0 0 {
     prev#:0;
 } else {
-    f0fe98c2#self(cur#:1, prev#:0 +#builtin cur#:1, n#:2 -#builtin 1);
+    874a44e2#self(cur#:1, prev#:0 +#builtin cur#:1, n#:2 -#builtin 1);
 }
 (prev#:0: int, cur#:1: int, n#:2: int): int => {
     loop(unbounded) {
-        if IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0(n#:2, 0) {
+        if IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0(n#:2, 0) {
             return prev#:0;
         } else {
             const recur#:4: int = prev#:0 + cur#:1;
@@ -47,9 +47,9 @@ const rec fib#f0fe98c2 = (prev#:0: int#builtin, cur#:1: int#builtin, n#:2: int#b
 }
 ```
 */
-export const hash_f0fe98c2: (arg_0: number, arg_1: number, arg_2: number) => number = (prev: number, cur: number, n: number) => {
+export const hash_874a44e2: (arg_0: number, arg_1: number, arg_2: number) => number = (prev: number, cur: number, n: number) => {
   while (true) {
-    if (hash_ec95f154.h51ea2a36_0(n, 0)) {
+    if (hash_6d46a318.h3b6b23ae_0(n, 0)) {
       return prev;
     } else {
       let recur: number = prev + cur;
@@ -63,40 +63,40 @@ export const hash_f0fe98c2: (arg_0: number, arg_1: number, arg_2: number) => num
 
 /**
 ```
-const z#ce5d9b4c = (n#:0: int#builtin): int#builtin ={}> {
+const z#560f2d40 = (n#:0: int#builtin): int#builtin ={}> {
     const m#:1 = n#:0 +#builtin 2;
     m#:1 -#builtin 1;
 }
 (n#:0: int): int => n#:0 + 2 - 1
 ```
 */
-export const hash_ce5d9b4c: (arg_0: number) => number = (n$0: number) => n$0 + 2 - 1;
+export const hash_560f2d40: (arg_0: number) => number = (n$0: number) => n$0 + 2 - 1;
 
 /**
 ```
-const x#0c634e04 = {
+const x#6a4891d8 = {
     const y#:0 = 10;
     y#:0;
 }
 10
 ```
 */
-export const hash_0c634e04: number = 10;
+export const hash_6a4891d8: number = 10;
 
 /*
-x#0c634e04 ==#ec95f154#51ea2a36#0 10
-assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, x#🐮👩‍🦰👶, 10)
+x#6a4891d8 ==#6d46a318#3b6b23ae#0 10
+assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, x#👨‍👨‍👧‍👧🦦🥘😃, 10)
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_0c634e04, 10);
+assertCall(hash_6d46a318.h3b6b23ae_0, hash_6a4891d8, 10);
 
 /*
-z#ce5d9b4c(n: 10) ==#ec95f154#51ea2a36#0 11
-assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, z#🛤️(10), 11)
+z#560f2d40(n: 10) ==#6d46a318#3b6b23ae#0 11
+assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, z#🧕🎗️🧜‍♂️😃(10), 11)
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_ce5d9b4c(10), 11);
+assertCall(hash_6d46a318.h3b6b23ae_0, hash_560f2d40(10), 11);
 
 /*
-fib#f0fe98c2(prev: 0, cur: 1, n: 10) ==#ec95f154#51ea2a36#0 55
-assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, fib#👀(0, 1, 10), 55)
+fib#874a44e2(prev: 0, cur: 1, n: 10) ==#6d46a318#3b6b23ae#0 55
+assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, fib#🙍‍♀️(0, 1, 10), 55)
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_f0fe98c2(0, 1, 10), 55);
+assertCall(hash_6d46a318.h3b6b23ae_0, hash_874a44e2(0, 1, 10), 55);

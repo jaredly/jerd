@@ -3,17 +3,18 @@
 import * as React from 'react';
 import parse, { Toplevel } from '@jerd/language/src/parsing/parser';
 
-import { Env, newWithGlobal, Type } from '@jerd/language/src/typing/types';
+import {
+    Env,
+    newWithGlobal,
+    Type,
+    ToplevelT,
+} from '@jerd/language/src/typing/types';
 import { Content } from './State';
 
 import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
-import {
-    idName,
-    typeToplevelT,
-    ToplevelT,
-} from '@jerd/language/src/typing/env';
-import { renderAttributedText } from './Render';
+import { idName, typeToplevelT } from '@jerd/language/src/typing/env';
+import { renderAttributedText } from './Cell/Render';
 import AutoresizeTextarea from 'react-textarea-autosize';
 import { loadPrelude } from '@jerd/language/src/printing/loadPrelude';
 import { loadBuiltins } from '@jerd/language/src/printing/loadBuiltins';
@@ -71,8 +72,8 @@ export default () => {
                 toplevels,
                 {
                     type: 'error',
-                    message: err.message,
-                    location: err.location,
+                    message: (err as any).message,
+                    location: (err as any).location,
                 },
             ];
         }

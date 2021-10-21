@@ -706,6 +706,13 @@ export const recordAttributeName = (
     if (typeDefs && typeDefs[id]) {
         const t = typeDefs[id].typeDef;
         if (t.ffi) {
+            if (idx >= t.ffi.names.length) {
+                throw new Error(
+                    `idx greater than ffi names ${idx} : ${t.ffi.names.join(
+                        ', ',
+                    )}`,
+                );
+            }
             return t.ffi.names[idx];
         }
         if (typeof ref === 'string') {
@@ -715,6 +722,11 @@ export const recordAttributeName = (
     }
     const t = env.global.types[id] as RecordDef;
     if (t && t.ffi) {
+        if (idx >= t.ffi.names.length) {
+            throw new Error(
+                `idx greater than ffi names ${idx} : ${t.ffi.names.join(', ')}`,
+            );
+        }
         return t.ffi.names[idx];
     }
     if (typeof ref === 'string') {
@@ -1024,7 +1036,7 @@ export const typeDeclarations = (
                     ref: { type: 'user', id },
                     typeVbls: constr.typeVbls.map((t, i) => ({
                         type: 'var',
-                        sym: { name: 'T', unique: t.unique },
+                        sym: t.sym,
                         location: constr.location,
                     })),
                     location: constr.location,
@@ -1055,7 +1067,10 @@ export const typeDeclarations = (
             return;
         }
         const comment = printToString(recordToPretty(env, id, constr), 100);
-        const subTypes = getAllSubTypes(env.global, constr.extends);
+        const subTypes = getAllSubTypes(
+            env.global.types,
+            constr.extends.map((t) => t.ref.id),
+        );
         items.push(
             t.addComment(
                 t.tsTypeAliasDeclaration(
@@ -1330,7 +1345,7 @@ export const maxUnique = (term: Term) => {
         }
         if (term.type === 'lambda') {
             term.args.forEach((arg) => {
-                max = Math.max(max, arg.unique);
+                max = Math.max(max, arg.sym.unique);
             });
         }
         if (term.type === 'Switch') {

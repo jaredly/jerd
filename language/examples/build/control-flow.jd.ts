@@ -3,19 +3,19 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-@unique(0.5383562320075749) type Eq#51ea2a36<T#:0> = {
+@unique(0.5383562320075749) type Eq#3b6b23ae<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_51ea2a36<T_0> = {
-  type: "51ea2a36";
-  h51ea2a36_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_3b6b23ae<T> = {
+  type: "3b6b23ae";
+  h3b6b23ae_0: (arg_0: T_0, arg_1: T_0) => boolean;
 };
 
 /**
 ```
-const x2#b022715c = (): int#builtin ={}> {
+const x2#35e96910 = (): int#builtin ={}> {
     const y#:1 = {
         const n#:0 = 2;
         if n#:0 +#builtin n#:0 <#builtin 3 {
@@ -37,7 +37,7 @@ const x2#b022715c = (): int#builtin ={}> {
 }
 ```
 */
-export const hash_b022715c: () => number = () => {
+export const hash_35e96910: () => number = () => {
   let y: number;
 
   if (2 + 2 < 3) {
@@ -51,7 +51,7 @@ export const hash_b022715c: () => number = () => {
 
 /**
 ```
-const z#b1f9e632 = (n#:0: int#builtin): int#builtin ={}> {
+const z#741ca132 = (n#:0: int#builtin): int#builtin ={}> {
     const m#:2 = {
         const z#:1 = n#:0 +#builtin 2;
         switch z#:1 {3 => 3, 4 => 4, 5 => 10, _ => 11};
@@ -86,7 +86,7 @@ const z#b1f9e632 = (n#:0: int#builtin): int#builtin ={}> {
 }
 ```
 */
-export const hash_b1f9e632: (arg_0: number) => number = (n: number) => {
+export const hash_741ca132: (arg_0: number) => number = (n: number) => {
   let m: number;
   let continueBlock: boolean = true;
   let z: number = n + 2;
@@ -120,7 +120,7 @@ export const hash_b1f9e632: (arg_0: number) => number = (n: number) => {
 
 /**
 ```
-const x#0992c290 = {
+const x#05d2d0f6 = {
     const y#:0 = if 10 <#builtin 3 {
         4;
     } else {
@@ -139,7 +139,7 @@ const x#0992c290 = {
 })()
 ```
 */
-export const hash_0992c290: number = (() => {
+export const hash_05d2d0f6: number = (() => {
   let y$0: number;
 
   if (10 < 3) {
@@ -153,29 +153,29 @@ export const hash_0992c290: number = (() => {
 
 /**
 ```
-const IntEq#ec95f154 = Eq#51ea2a36<int#builtin>{"=="#51ea2a36#0: intEq#builtin}
-Eq#🦩🥜👩‍💻😃{TODO SPREADs}{h51ea2a36_0: intEq}
+const IntEq#6d46a318 = Eq#3b6b23ae<int#builtin>{"=="#3b6b23ae#0: intEq#builtin}
+Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: intEq}
 ```
 */
-export const hash_ec95f154: t_51ea2a36<number> = ({
-  type: "51ea2a36",
-  h51ea2a36_0: intEq
-} as t_51ea2a36<number>);
+export const hash_6d46a318: t_3b6b23ae<number> = ({
+  type: "3b6b23ae",
+  h3b6b23ae_0: intEq
+} as t_3b6b23ae<number>);
 
 /*
-x#0992c290 ==#ec95f154#51ea2a36#0 6
-assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, x#🥯👐✋, 6)
+x#05d2d0f6 ==#6d46a318#3b6b23ae#0 6
+assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, x#🙇‍♂️✍️💀, 6)
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_0992c290, 6);
+assertCall(hash_6d46a318.h3b6b23ae_0, hash_05d2d0f6, 6);
 
 /*
-z#b1f9e632(n: 2) ==#ec95f154#51ea2a36#0 12
-assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, z#🦅(2), 12)
+z#741ca132(n: 2) ==#6d46a318#3b6b23ae#0 12
+assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, z#🕵️‍♂️🚅🏎️😃(2), 12)
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_b1f9e632(2), 12);
+assertCall(hash_6d46a318.h3b6b23ae_0, hash_741ca132(2), 12);
 
 /*
-x2#b022715c() ==#ec95f154#51ea2a36#0 6
-assertCall(IntEq#🦹‍♂️.#Eq#🦩🥜👩‍💻😃#0, x2#🧛(), 6)
+x2#35e96910() ==#6d46a318#3b6b23ae#0 6
+assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, x2#🧑‍🔧🏵️🛫(), 6)
 */
-assertCall(hash_ec95f154.h51ea2a36_0, hash_b022715c(), 6);
+assertCall(hash_6d46a318.h3b6b23ae_0, hash_35e96910(), 6);

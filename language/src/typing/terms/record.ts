@@ -14,6 +14,7 @@ import {
     RecordBase,
     isRecord,
     idsEqual,
+    RecordSubType,
 } from '../types';
 import { Record } from '../../parsing/parser';
 import { showType } from '../unify';
@@ -27,6 +28,8 @@ import { getTypeError } from '../getTypeError';
 import { LocatedError, TypeError } from '../errors';
 
 // export const recordNamesAndSuch =
+
+// export const typeRecord = (env: Env, expr: Record): RecordTerm
 
 export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     const names: { [key: string]: { i: number; id: Id | null } } = {};
@@ -57,17 +60,27 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         subTypeIds = [];
         t.subTypes.forEach((id) => {
             const t = env.global.types[idName(id)] as RecordDef;
-            subTypeIds.push(...getAllSubTypes(env.global, t.extends));
+            subTypeIds.push(
+                ...getAllSubTypes(
+                    env.global.types,
+                    t.extends.map((t) => t.ref.id),
+                ),
+            );
         });
         is = { type: 'var', sym, location: expr.id.location };
     } else {
         let id: Id;
         if (expr.id.hash) {
-            const hash = expr.id.hash.slice(1);
+            let hash = expr.id.hash.slice(1);
             id = idFromName(hash);
             // console.log(expr.id.hash);
             if (!env.global.types[hash]) {
-                throw new Error(`No type with id ${hash}`);
+                if (env.global.idRemap[hash]) {
+                    id = env.global.idRemap[hash];
+                    hash = idName(id);
+                } else {
+                    throw new Error(`No type with id ${hash}`);
+                }
             }
         } else {
             const ids = env.global.typeNames[expr.id.text];
@@ -126,7 +139,10 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         );
 
         // TODO: deduplicate
-        subTypeIds = getAllSubTypes(env.global, t.extends);
+        subTypeIds = getAllSubTypes(
+            env.global.types,
+            t.extends.map((t) => t.ref.id),
+        );
         is = {
             type: 'ref',
             ref,
@@ -218,8 +234,8 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                     sub.spread = v;
                     sub.covered = true;
                     getAllSubTypes(
-                        env.global,
-                        subTypeTypes[idName(id)].extends,
+                        env.global.types,
+                        subTypeTypes[idName(id)].extends.map((t) => t.ref.id),
                     ).forEach((sid) => {
                         subTypes[idName(sid)].covered = true;
                     });
@@ -319,13 +335,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         throw new Error(`Cannot create a new record of a variable type.`);
     }
 
-    const finishedSubTypes: {
-        [id: string]: {
-            covered: boolean;
-            spread: Term | null;
-            rows: Array<Term | null>;
-        };
-    } = {};
+    const finishedSubTypes: { [id: string]: RecordSubType } = {};
 
     // This will initialized the finishedSubTypes object
     // with the subtypes in the proper order to preserve spreads.
@@ -372,6 +382,8 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             });
         }
     });
+
+    // START HERE:::::: MAKE THIS WORK AGAIN FOLKS
 
     return {
         type: 'Record',

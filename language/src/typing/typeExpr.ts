@@ -155,18 +155,22 @@ export const applyEffectVariables = (
         const t: LambdaType = type as LambdaType;
 
         const mapping: { [unique: number]: Array<EffectRef> } = {};
+        if (type.effectVbls.length === 0) {
+            return t;
+        }
 
         if (type.effectVbls.length !== 1) {
             console.log(type.effectVbls);
             throw new LocatedError(
                 loc || type.location,
-                `Multiple effect variables not yet supported: ${
-                    env ? showType(env, type) : 'no env for printing'
-                }`,
+                `Multiple effect variables not yet supported: ${showType(
+                    env,
+                    type,
+                )}`,
             );
         }
 
-        mapping[type.effectVbls[0]] = vbls;
+        mapping[type.effectVbls[0].sym.unique] = vbls;
 
         return {
             ...type,
@@ -297,7 +301,7 @@ export const applyTypeVariables = (
                     }
                 }
             }
-            mapping[t.typeVbls[i].unique] = typ;
+            mapping[t.typeVbls[i].sym.unique] = typ;
         });
         return {
             ...type,
@@ -364,7 +368,7 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                     is: string,
                 };
             }
-            console.log(expr.contents);
+            // console.log(expr.contents);
             // if (expr.contents.length)
             // return {
             //     type: 'template-string',
@@ -478,8 +482,7 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                     inner.push({
                         type: 'Let',
                         location: item.location,
-                        idLocation: item.id.location,
-                        binding: sym,
+                        binding: { sym, location: item.id.location },
                         value,
                         is: type,
                     });
@@ -535,7 +538,7 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                 is: yes.is,
             };
         }
-        case 'ops': {
+        case 'BinOp': {
             return typeOps(env, expr);
         }
         case 'WithSuffix': {
@@ -981,7 +984,7 @@ export const createTypeVblMapping = (
                 throw new Error(`Expected a subtype of ${idName(sub)}`);
             }
         }
-        mapping[typeVbls[i].unique] = typ;
+        mapping[typeVbls[i].sym.unique] = typ;
     });
 
     return mapping;

@@ -2,6 +2,7 @@
 // ugh nvm that's complicated.
 
 import { hashObject, idName } from '../../../typing/env';
+import { newWithGlobal } from '../../../typing/types';
 import {
     defaultVisitor,
     transformBlock,
@@ -18,6 +19,7 @@ import {
     LambdaType,
     Stmt,
 } from '../types';
+import { maxUnique } from './inline';
 import {
     findCapturedVariables,
     liftLambdas,
@@ -190,7 +192,9 @@ export const specializeFunction = (
     };
 
     const id = { hash: newHash, size: 1, pos: 0 };
-    newTerm = ctx.optimize({ ...ctx, id }, newTerm) as LambdaExpr;
+    const senv = newWithGlobal(ctx.env.global);
+    senv.local.unique.current = maxUnique(newTerm);
+    newTerm = ctx.optimize({ ...ctx, env: senv, id }, newTerm) as LambdaExpr;
 
     // TODO: Sources could just be part of Exprs
     ctx.exprs[newHash] = {

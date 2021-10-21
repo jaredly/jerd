@@ -79,10 +79,10 @@ describe('template strings', () => {
         const x = "hello \${10}"
         `),
         ).toMatchInlineSnapshot(`
-            const intAsString#a9eb4f54 = As#As<int#builtin, string#builtin>{
+            const intAsString#4285489a = As#As<int#builtin, string#builtin>{
                 as#As#0: (i#:0: int#builtin): string#builtin ={}> "an int",
             };
-            const x#348f5e90 = "hello $#a9eb4f54{10}"
+            const x#32886cd5 = "hello $#4285489a{10}"
         `);
     });
 });
@@ -116,7 +116,7 @@ describe('basic toplevels', () => {
             @ffi("M") type M#bf02d0e8 = {
                 n: float#builtin,
             };
-            @unique(0.8408403012585762) type Z#0f2e3ee8 = {
+            @unique(0.8408403012585762) type Z#0f25b19e = {
                 ...X#0cf8aa06,
                 a: int#builtin,
                 b: string#builtin,
@@ -135,14 +135,14 @@ describe('basic toplevels', () => {
             @unique(0.8408403012585762) type Y#74d8e7f1 = {
                 name: string#builtin,
             };
-            @unique(0.14972816008023876) type Z#00ec7168 = {
+            @unique(0.14972816008023876) type Z#771b4e76 = {
                 ...Y#74d8e7f1,
                 age: int#builtin,
             };
-            enum All#5e2b21e8 {
+            enum All#58f0bb66 {
                 X#740adea4,
                 Y#74d8e7f1,
-                Z#00ec7168,
+                Z#771b4e76,
             }
         `));
 
@@ -177,7 +177,7 @@ describe('type descriptions', () => {
             }
         `),
         ).toMatchInlineSnapshot(`
-            @unique(0.5661807692527293) type Something#c8389130<A#:0, B#:1> = {
+            @unique(0.5661807692527293) type Something#41bbd8d8<A#:0, B#:1> = {
                 one: A#:0,
                 two: B#:1,
                 three: <C#:2, D#:3>(name: C#:2, age: D#:3) ={}> Tuple2#builtin<C#:2, D#:3>,
@@ -222,8 +222,8 @@ describe('expression types', () => {
             const n = x(23)
     `),
         ).toMatchInlineSnapshot(`
-            const x#7bdaefe0 = (m#:0: int#builtin): int#builtin ={}> 2 +#builtin 3 *#builtin m#:0;
-            const n#56070c14 = x#7bdaefe0(m: 23)
+            const x#102bcafa = (m#:0: int#builtin): int#builtin ={}> 2 +#builtin 3 *#builtin m#:0;
+            const n#5b2825f9 = x#102bcafa(m: 23)
         `));
 
     it('attribute suffix', () =>
@@ -237,7 +237,7 @@ describe('expression types', () => {
                 name: string#builtin,
                 age: int#builtin,
             };
-            const m#6ef797af = (p#:0: Person#69e137a8): Tuple2#builtin<string#builtin, int#builtin> ={}> (
+            const m#4a38794c = (p#:0: Person#69e137a8): Tuple2#builtin<string#builtin, int#builtin> ={}> (
                 p#:0.name#69e137a8#0,
                 p#:0.age#69e137a8#1,
             )
@@ -260,10 +260,10 @@ describe('expression types', () => {
         const IntAsFloat = As<int, float>{as: (v: int) => 1.0};
         const m = 1 as float`),
         ).toMatchInlineSnapshot(`
-            const IntAsFloat#16da6c1c = As#As<int#builtin, float#builtin>{
+            const IntAsFloat#5e4944d9 = As#As<int#builtin, float#builtin>{
                 as#As#0: (v#:0: int#builtin): float#builtin ={}> 1.0,
             };
-            const m#7364b376 = 1 as#16da6c1c float#builtin
+            const m#d77ad314 = 1 as#5e4944d9 float#builtin
         `));
 
     it('literals', () =>
@@ -294,21 +294,21 @@ describe('expression types', () => {
     `),
         ).toMatchInlineSnapshot(`
             const a#9dacbedc = (): int#builtin ={}> 23;
-            const b#7ca0aaf8 = (): int#builtin ={}> {
+            const b#5a8b4dde = (): int#builtin ={}> {
                 const m#:0 = 2;
                 m#:0 /#builtin 1;
             };
-            const c#bdfd33b0 = (a#:0: int#builtin, b#:1: float#builtin): Tuple2#builtin<
+            const c#ad78e1b0 = (a#:0: int#builtin, b#:1: float#builtin): Tuple2#builtin<
                 int#builtin,
                 float#builtin,
             > ={}> (a#:0, b#:1);
-            const m#4fb5f0cc = (fn#:0: (one: int#builtin, two: float#builtin) ={}> string#builtin): int#builtin ={}> 10
+            const m#6261255c = (fn#:0: (one: int#builtin, two: float#builtin) ={}> string#builtin): int#builtin ={}> 10
         `));
 
     it(`blocks with just a const should ... have a void type?`, () =>
         expect(process(`const n = (): void => {const x = 10 }`))
             .toMatchInlineSnapshot(`
-            const n#36351150 = (): void#builtin ={}> {
+            const n#cf10011c = (): void#builtin ={}> {
                 const x#:0 = 10;
             }
         `));
@@ -327,7 +327,7 @@ describe('expression types', () => {
             }
     `),
         ).toMatchInlineSnapshot(`
-            const n#8b0ae7d4 = {
+            const n#5191e544 = {
                 const m#:0 = 23;
                 2;
                 {
@@ -376,7 +376,7 @@ describe('expression types', () => {
                 read: () => string#builtin,
                 write: (string#builtin) => void#builtin,
             };
-            const respondWith#1fb7cba0 = (responseValue#:0: string#builtin): <T#:0>{e#:0}(
+            const respondWith#0d62240e = (responseValue#:0: string#builtin): <T#:0>{e#:0}(
                 default: T#:0,
                 fn: () ={Stdio#1da337a2, e#:0}> T#:0,
             ) ={e#:0}> T#:0 ={}> <T#:0>{e#:0}(default#:1: T#:0, fn#:2: () ={Stdio#1da337a2, e#:0}> T#:0): T#:0 ={
@@ -394,7 +394,7 @@ describe('expression types', () => {
                     pure(a#:3) => a#:3,
                 };
             };
-            const inner#0320c524 = (name#:0: string#builtin): string#builtin ={Stdio#1da337a2}> {
+            const inner#ca3493ea = (name#:0: string#builtin): string#builtin ={Stdio#1da337a2}> {
                 raise!(
                     Stdio#1da337a2.write(
                         raise!(Stdio#1da337a2.read()) ++#builtin " and " 
@@ -403,10 +403,10 @@ describe('expression types', () => {
                 );
                 raise!(Stdio#1da337a2.read());
             };
-            const test1#6d63aeba = (): string#builtin ={}> {
-                respondWith#1fb7cba0(responseValue: "<read>")<string#builtin>{}(
+            const test1#493e8fa0 = (): string#builtin ={}> {
+                respondWith#0d62240e(responseValue: "<read>")<string#builtin>{}(
                     "what",
-                    (): string#builtin ={Stdio#1da337a2}> inner#0320c524(name: "Yes"),
+                    (): string#builtin ={Stdio#1da337a2}> inner#ca3493ea(name: "Yes"),
                 );
             }
         `));
@@ -472,7 +472,7 @@ describe('expression types', () => {
             enum Companies#7c2cbdce {
                 Company#503a4e65,
             };
-            const b#3778db64 = (m#:0: Companies#779076b4): bool#builtin ={}> switch m#:0 {
+            const b#a7afab58 = (m#:0: Companies#779076b4): bool#builtin ={}> switch m#:0 {
                 Company#503a4e65{name: "hello", ages: (_, 23.0)} => false,
                 Company#503a4e65{name: "things", people: []} => true,
                 Company#503a4e65{people: [Person#69e137a8{name: "yes"}, ..._]} => true,
@@ -553,11 +553,11 @@ describe('Decorators', () => {
                 y: float#builtin,
                 z: float#builtin,
             };
-            @unique(0.14972816008023876) type Vec4#ad03f718 = {
+            @unique(0.14972816008023876) type Vec4#648af9ad = {
                 ...Vec3#53b2e6a0,
                 w: float#builtin,
             };
-            @unique(0.5383562320075749) decorator alternates#2d1ef174<T#:0>(
+            @unique(0.5383562320075749) decorator alternates#bd86bc50<T#:0>(
                 options: Constant#builtin<Array#builtin<Tuple2#builtin<string#builtin, T#:0>>>,
             ) T#:0;
             @unique(0.969424254802974) decorator slider#1d9fcfd2(
@@ -575,9 +575,9 @@ describe('Decorators', () => {
                 max: Constant#builtin<Vec2#4284214c>,
             ) Constant#builtin<Vec2#4284214c>;
             @unique(0.02344979974183657) decorator rgb#0ef62c04 Constant#builtin<Vec3#53b2e6a0>;
-            @unique(0.7119657471718334) decorator rgba#560a8e78 Constant#builtin<Vec4#ad03f718>;
+            @unique(0.7119657471718334) decorator rgba#3bab40ec Constant#builtin<Vec4#648af9ad>;
             @unique(0.8926787556192042) decorator hsl#374c649c Constant#builtin<Vec3#53b2e6a0>;
-            @unique(0.3140197780427882) decorator hsla#86c652ec Constant#builtin<Vec4#ad03f718>;
+            @unique(0.3140197780427882) decorator hsla#6ec251c9 Constant#builtin<Vec4#648af9ad>;
             @unique(0.04992760107696806) decorator something#bee55956;
             @unique(0.6800506892126144) decorator hello#677e1867;
             @unique(0.053905825369221054) type Person#73c36f7c = {
@@ -586,13 +586,13 @@ describe('Decorators', () => {
             };
             const m#2629f072 = @something#bee55956 10.0;
             const n#19984ade = @hello#677e1867 Person#73c36f7c{name#73c36f7c#0: "hi", age#73c36f7c#1: 10};
-            const goForIt#98cdba02 = (pos#:0: Vec2#4284214c): float#builtin ={}> {
+            const goForIt#32a8fb20 = (pos#:0: Vec2#4284214c): float#builtin ={}> {
                 pos#:0.x#4284214c#0 *#builtin @slider#1d9fcfd2(min: 0.0, max: 10.0, step: 0.1) 2.3;
             };
-            const oneThing#b1904fe4 = @alternates#2d1ef174(
+            const oneThing#732875f4 = @alternates#bd86bc50(
                 options: <Tuple2#builtin<string#builtin, int#builtin>>[("hello", 2), ("sadness", -2)],
             ) 23;
-            const oneThing#243d9adb = @alternates#2d1ef174(
+            const oneThing#6865c905 = @alternates#bd86bc50(
                 options: <Tuple2#builtin<string#builtin, float#builtin>>[("hello", 2.0), ("sadness", -2.0)],
             ) 23.0
         `);

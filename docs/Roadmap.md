@@ -1,4 +1,260 @@
 
+## New Typing
+
+- [x] int/float/bool
+- [x] Array literal
+- [x] lambda
+- [x] apply
+- [ ] recorddddddddddddddddddddddddd
+  - huh maybe I don't want .. to flatten them?
+    I just need a way to order the spreads .. 🤔
+
+
+
+## Array algebra, let's get it
+
+```ts
+const range = <N: 0..>(i: N): Array<int, N> => {
+  if i == 0 {
+    <int, N>[] // SEE the type refinement!
+    // what we're doing is, IF N == 0,
+    // then we return a thing of length 0,
+    // which works!
+  } else {
+    <int, N>[...range<N - 1>(i - 1), i]
+  }
+}
+```
+
+How ... do I keep track of i being a thing of N?
+And do I get into predicate functions and whatnot?
+
+Because it would be a function that /gives feedback/ to my
+N type.
+
+Anyway, I think when setting up the bindings for a type variable,
+if it's a numeric type variable, I also check to see what arguments
+are ... related to it?
+I'd start with just literally i: N, so that if i shows up in an if condition, I can
+refine the definition of N within that scope.
+
+Do i have to special-case `-` to do the right updates to the type?
+e.g., can I define `-` for vecs in a way that preserves some things?
+
+```ts
+// ugh ok I don't like this. I don't like ... hmm the subtyping this suggests?
+type Vec2<X:.. = .., Y:.. = ..> {
+  x: X,
+  y: Y,
+}
+
+// Yeah ok I would need ... I don't even know.
+// I think this is getting toward typeclasses again.
+const m: Sub<Vec2, Vec2>{
+  '-': <A, B, C, D>(one: Vec2<A, B>, two: Vec2<C, D>): Vec2<A - C, B - D>{x: one.x - two.x, y: one.y - two.y}
+}
+```
+
+yeah ok let's not do that right now. I'm not adding a `Type`, just a type of `var`. We can think about the other stuff at some other time.
+
+QUESTION: We want to be able to represent 0...3, do we want to be able to represent 0 | 3?
+Is that too complex?
+Is it fine?
+
+```ts
+const twoOrThree = (b: bool): Array<2 | 3> => {
+  if b {
+    [1, 2]
+  } else {
+    [3, 4, 5]
+  }
+}
+```
+
+
+
+## EDITOR DUMP
+
+- [ ] tuple type parsing ambiguity! ugh this is annoying.
+- [x] the auto-transformer ... still doesn't work ... for the type variable bit ... apparently. like we're not dealing with Array<Term | null> for the RecordBase.
+- [x] don't output `Array` as a type we're importing folks.
+- [x] account for basedOn when calculating dependencies
+- [x] get repeatable envs and printed jds from the migrate script
+
+WHAT
+happens
+if the hashes change
+my good folks.
+
+- [x] handle some hashes changing
+
+NOW
+we're back to the beginning.
+
+- [x] the `yarn test` should populate the idRemap folks
+- [x] record types extends should be full UserTypeReference, not just an ID
+  - [ ] update places to actually listen to the type variables? we'll see
+- [ ] record literals, just give me rows, it's fine.
+
+HOW CLose are we to using the new type checker?
+can we say that a let is just an expression?
+like, what would that change?
+Blocks ... idk
+
+AST CHANGES:
+- [x] idLocation change!! yeah let's do that.
+- [ ] Lambdas shouldn't have a separate `.is`, the dupication between args and is.args is bad news.
+    change all expr.is to a function to get the type of an expr.
+  - [ ] same story for 'Raise' and 'attribute'
+- [x] effectVbls shouldn't be numbers, lets get ids in there
+- [x] TypeVblDecl should have better attributes
+- [ ] oooh should sym have a location? 🤔
+- [ ] OH the recordDefn "defaults" should be non-null
+- [ ] a basic algebra of effects! () ={A + B}> {}
+    {e}() ={e + A}> {}
+    whatsit{A + B}()
+    {e}() ={e - A}> {}
+    THIS WAY, `handle` can be {e} => {e - A}
+    which seems nice.
+    whereas now it's {e, A} => e
+    which is maybe just as fine? idk.
+
+AST CHANGES FOR BETTER ERROR REPORTING:
+- [ ] raise's target should be allowed to be "invalid"
+  - getTermErrors needs to detect this as an error state
+
+
+OK so this is all well and fun,
+but I seriously need a way to DUMP the editor state into text,
+so I can re-parse it with some things being very different.
+
+Like:
+- record literals no longer have things organized super weird.
+- and such, idk.
+
+
+Have a function that is: Library -> TXT and TXT -> Library
+- [x] GlobalEnv -> Context
+  - [x] preserve metadata!
+- [x] Context -> GlobalEnv
+- [x] do a test that I can go forward and back
+- [x] text -> Library function
+- [x] and a Library -> text function
+  - [x] add annotations for metadatas
+  - [x] figure out what to do with glsl_builtin (a stripDecorator and addDecorator functions?)
+      that would change the hash of the term...🤔
+- [x] verify that round-tripping GlobalEnv -> Txt -> GlobalEnv produces the same hash.
+
+
+WHY THIS?
+- so I can migrate my web env after changing some things about how the typed tree is setup.
+- it'll be great.
+- which will make writing the new type checker more fun as well.
+
+## TYPE SYSTEM REWRITE
+
+OPS TESTS
+- [x] a bunch
+- [x] local variable impl
+- [x] various failure modes probably
+- [x] hashes that work
+- [x] hashes that dont so we fall back
+- [x] the left is correct but the right is not
+- [x] subtyping maybe? hmmmm
+- [x] hash, where the value is generic n stuff
+
+- [x] my "passthrough" dealop (_drop suffix) produces types that are extremely annoying.
+  like {x} | TheFallthrough. So I can't reference the object type itself.
+  I need to create an alias for the object type. Not 100% sure how to plumb it all.
+- [x] autogen parser types
+  - [x] make fallthrough a thing, IFF you have
+    one array, and one non-array; if the array is empty,
+    fall through to the other thing.
+- [x] autogen transformers of the typed ast types
+- [ ] Write the whole type checker
+  - [x] organize binops
+  - [x] decide how to make a maximally recovering binop typer
+    - basically, even if they specified a hash, if it errors and something else doesn't, pick the something else I think...
+- [ ] profit
+
+## WEB UI MAKE IT USABLE
+
+- [ ] clicking the hash should NOT just remove it, but pull up a UI autocompleter so you can repalce it.
+
+
+
+## GLSL
+
+Think about doing lambdas as "id that goes into a mega function", the mega function being.
+
+
+# Let's make some things much nicer, ok?
+
+- [x] autogenerate actually correct typescript types for our parsed whatsit.
+- um, profit? yeah I actually can't remember where I was going with this one. I mean doing this makes it easier to think about a recovering parser, I think, but that's not what I'm doing just yet.
+- let's start from scratch with the type checker, so as to be maximally recovery-oriented? I think.
+
+- [x] autogenerate the `transform` impl from the typescript types for the AST.
+  As config, provide the tyeps that you want to transform (Term, Type, Let, ToplevelT, Location, Pattern)
+- [x] have the parser-generator add indices already folks. it should be super easy
+- [ ] let's keep track of comments
+- [ ] start rewriting the parser->typed tree stuff? probably using a visitor pattern, or something ... hmm .... knowing what I now know, I could probably do a better job of setting up the `env` and stuff. Also, `global` env is read-only, and `local` env is as well, but you add to it when passing it down. Right?
+
+
+# Editor basic decency
+
+- when parsing a file with IDs, such as a gist, we should notice the hashes that types and terms claim to have, and if the actual hash is different, make note, and use it as a substitute going forward.
+- on the other hand, when parsing in the editor, ignore the hash that a define claims to have. Also, when in the editor, but not in batch mode, we should try to auto-resolve errors where possible. So if an ID is specified, but there's a type error, and a different term with the same method fits, then swap it out, and keep track of swaps we make so we can inform the user.
+
+I probably want to do an env dump, and then make a script to "clean up" then env, rectifying hashes, flushing deprecations (making the most recent thing as the thing that deprecates the others), etc.o
+
+- GOT TO autocomplete, my goodness. Absolute must.
+- and then, go through and do a thorough reconning, figuring out how I can gracefully fail during type checking wherever possible.
+
+- ALSOOO if a term has TypeErrors in it, dont add it to the env!!!!
+
+Hmmmm I'm definitely wanting:
+- the ability to have a cell that is "this term with this set of slider values"
+- also I want markdown cells
+
+
+Ok but also I want to be able to export the slider config (as a json blob to clipboard), and import it (copy from clipboard or something), and also when exporting to 
+
+oh noessssss we lost all the data again
+ok I gotta have this backing up somewhere.
+ayyyy having exported to a gist means I have the code saved!! Love it.
+
+NEXT UP: please let me import a .jd file.
+
+# GO version fo euler-big
+
+- [ ] get it compiling
+  - [x] figure out the maxUnique issue
+  - [ ] make a `containsInvalidGo`, re-using stuff from glsl where possible
+    - [ ] no generics allowed, for example
+    - [ ] maybe that's it for now?
+  - [ ] figure out why this function isn't being optimized.
+
+
+
+```bash
+env NODE_OPTIONS=--stack-trace-limit=100 node --enable-source-maps bootstrap.js go  --run examples/euler-spiral.jd
+```
+- [x] deduplicate that one thing
+- [x] add location indicates! Pleeease folks
+- [ ] turn the slider dealios into GLOBALS?
+  - we need a way to not necessarily override, right?
+    now I guess current sliders will only slider literals.
+    so for the moment, I can 
+    - [ ] replace the slider term with a global reference,
+    - [ ] make a toplevel `var _slider_hash_idx = 10`
+    - [ ] have the cli args set the toplevel var if it's provided.
+- [ ] also the SVG writer dealio should accept a cli arg as the filename, if provided.
+  - might be a little hacky...
+
+# GO SLIDERS
+basically, if there are sliders, accept them as CLI arguments.
+
 ## Comparing implementations, what to do (go vs node vs rust):
 ### Prep for rust
 
@@ -10,20 +266,39 @@ Or really, to say "this one is deprecated" would probably be sufficient.
 When parsing, I think a `@deprecates(xyz)` could be cool.
 Yeah I think that would do the trick?
 
- START HEREEE
-
 Anyway, I need to
-- [ ] when a term is deprecated, *show it* using css. Like printTsLike should do something about it.
+- [x] when a term is deprecated, *show it* using css. Like printTsLike should do something about it.
 
 OK, so how does deprecation work?
-- wheck clicking the button to "overwrite" the current cell with the new contents, the default behavior should be to "deprecate the old one", if the /name hasn't changed/. Yeah I mean maybe I don't need to do anything special, only have deprecating if you're in the same cell.
+- when clicking the button to "overwrite" the current cell with the new contents, the default behavior should be to "deprecate the old one", if the /name hasn't changed/. Yeah I mean maybe I don't need to do anything special, only have deprecating if you're in the same cell.
 
+- [x] I don't want the `@unique` rendered in the web for types...
 - [x] proposed needs to have a `name` attribute. hmm. ok it already has this.
-- [ ] I need a way to just rename a term. Maybe if you just edit the name, and the hash stays the same?
-- [ ] 
+- [x] I need a way to just rename a term. Maybe if you just edit the name, and the hash stays the same?
 
-- [ ] I really want to be able to hover an id-having thing, and have it popup the definition for me.
+- [x] I really want to be able to hover an id-having thing, and have it popup the definition for me.
+  - [x] show which record attribute we're on
 - [ ] clicking the id when in text mode shouldn't just /remove/ the id, it should bring up an autocomplete box so you can pick a different one, or optionally remove it.
+
+
+START HERE:
+
+Ok, let's start working on: the go built dealio should use sliders for cli args.
+
+- [ ] ok but also I really want sliders to be able to depend on constants (and other sliders)
+  This would just require ... I mean, I probably want to just hack it, instead of allowing arbitrary resolution of stuff. Like, you can directly access a variable that's a slider, but we won't track renames and whatnots. So that we don't have to re-crawl the term after modifying it, right?
+
+
+
+- [ ] why is this one thing showing up as deprecated?
+
+
+- [ ] ohhk, so there's "terms can have tests", but in /this/ case, what I want is to say
+    "how would this proposed change impact the other things on this workspace"?
+
+
+- [ ] typing `#` should bring up autocomplete, everyyytime
+  - 
 
 
 Also, ambiguity shouldn't sink the ship.

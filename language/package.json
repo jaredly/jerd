@@ -11,7 +11,8 @@
         "watch": "yarn run compile --watch",
         "prelude-types": "node bootstrap.js prelude-types src/printing/prelude-types.ts",
         "cp-builtins": "cp src/printing/builtins.ts src/printing/builtins.ts.txt",
-        "peg": "pegjs --plugin ts-pegjs -o src/parsing/grammar.ts src/parsing/grammar.pegjs",
+        "peg": "peggy --plugin ts-pegjs -o src/parsing/grammar.ts src/parsing/grammar.pegjs",
+        "peg-new": "yarn -s esbuild --platform=node --bundle src/parsing/pegPreprocess.ts | node",
         "watch-tests": "watchexec -w src -w examples -i build -- node --enable-source-maps bootstrap.js --assert examples --run --cache",
         "watch-tests-old": "watchexec -w main.js -w examples -i build -- node --enable-source-maps main.js --assert examples --run --cache",
         "watch-go": "watchexec    -w main.js -w examples -- node --enable-source-maps main.js go examples --run --assert",
@@ -20,6 +21,8 @@
         "test-one": "node --enable-source-maps bootstrap.js --assert --run",
         "watch-one": "watchexec -w src -w examples -i build -- node --enable-source-maps bootstrap.js --assert --run --cache",
         "watch-just-one": "node --enable-source-maps bootstrap.js watch --assert --run --cache",
+        "go-canvas": "node --enable-source-maps bootstrap.js go-types ../web/src/plugins/canvas/canvas.jd examples/go-backends/types.go",
+        "euler-big": "env NODE_OPTIONS=--stack-trace-limit=100 node --enable-source-maps bootstrap.js go  --run examples/euler-big.jd",
         "sn": "jest -u"
     },
     "bin": {
@@ -38,7 +41,7 @@
     },
     "dependencies": {
         "@babel/generator": "^7.14.1",
-        "@babel/traverse": "^7.12.13",
+        "@babel/traverse": "^7.15.4",
         "@babel/types": "^7.12.13",
         "assert": "^2.0.0",
         "chalk": "^4.1.0",
@@ -48,7 +51,7 @@
         "hash-sum": "^2.0.0",
         "jest-snapshot-serializer-raw": "^1.1.0",
         "path": "^0.12.7",
-        "pegjs": "^0.10.0",
+        "peggy": "1.2.0",
         "prettier": "^2.2.1",
         "rfdc": "^1.2.0",
         "seedrandom": "^3.0.5",

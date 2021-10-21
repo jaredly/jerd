@@ -224,9 +224,7 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
                 [
                     expr.is.typeVbls.length
                         ? args(
-                              expr.is.typeVbls.map((v, i) =>
-                                  atom(v.name || `T${i}`),
-                              ),
+                              expr.is.typeVbls.map((v, i) => atom(v.sym.name)),
                               '<',
                               '>',
                           )
@@ -427,12 +425,7 @@ export const debugTypeDef = (
         atom(' '),
         block(
             constr.extends
-                .map((id) =>
-                    items([
-                        atom('...'),
-                        idToDebug(env, id, true, constr.location),
-                    ]),
-                )
+                .map((ref) => items([atom('...'), debugType(env, ref)]))
                 .concat(
                     constr.items.map((t, i) =>
                         items([

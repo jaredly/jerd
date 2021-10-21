@@ -1,6 +1,6 @@
 // Ok folks
 
-import { ToplevelT } from './env';
+// import { ToplevelT } from './env';
 import { bool, pureFunction, void_ } from './preset';
 import { applyEffectVariables, showLocation } from './typeExpr';
 import {
@@ -17,6 +17,8 @@ import {
     Term,
     Type,
     Var,
+    ToplevelT,
+    EffectVblDecl,
 } from './types';
 
 export type Visitor<Ctx> = {
@@ -225,17 +227,30 @@ export const transformWithCtx = <Ctx>(
             return body !== term.body ? { ...term, body } : term;
         }
         case 'Record': {
+            // let changed = false;
+            // const spreads = term.spreads.map((spread) => {
+            //     const ns = transformWithCtx(spread, visitor, ctx);
+            //     changed = changed || ns !== spread;
+            //     return ns;
+            // });
+            // const items = term.items.map((item) => {
+            //     const value = transformWithCtx(item.value, visitor, ctx);
+            //     changed = changed || value !== item.value;
+            //     return item.value !== value ? { ...item, value } : item;
+            // });
+            // return changed ? { ...term, spreads, items } : term;
+
             const subTypes = { ...term.subTypes };
             let base = term.base;
-            if (term.base.spread) {
-                const spread = transformWithCtx(term.base.spread, visitor, ctx);
-                if (spread !== term.base.spread) {
-                    base = { ...term.base, spread };
+            if (base.spread) {
+                const spread = transformWithCtx(base.spread, visitor, ctx);
+                if (spread !== base.spread) {
+                    base = { ...base, spread };
                 }
             }
-            if (term.base.type === 'Concrete') {
+            if (base.type === 'Concrete') {
                 let changed = false;
-                const rows = term.base.rows.map((term) => {
+                const rows = base.rows.map((term) => {
                     const res = term
                         ? transformWithCtx(term, visitor, ctx)
                         : null;
@@ -243,7 +258,7 @@ export const transformWithCtx = <Ctx>(
                     return res;
                 });
                 if (changed) {
-                    base = { ...term.base, rows };
+                    base = { ...base, rows };
                 }
             }
             // const subTypes = term.subTypes
@@ -253,19 +268,18 @@ export const transformWithCtx = <Ctx>(
                 const spread =
                     subType.spread != null
                         ? transformWithCtx(subType.spread, visitor, ctx)
-                        : subTypes.spread;
-                let rchanged = false;
+                        : null;
+                let rchanged = spread !== subType.spread;
                 const rows = subType.rows.map((row) => {
                     const r = row ? transformWithCtx(row, visitor, ctx) : null;
                     rchanged = rchanged || r !== row;
                     return r;
                 });
-                changed = changed || spread !== subType.spread || rchanged;
+                changed = changed || rchanged;
                 // @ts-ignore
-                subTypes[id] =
-                    spread !== subType.spread || rchanged
-                        ? { ...subType, spread, rows }
-                        : subType;
+                if (rchanged) {
+                    subTypes[id] = { ...subType, spread, rows };
+                }
             });
             return base !== term.base || changed
                 ? { ...term, subTypes, base }
@@ -374,6 +388,10 @@ export const transformWithCtx = <Ctx>(
         case 'self':
         case 'ref':
         case 'var':
+        case 'Hole':
+        case 'NotFound':
+        case 'InvalidApplication': // NOTE: BROKEN!!! FOLKS!!!
+        case 'InvalidRecordAttributes':
             return term;
         default:
             let _x: never = term;
@@ -451,6 +469,8 @@ export const walkTerm = (
         case 'lambda':
             return walkTerm(term.body, handle);
         case 'Record':
+            // term.spreads.forEach((term) => walkTerm(term, handle));
+            // term.items.forEach((item) => walkTerm(item.value, handle));
             if (term.base.spread) {
                 walkTerm(term.base.spread, handle);
             }
@@ -510,10 +530,14 @@ export const walkTerm = (
         case 'TemplateString':
             term.pairs.forEach((item) => walkTerm(item.contents, handle));
             return;
+        case 'NotFound':
+        case 'Hole':
         case 'string':
         case 'int':
         case 'float':
         case 'boolean':
+        case 'InvalidApplication':
+        case 'InvalidRecordAttributes':
         case 'self':
         case 'ref':
         case 'var':
@@ -540,7 +564,8 @@ export const withNoEffects = (env: Env, term: Lambda): Lambda => {
         if (t.type === 'apply') {
             if (t.effectVbls) {
                 t.effectVbls = t.effectVbls.filter(
-                    (e) => e.type !== 'var' || e.sym.unique !== vbls[0],
+                    (e) =>
+                        e.type !== 'var' || e.sym.unique !== vbls[0].sym.unique,
                 );
             }
             // t.effectVbls;
@@ -563,11 +588,13 @@ export const withNoEffects = (env: Env, term: Lambda): Lambda => {
 };
 
 const clearEffects = (
-    vbls: Array<number>,
+    vbls: Array<EffectVblDecl>,
     effects: Array<EffectRef>,
 ): Array<EffectRef> => {
     return effects.filter(
-        (e) => e.type !== 'var' || !vbls.includes(e.sym.unique),
+        (e) =>
+            e.type !== 'var' ||
+            !vbls.find((v) => v.sym.unique === e.sym.unique),
     );
 };
 
@@ -595,8 +622,7 @@ export const maybeWrapPureFunction = (env: Env, arg: Term, t: Type): Term => {
     }));
     return {
         type: 'lambda',
-        args: args.map((a) => a.sym),
-        idLocations: args.map((a) => a.location),
+        args: args,
         is: {
             ...arg.is,
             effects: t.effects,

@@ -328,13 +328,18 @@ const SingleDrawable = ({ value }: { value: Drawable }) => {
 };
 
 const ShowSvgBlob = ({ raw }: { raw: string }) => {
+    const lastUrl = React.useRef(null as null | string);
     const url = React.useMemo(() => {
+        if (lastUrl.current) {
+            URL.revokeObjectURL(lastUrl.current);
+        }
         const blob = new Blob([raw], { type: 'image/svg+xml' });
         const url = URL.createObjectURL(blob);
+        lastUrl.current = url;
         return url;
     }, [raw]);
 
-    return <img src={url} />;
+    return <img style={{ maxWidth: '100vw' }} src={url} />;
 };
 
 const plugins: RenderPlugins = {

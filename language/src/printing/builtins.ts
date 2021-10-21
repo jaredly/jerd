@@ -385,7 +385,7 @@ export const isSquare = (x: number) => {
     return Math.floor(m) === m;
 };
 
-//: (sampler2D, Vec2#08f7c2ac) => Vec4#51a53bbe
+//: (sampler2D, Vec2#08f7c2ac) => Vec4#b1f05ae8
 export const texture = (sampler: any, coord: { x: number; y: number }) =>
     sampler[coord.y][coord.x];
 

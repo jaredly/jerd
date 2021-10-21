@@ -2,6 +2,7 @@
 
 import hashObjectSum from 'hash-sum';
 import {
+    DecoratedExpression,
     DecoratorDef,
     Define,
     Effect,
@@ -48,65 +49,14 @@ import {
     nullLocation,
     DecoratorDefArg,
     UserReference,
+    ToplevelT,
+    ToplevelRecord,
 } from './types';
 import { void_ } from './preset';
 import { LocatedError, TypeError } from './errors';
 import { getTypeError } from './getTypeError';
 import { env } from 'process';
 import { uniqueDecorator } from './typeFile';
-
-export type ToplevelEffect = {
-    type: 'Effect';
-    id: Id;
-    effect: EffectDef;
-    location: Location;
-    name: string;
-    constrNames: Array<string>;
-};
-export type ToplevelDefine = {
-    type: 'Define';
-    id: Id;
-    term: Term;
-    location: Location;
-    name: string;
-    tags?: Array<string>;
-};
-export type ToplevelRecord = {
-    type: 'RecordDef';
-    def: RecordDef;
-    id: Id;
-    location: Location;
-    name: string;
-    attrNames: Array<string>;
-};
-export type ToplevelExpression = {
-    type: 'Expression';
-    id: Id;
-    term: Term;
-    location: Location;
-};
-export type ToplevelEnum = {
-    type: 'EnumDef';
-    def: TypeEnumDef;
-    id: Id;
-    location: Location;
-    name: string;
-    inner: Array<ToplevelRecord>;
-};
-export type ToplevelDecorator = {
-    type: 'Decorator';
-    id: Id;
-    name: string;
-    location: Location;
-    defn: TypedDecoratorDef;
-};
-export type ToplevelT =
-    | ToplevelEffect
-    | ToplevelDecorator
-    | ToplevelExpression
-    | ToplevelDefine
-    | ToplevelEnum
-    | ToplevelRecord;
 
 export const addToplevelToEnv = (
     env: Env,
@@ -122,6 +72,14 @@ export const addToplevelToEnv = (
         case 'Effect':
             return addEffect(env, top.name, top.constrNames, top.effect);
         case 'EnumDef':
+            top.inner.forEach((record) => {
+                ({ env } = addRecord(
+                    env,
+                    record.name,
+                    record.attrNames,
+                    record.def,
+                ));
+            });
             return addEnum(env, top.name, top.def);
         case 'Decorator':
             return addDecoratorToEnv(env, top.name, top.defn);
@@ -169,70 +127,122 @@ export const typeToplevelT = (
             };
         }
         case 'Decorated': {
-            if (item.wrapped.type === 'DecoratorDef') {
-                const { unique, decorators } = uniqueDecorator(item.decorators);
-                if (decorators.length) {
-                    throw new Error(
-                        `Decorators can only have the 'unique' decorator`,
+            switch (item.wrapped.type) {
+                case 'DecoratorDef': {
+                    const { unique, decorators } = uniqueDecorator(
+                        item.decorators,
                     );
+                    if (decorators.length) {
+                        throw new Error(
+                            `Decorators can only have the 'unique' decorator`,
+                        );
+                    }
+                    if (unique === null) {
+                        throw new Error(`Impossible`);
+                    }
+                    const defn = typeDecoratorInner(env, item.wrapped, unique);
+                    return {
+                        type: 'Decorator',
+                        defn,
+                        id: idFromName(hashObject(defn)),
+                        location: item.location,
+                        name: item.wrapped.id.text,
+                    };
                 }
-                if (unique === null) {
-                    throw new Error(`Impossible`);
-                }
-                const defn = typeDecoratorInner(env, item.wrapped, unique);
-                return {
-                    type: 'Decorator',
-                    defn,
-                    id: idFromName(hashObject(defn)),
-                    location: item.location,
-                    name: item.wrapped.id.text,
-                };
-            }
-            if (item.wrapped.type === 'StructDef') {
-                const { unique, decorators } = uniqueDecorator(item.decorators);
-                const ffi = decorators.filter((d) => d.id.text === 'ffi');
-                // const unum = unique != null ? unique : undefined;
-                let tag = undefined;
-                if (ffi.length) {
-                    tag = item.wrapped.id.text;
-                    if (ffi[0].args.length === 1) {
-                        if (
-                            ffi[0].args[0].type !== 'Expr' ||
-                            ffi[0].args[0].expr.type !== 'string'
-                        ) {
-                            throw new LocatedError(
-                                item.location,
-                                `ffi arg must be a string`,
-                            );
+                case 'StructDef': {
+                    const { unique, decorators } = uniqueDecorator(
+                        item.decorators,
+                    );
+                    const ffi = decorators.filter((d) => d.id.text === 'ffi');
+                    // const unum = unique != null ? unique : undefined;
+                    let tag = undefined;
+                    if (ffi.length) {
+                        tag = item.wrapped.id.text;
+                        if (ffi[0].args.length === 1) {
+                            if (
+                                ffi[0].args[0].type !== 'Expr' ||
+                                ffi[0].args[0].expr.type !== 'string'
+                            ) {
+                                throw new LocatedError(
+                                    item.location,
+                                    `ffi arg must be a string`,
+                                );
+                            }
+                            tag = ffi[0].args[0].expr.text;
+                        } else if (ffi[0].args.length > 1) {
+                            throw new Error(`@ffi only expectes one argument`);
                         }
-                        tag = ffi[0].args[0].expr.text;
-                    } else if (ffi[0].args.length > 1) {
-                        throw new Error(`@ffi only expectes one argument`);
+                        if (ffi.length > 1) {
+                            throw new Error(`multiple ffi decorators`);
+                        }
                     }
-                    if (ffi.length > 1) {
-                        throw new Error(`multiple ffi decorators`);
+                    if (decorators.length !== ffi.length) {
+                        console.log(decorators);
+                        throw new Error(`Unhandled decorators`);
+                    }
+                    // env = typeTypeDefn(env, item.wrapped, tag, unum);
+                    const defn = typeRecordDefn(env, item.wrapped, unique, tag);
+                    const hash = hashObject(defn);
+                    return {
+                        type: 'RecordDef',
+                        def: defn,
+                        id: { hash, size: 1, pos: 0 },
+                        location: item.location!,
+                        name: item.wrapped.id.text,
+                        attrNames: (item.wrapped.decl.items.filter(
+                            (x) => x.type === 'Row',
+                        ) as Array<RecordRow>).map((x) => x.id),
+                    };
+                }
+                case 'Expression':
+                    const term = typeExpr(env, {
+                        ...item,
+                        wrapped: item.wrapped.expr,
+                    } as DecoratedExpression);
+                    return {
+                        id: idFromName(hashObject(term)),
+                        type: 'Expression',
+                        term,
+                        location: item.location,
+                    };
+                case 'EnumDef': {
+                    const ffi = item.decorators.filter(
+                        (d) => d.id.text === 'ffi',
+                    );
+                    if (ffi.length) {
+                        const defn = typeEnumInner(env, item.wrapped, true);
+                        const hash = hashObject(defn);
+                        return {
+                            type: 'EnumDef',
+                            def: defn.defn,
+                            id: { hash, size: 1, pos: 0 },
+                            location: item.location!,
+                            name: item.wrapped.id.text,
+                            inner: defn.inline.map(
+                                (inner): ToplevelRecord => ({
+                                    type: 'RecordDef',
+                                    attrNames: inner.rows,
+                                    name: inner.name,
+                                    def: inner.defn,
+                                    id: idFromName(hashObject(inner.defn)),
+                                    location: inner.defn.location,
+                                }),
+                            ),
+                        };
+                    } else {
+                        throw new LocatedError(
+                            item.location,
+                            `Unexpected decorator on enum definition`,
+                        );
                     }
                 }
-                if (decorators.length !== ffi.length) {
-                    throw new Error(`Unhandled decorators`);
-                }
-                // env = typeTypeDefn(env, item.wrapped, tag, unum);
-                const defn = typeRecordDefn(env, item.wrapped, unique, tag);
-                const hash = hashObject(defn);
-                return {
-                    type: 'RecordDef',
-                    def: defn,
-                    id: { hash, size: 1, pos: 0 },
-                    location: item.location!,
-                    name: item.wrapped.id.text,
-                    attrNames: (item.wrapped.decl.items.filter(
-                        (x) => x.type === 'Row',
-                    ) as Array<RecordRow>).map((x) => x.id),
-                };
+
+                default:
+                    console.log(item.decorators);
+                    throw new Error(
+                        `Decorators not supported for toplevels other than Struct and DecoratorDef (found ${item.wrapped.type})`,
+                    );
             }
-            throw new Error(
-                `Decorators not supported for toplevels other than Struct and DecoratorDef`,
-            );
         }
         case 'EnumDef': {
             const defn = typeEnumInner(env, item);
@@ -277,13 +287,13 @@ export const typeToplevelT = (
                 location: item.location,
                 name: item.id.text,
             };
-        default:
-            const term = typeExpr(env, item as Expression);
+        case 'Expression':
+            const term = typeExpr(env, item.expr);
             return {
                 id: idFromName(hashObject(term)),
                 type: 'Expression',
                 term,
-                location: item.location,
+                location: item.expr.location,
             };
     }
 };
@@ -576,6 +586,7 @@ export const addEnum = (
     env: Env,
     name: string,
     d: TypeEnumDef,
+    // inner: Array<ToplevelRecord>,
 ): { id: Id; env: Env } => {
     const hash = hashObject(d);
     const idid = { hash, pos: 0, size: 1 };
@@ -602,9 +613,16 @@ export const refName = (ref: Reference) =>
 
 export const resolveType = (env: Env, id: Identifier): Array<Id> => {
     if (id.hash != null) {
-        const rawId = id.hash.slice(1);
+        let rawId = id.hash.slice(1);
         if (!env.global.types[rawId]) {
-            throw new Error(`Unknown type hash ${rawId}`);
+            if (env.global.idRemap[rawId]) {
+                rawId = idName(env.global.idRemap[rawId]);
+            } else {
+                throw new LocatedError(
+                    id.location,
+                    `Unknown type hash ${rawId}`,
+                );
+            }
         }
         return [idFromName(rawId)];
     }
@@ -675,13 +693,13 @@ export const typeRecordDefn = (
         }
         return res;
     });
-    const extenders = (record.items.filter(
+    const extenders: Array<UserTypeReference> = (record.items.filter(
         (r) => r.type === 'Spread',
     ) as Array<RecordSpread>)
         // TODO: only allow ffi to spread into ffi, etc.
         .map((r) => {
             const t = resolveType(typeInnerWithSelf, r.constr)[0];
-            const subTypes = getAllSubTypes(env.global, [t]);
+            const subTypes = getAllSubTypes(env.global.types, [t]);
             if (r.defaults && r.defaults.length) {
                 r.defaults.forEach(({ id, value }) => {
                     // TODO: recognize hashes
@@ -712,7 +730,12 @@ export const typeRecordDefn = (
                     );
                 });
             }
-            return t;
+            return {
+                type: 'ref',
+                ref: { type: 'user', id: t },
+                typeVbls: [],
+                location: r.constr.location,
+            };
         });
     // const defa
 
@@ -831,6 +854,7 @@ export const withoutLocations = <T>(obj: T): T => {
         const res: any = {};
         Object.keys(obj).forEach((key) => {
             if (
+                key === 'loc' ||
                 key === 'location' ||
                 key === 'idLocation' ||
                 key === 'idLocations' ||
@@ -965,19 +989,32 @@ export const typeDefine = (
     return { hash, term, env: { ...env, global: glob }, id };
 };
 
-export const addDefine = (env: Env, name: string, term: Term) => {
+export const addDefine = (
+    env: Env,
+    name: string,
+    term: Term,
+    idToOverride?: Id,
+) => {
     const hash: string = hashObject(term);
     const id: Id = { hash: hash, size: 1, pos: 0 };
     const glob = cloneGlobalEnv(env.global);
     addToMap(glob.names, name, id);
-    // if (!glob.names[name]) {
-    //     glob.names[name] = [id];
-    // } else {
-    //     glob.names[name].unshift(id);
-    // }
     glob.idNames[idName(id)] = name;
     glob.terms[hash] = term;
-    // TODO: update metadata
+    glob.metaData[hash] = {
+        createdMs: Date.now(),
+        tags: [],
+        supersedes: idToOverride ? idName(idToOverride) : undefined,
+    };
+    if (idToOverride) {
+        glob.metaData[idName(idToOverride)] = {
+            ...(glob.metaData[idName(idToOverride)] || {
+                createdMs: Date.now(),
+                tags: [],
+            }),
+            supersededBy: hash,
+        };
+    }
     return { id, env: { ...env, global: glob } };
 };
 
@@ -1198,7 +1235,7 @@ export const resolveIdentifier = (
             is: type,
         };
     } else if (hash != null) {
-        const [first, second] = hash.slice(1).split('#');
+        let [first, second] = hash.slice(1).split('#');
 
         if (first === 'builtin') {
             const type = env.global.builtins[text];
@@ -1226,15 +1263,31 @@ export const resolveIdentifier = (
         }
 
         if (!env.global.terms[first]) {
-            if (env.global.types[first]) {
-                const id = idFromName(first);
-                const t = env.global.types[idName(id)];
-                if (t.type === 'Record' && !hasRequiredItems(env.global, t)) {
-                    return plainRecord(env.global, id, location);
+            if (env.global.idRemap[first]) {
+                first = idName(env.global.idRemap[first]);
+            } else {
+                if (env.global.types[first]) {
+                    const id = idFromName(first);
+                    const t = env.global.types[idName(id)];
+                    if (
+                        t.type === 'Record' &&
+                        !hasRequiredItems(env.global, t)
+                    ) {
+                        return plainRecord(env.global, id, location);
+                    }
+                }
+
+                const starts = Object.keys(env.global.terms).filter((k) =>
+                    k.startsWith(first),
+                );
+                if (starts.length) {
+                    first = starts[0];
+                } else {
+                    throw new Error(
+                        `Unknown hash ${hash} ${showLocation(location)}`,
+                    );
                 }
             }
-
-            throw new Error(`Unknown hash ${hash} ${showLocation(location)}`);
         }
         const id = idFromName(first);
         const term = env.global.terms[first];
@@ -1360,7 +1413,10 @@ const hasRequiredItems = (env: GlobalEnv, defn: RecordDef): boolean => {
     if (!defn.extends.length) {
         return false;
     }
-    const allSubTypes = getAllSubTypes(env, defn.extends);
+    const allSubTypes = getAllSubTypes(
+        env.types,
+        defn.extends.map((t) => t.ref.id),
+    );
     const together = allDefaults(env, defn, allSubTypes);
     return allSubTypes.some((id) =>
         env.types[idName(id)].items.some(
@@ -1376,7 +1432,10 @@ export const allDefaults = (
 ) => {
     const together = { ...defn.defaults };
     if (!allSubTypes) {
-        allSubTypes = getAllSubTypes(env, defn.extends);
+        allSubTypes = getAllSubTypes(
+            env.types,
+            defn.extends.map((t) => t.ref.id),
+        );
     }
     allSubTypes.forEach((id) => {
         const t = env.types[idName(id)] as RecordDef;
@@ -1411,7 +1470,10 @@ const plainRecord = (env: GlobalEnv, id: Id, location: Location): Term => {
             rows: Array<Term | null>;
         };
     } = {};
-    getAllSubTypes(env, t.extends).forEach((id) => {
+    getAllSubTypes(
+        env.types,
+        t.extends.map((t) => t.ref.id),
+    ).forEach((id) => {
         const t = env.types[idName(id)] as RecordDef;
         subTypes[idName(id)] = {
             spread: null,
@@ -1443,14 +1505,15 @@ const plainRecord = (env: GlobalEnv, id: Id, location: Location): Term => {
 export const hasSubType = (env: Env, type: Type, id: Id) => {
     if (type.type === 'var') {
         const found = env.local.typeVbls[type.sym.unique];
-        // console.log(type.sym.unique, type, env.local.typeVbls);
-        // if (found.ty)
         for (let sid of found.subTypes) {
             if (idsEqual(id, sid)) {
                 return true;
             }
             const t = env.global.types[idName(sid)] as RecordDef;
-            const allSubTypes = getAllSubTypes(env.global, t.extends);
+            const allSubTypes = getAllSubTypes(
+                env.global.types,
+                t.extends.map((t) => t.ref.id),
+            );
             if (allSubTypes.find((x) => idsEqual(id, x)) != null) {
                 return true;
             }
@@ -1463,6 +1526,9 @@ export const hasSubType = (env: Env, type: Type, id: Id) => {
         return true;
     }
     const t = env.global.types[idName(type.ref.id)] as RecordDef;
-    const allSubTypes = getAllSubTypes(env.global, t.extends);
+    const allSubTypes = getAllSubTypes(
+        env.global.types,
+        t.extends.map((t) => t.ref.id),
+    );
     return allSubTypes.find((x) => idsEqual(id, x)) != null;
 };

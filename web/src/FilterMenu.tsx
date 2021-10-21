@@ -1,7 +1,7 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/react';
 import * as React from 'react';
-import { MenuItem } from './CellWrapper';
+import { MenuItem } from './Cell/CellWrapper';
 
 export const FilterMenu = ({
     items,

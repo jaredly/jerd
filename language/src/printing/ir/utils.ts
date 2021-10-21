@@ -2,7 +2,7 @@
 
 import { Location } from '../../parsing/parser';
 import { idName, newSym, refName } from '../../typing/env';
-import { LocatedError } from '../../typing/errors';
+import { LocatedError, TypeError } from '../../typing/errors';
 import { binOps } from '../../typing/preset';
 import { applyEffectVariables } from '../../typing/typeExpr';
 import {
@@ -190,7 +190,7 @@ export const _lambdaTypeFromTermType = (
             note: 'from with effects',
             args: type.args.map(mapType),
             effects: type.effects,
-            effectVbls: type.effectVbls,
+            effectVbls: type.effectVbls.map((e) => e.sym.unique),
             returnValue: mapType(type.res),
         };
     }
@@ -235,7 +235,11 @@ export const recordDefFromTermType = (
         unique: defn.unique,
         location: defn.location,
         typeVbls: defn.typeVbls,
-        extends: defn.extends,
+        extends: defn.extends.map((t) => ({
+            ...t,
+            loc: t.location,
+            typeVbls: t.typeVbls.map((t) => typeFromTermType(env, opts, t)),
+        })),
         items: defn.items.map((t) => typeFromTermType(env, opts, t)),
         ffi: defn.ffi,
     };
@@ -264,6 +268,10 @@ export const typeFromTermType = (
                     typeFromTermType(env, opts, t),
                 ),
             };
+        case 'THole':
+        case 'InvalidTypeApplication':
+        case 'TNotFound':
+        case 'NotASubType':
         case 'Ambiguous':
             throw new Error(
                 `Cannot convert ambiguous type to IR. Must resolve before printing.`,
@@ -664,6 +672,9 @@ export const callExpression = (
                 loc,
             ) as LambdaType;
         } catch (err) {
+            if (!(err instanceof TypeError)) {
+                throw err;
+            }
             // console.log(target.is);
             // console.log(typeVbls);
             // debugger;
@@ -796,7 +807,7 @@ export const typeToPretty = (env: Env, type: Type): PP => {
 function typeVblDeclsToPretty(env: Env, typeVbls: TypeVblDecl[]): PP | null {
     return items([
         atom('<'),
-        args(typeVbls.map((t) => atom('T_' + t.unique))),
+        args(typeVbls.map((t) => atom(t.sym.name))),
         atom('>'),
     ]);
 }
@@ -816,7 +827,7 @@ export const makeTypeVblMapping = (
         //         throw new Error(`Expected a subtype of ${idName(sub)}`);
         //     }
         // }
-        mapping[declared[i].unique] = typ;
+        mapping[declared[i].sym.unique] = typ;
     });
 
     return mapping;
@@ -847,7 +858,7 @@ export const createTypeVblMapping = (
         //         throw new Error(`Expected a subtype of ${idName(sub)}`);
         //     }
         // }
-        mapping[typeVbls[i].unique] = typ;
+        mapping[typeVbls[i].sym.unique] = typ;
     });
 
     return mapping;

@@ -39,10 +39,11 @@ export const processErrors = (
             env = typeDecoratorDef(env, item).env;
         } else if (item.type === 'Decorated') {
             throw new Error(`Unexpected decorator`);
-        } else {
+        } else if (item.type === 'Expression') {
+            const expr = item.expr;
             let term;
             try {
-                term = typeExpr(env, item);
+                term = typeExpr(env, expr);
             } catch (err) {
                 if (err instanceof Error) {
                     errors.push(err.message);
@@ -70,9 +71,9 @@ export const processErrors = (
             }
             console.log(item);
             throw new LocatedError(
-                item.location,
+                expr.location,
                 `Expected a type error at ${showLocation(
-                    item.location,
+                    expr.location,
                 )} : ${printToString(termToPretty(env, term), 100)}`,
             );
         }

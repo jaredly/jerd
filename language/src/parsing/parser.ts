@@ -1,9 +1,14 @@
 import { parse as parseUntyped } from './grammar';
 
+export type ToplevelExpression = {
+    type: 'Expression';
+    expr: Expression;
+};
+
 export type Toplevel =
     | Define
     | Effect
-    | Expression
+    | ToplevelExpression
     | StructDef
     | EnumDef
     | DecoratorDef
@@ -211,7 +216,7 @@ export type Record = {
 export type Op = { text: string; hash: string | null; location: Location };
 
 export type Ops = {
-    type: 'ops';
+    type: 'BinOp';
     first: Expression;
     location: Location;
     rest: Array<{

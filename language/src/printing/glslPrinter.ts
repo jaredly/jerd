@@ -17,7 +17,6 @@ import {
     addRecord,
     idFromName,
     idName,
-    ToplevelT,
     typeToplevelT,
 } from '../typing/env';
 import { LocatedError, TypeError } from '../typing/errors';
@@ -36,6 +35,7 @@ import {
     RecordDef as TermRecordDef,
     Reference,
     selfEnv,
+    ToplevelT,
     Symbol,
     Term,
     Type,
@@ -352,9 +352,7 @@ export const declarationToGlsl = (
             idToGlsl(env, opts, idFromName(idRaw), false),
             term.is.typeVbls.length
                 ? args(
-                      term.is.typeVbls.map((t) =>
-                          atom(t.name ? t.name : `T${t.unique}`),
-                      ),
+                      term.is.typeVbls.map((t) => atom(t.sym.name)),
                       '<',
                       '>',
                   )
@@ -542,6 +540,7 @@ export const printRecord = (
         }
         args = builtinTypes[idRaw].args.map(
             (arg): ir.Expr => {
+                // record.items.map
                 if (arg.sub) {
                     const item = record.subTypes[arg.sub].rows[arg.idx];
                     if (item) {
@@ -625,6 +624,8 @@ export const printRecord = (
 export const binops = [
     // 'mod',
     'modInt',
+    'intEq',
+    'floatEq',
     '>',
     '<',
     '>=',
@@ -641,8 +642,12 @@ export const binops = [
 ];
 export const isBinop = (op: string) => binops.includes(op);
 
-// op === 'mod' ||
-const asBinop = (op: string) => (op === 'modInt' ? '%' : op);
+const opLong: { [key: string]: string } = {
+    modInt: '%',
+    intEq: '==',
+    floatEq: '==',
+};
+const asBinop = (op: string) => opLong[op] || op;
 
 export const printApply = (env: Env, opts: OutputOptions, apply: Apply): PP => {
     if (apply.target.type === 'builtin' && isBinop(apply.target.name)) {
@@ -1187,18 +1192,28 @@ export const assembleItemsForFile = (
         // irTerm = optimizeDefine(senv, irTerm, id, irTerms);
 
         const preOpt = irTerm;
-        irTerm = optimization(
-            {
-                env: senv,
-                opts: irOpts,
-                exprs: irTerms,
-                id,
-                types: env.typeDefs,
-                optimize: optimization,
-                notes: null,
-            },
-            irTerm,
-        );
+        try {
+            irTerm = optimization(
+                {
+                    env: senv,
+                    opts: irOpts,
+                    exprs: irTerms,
+                    id,
+                    types: env.typeDefs,
+                    optimize: optimization,
+                    notes: null,
+                },
+                irTerm,
+            );
+        } catch (err) {
+            console.error(`Tried to optimize, but it failed`);
+            console.log('id', idRaw);
+            require('fs').writeFileSync(
+                './irTerm.json',
+                JSON.stringify(irTerm, null, 2),
+            );
+            throw err;
+        }
 
         try {
             const undefinedUses = uniquesReallyAreUnique(irTerm);
@@ -1648,7 +1663,10 @@ export const getAllRecordAttributes = (
     id: Id,
     constr: RecordDef,
 ): Array<RecordAttribute> => {
-    const subTypes = getAllSubTypes(env.global, constr.extends);
+    const subTypes = getAllSubTypes(
+        env.global.types,
+        constr.extends.map((t) => t.ref.id),
+    );
     return [
         ...constr.items.map((item, i) => ({ id, item, i })),
         ...([] as Array<RecordAttribute>).concat(
@@ -1672,7 +1690,10 @@ export const recordToGLSL = (
     irOpts: IOutputOptions,
     id: Id,
 ) => {
-    const subTypes = getAllSubTypes(env.global, constr.extends);
+    const subTypes = getAllSubTypes(
+        env.global.types,
+        constr.extends.map((t) => t.ref.id),
+    );
 
     return pp.items([
         atom('struct '),

@@ -9,7 +9,16 @@ import {
 // TODO come up with a sourcemappy notion of "unique location in the parse tree"
 // that doesn't mean keeping track of column & line.
 // because we'll need it in a web ui.
-import { Env, Symbol, subEnv, Type, Id, nullLocation } from './types';
+import {
+    Env,
+    Symbol,
+    subEnv,
+    Type,
+    Id,
+    nullLocation,
+    TypeVblDecl,
+    EffectVblDecl,
+} from './types';
 import { showLocation } from './typeExpr';
 import { idFromName, idName, resolveEffect, symPrefix } from './env';
 import { LocatedError } from './errors';
@@ -101,7 +110,7 @@ const typeType = (
                 };
             }
             if (type.id.hash) {
-                const rawId = type.id.hash.slice(1);
+                let rawId = type.id.hash.slice(1);
                 if (rawId === 'builtin') {
                     if (env.global.builtinTypes[type.id.text] == null) {
                         throw new LocatedError(
@@ -117,10 +126,21 @@ const typeType = (
                     };
                 }
                 if (!env.global.types[rawId]) {
-                    throw new LocatedError(
-                        type.location,
-                        `Unknown explicit type ${rawId}`,
-                    );
+                    if (env.global.idRemap[rawId]) {
+                        rawId = idName(env.global.idRemap[rawId]);
+                    } else {
+                        const starts = Object.keys(
+                            env.global.types,
+                        ).filter((k) => k.startsWith(rawId));
+                        if (starts.length) {
+                            rawId = starts[0];
+                        } else {
+                            throw new LocatedError(
+                                type.location,
+                                `Unknown explicit type ${rawId}`,
+                            );
+                        }
+                    }
                 }
                 return {
                     type: 'ref',
@@ -273,12 +293,7 @@ export const newEnvWithTypeAndEffectVbls = (
     // });
 
     const typeInner = subEnv(env);
-    const typeVbls: Array<{
-        unique: number;
-        subTypes: Array<Id>;
-        name: string;
-        location: Location;
-    }> = [];
+    const typeVbls: Array<TypeVblDecl> = [];
     typevbls.forEach(({ id, subTypes }) => {
         // console.log(id.hash);
         const unique = parseUnique(
@@ -302,13 +317,12 @@ export const newEnvWithTypeAndEffectVbls = (
         typeInner.local.typeVbls[sym.unique] = { subTypes: st };
         typeInner.local.typeVblNames[id.text] = sym;
         typeVbls.push({
-            unique: sym.unique,
+            sym,
             subTypes: st,
-            name: id.text,
             location: id.location,
         });
     });
-    const effectVbls: Array<number> = [];
+    const effectVbls: Array<EffectVblDecl> = [];
     effvbls.forEach((id) => {
         const unique = parseUnique(
             id.hash,
@@ -318,7 +332,7 @@ export const newEnvWithTypeAndEffectVbls = (
         );
         const sym: Symbol = { name: id.text, unique };
         typeInner.local.effectVbls[id.text] = sym;
-        effectVbls.push(sym.unique);
+        effectVbls.push({ sym, location: id.location });
     });
     return { typeInner, typeVbls, effectVbls };
 };

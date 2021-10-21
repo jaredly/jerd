@@ -5,7 +5,8 @@ import { Location, locToEnd, locToStart, Type } from '../typing/types';
 
 // Doesn't need to be terribly fancy.
 
-export type Extra = { type: 'Error'; expected: Type; found: Type };
+export type Extra = { type: 'Error'; expected: Type; found: Type } | ExtraId;
+export type ExtraId = { type: 'id'; id: string; isType: boolean };
 
 export const items = (
     items: Array<PP | null>,
@@ -49,12 +50,17 @@ export const atom = (
     text: string,
     attributes?: Array<string>,
     loc?: Location,
-): PP => ({
-    type: 'atom',
-    text,
-    attributes,
-    loc,
-});
+): PP => {
+    if (text == null) {
+        throw new Error(`Empty atom!`);
+    }
+    return {
+        type: 'atom',
+        text,
+        attributes,
+        loc,
+    };
+};
 export const id = (
     text: string,
     id: string,

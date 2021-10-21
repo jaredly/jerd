@@ -28,10 +28,20 @@ export const mainGo = (
         math.forEach((name) => {
             builtins[name] = preset.pureFunction([preset.float], preset.float);
         });
+        ['max', 'min'].forEach((name) => {
+            builtins[name] = preset.pureFunction(
+                [preset.float, preset.float],
+                preset.float,
+            );
+        });
         builtins['PI'] = preset.float;
         builtins['intToFloat'] = preset.pureFunction(
             [preset.int],
             preset.float,
+        );
+        builtins['floatToString'] = preset.pureFunction(
+            [preset.float],
+            preset.string,
         );
 
         let initialEnv = presetEnv(builtins);
@@ -52,9 +62,7 @@ export const mainGo = (
         if (displayName) {
             fs.writeFileSync(
                 path.join(buildDir, name, `${displayName}.go`),
-                fs.readFileSync(
-                    `./examples/go-backends/${displayName}/${displayName}.go`,
-                ),
+                fs.readFileSync(`./examples/go-backends/${displayName}.go`),
             );
         }
         if (run) {

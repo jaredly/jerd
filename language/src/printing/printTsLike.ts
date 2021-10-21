@@ -6,7 +6,7 @@
 // So that's probably some information I'll have to hang onto somehow.
 
 import { Location } from '../parsing/parser';
-import { idName, refName, ToplevelT } from '../typing/env';
+import { idName, refName } from '../typing/env';
 import { getOpLevel } from '../typing/terms/ops';
 import {
     Case,
@@ -25,12 +25,14 @@ import {
     EffectDef,
     Pattern,
     cloneGlobalEnv,
+    ToplevelT,
     selfEnv,
     Apply,
     walkTerm,
     newWithGlobal,
     idsEqual,
     getAllSubTypes,
+    ToplevelDecorator,
 } from '../typing/types';
 import {
     PP,
@@ -54,96 +56,17 @@ export const toplevelToPretty = (
             glob.idNames[idName(toplevel.id)] = toplevel.name;
 
             return declarationToPretty(
-                selfEnv(
-                    newWithGlobal(glob),
-                    // { ...env, global: glob },
-                    {
-                        type: 'Term',
-                        name: toplevel.name,
-                        ann: toplevel.term.is,
-                    },
-                ),
+                selfEnv(newWithGlobal(glob), {
+                    type: 'Term',
+                    name: toplevel.name,
+                    ann: toplevel.term.is,
+                }),
                 toplevel.id,
                 toplevel.term,
             );
         }
         case 'Decorator': {
-            return items(
-                [
-                    hideUnique
-                        ? null
-                        : atom(
-                              `@unique(${JSON.stringify(
-                                  toplevel.defn.unique,
-                              )}) `,
-                          ),
-                    atom('decorator '),
-                    id(
-                        toplevel.name,
-                        idName(toplevel.id),
-                        'decorator-defn',
-                        toplevel.location,
-                    ),
-                    typeVblDeclsToPretty(env, toplevel.defn.typeVbls),
-                    toplevel.defn.arguments.length ||
-                    (toplevel.defn.restArg && toplevel.defn.restArg.type)
-                        ? args(
-                              toplevel.defn.arguments.map((arg) => {
-                                  return items(
-                                      [
-                                          id(
-                                              arg.argName,
-                                              '',
-                                              'decorator-arg',
-                                              arg.argLocation,
-                                          ),
-                                          ...(arg.type
-                                              ? [
-                                                    atom(': '),
-                                                    typeToPretty(env, arg.type),
-                                                ]
-                                              : []),
-                                      ],
-                                      undefined,
-                                      arg.location,
-                                  );
-                              }),
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              toplevel.defn.restArg
-                                  ? items([
-                                        id(
-                                            toplevel.defn.restArg.argName,
-                                            '',
-                                            'decorator-arg',
-                                            toplevel.defn.restArg.argLocation,
-                                        ),
-                                        ...(toplevel.defn.restArg.type
-                                            ? [
-                                                  atom(': '),
-                                                  typeToPretty(
-                                                      env,
-                                                      toplevel.defn.restArg
-                                                          .type,
-                                                  ),
-                                              ]
-                                            : []),
-                                    ])
-                                  : undefined,
-                          )
-                        : null,
-                    toplevel.defn.targetType
-                        ? items([
-                              atom(' '),
-                              typeToPretty(env, toplevel.defn.targetType),
-                          ])
-                        : null,
-                ],
-                undefined,
-                toplevel.location,
-            );
+            return decoratorToPretty(hideUnique, toplevel, env);
         }
         case 'Expression':
             return termToPretty(newWithGlobal(env.global), toplevel.term);
@@ -160,14 +83,6 @@ export const toplevelToPretty = (
                     name: idName(toplevel.id),
                     vbls: toplevel.def.typeVbls,
                 }),
-                // {
-                //     ...selfEnv(env, {
-                //         type: 'Type',
-                //         name: idName(toplevel.id),
-                //         vbls: toplevel.def.typeVbls,
-                //     }),
-                //     global: glob,
-                // },
                 toplevel.id,
                 toplevel.def,
                 hideUnique,
@@ -250,8 +165,10 @@ export const idToPretty = (
 
 export const symToPretty = (env: Env | null, sym: Symbol, loc?: Location) => {
     const name = (env && env.term.localNames[sym.unique]) || sym.name;
-    return idPretty(name, ':' + sym.unique.toString(), 'sym', loc);
+    return idPretty(name, symHash(sym), 'sym', loc);
 };
+
+export const symHash = (sym: Symbol) => `:${sym.unique}`;
 
 export const effToPretty = (env: Env | null, eff: EffectRef, loc?: Location) =>
     eff.type === 'ref'
@@ -316,7 +233,9 @@ export const recordToPretty = (
         block(
             recordDef.extends
                 .map((ex) => {
-                    const subTyeps = getAllSubTypes(env.global, [ex]);
+                    const subTyeps = getAllSubTypes(env.global.types, [
+                        ex.ref.id,
+                    ]);
                     const defaults = recordDef.defaults
                         ? Object.keys(recordDef.defaults)
                               .map((k) => recordDef.defaults![k])
@@ -330,7 +249,7 @@ export const recordToPretty = (
                         : [];
                     return items([
                         atom('...'),
-                        idToPretty(env, ex, 'record'),
+                        typeToPretty(env, ex),
                         defaults.length
                             ? args(
                                   defaults.map((item) =>
@@ -416,8 +335,8 @@ export const typeVblDeclsToPretty = (
         typeVbls.map((v, i) =>
             items([
                 idPretty(
-                    v.name || `T${i}`,
-                    ':' + v.unique.toString(),
+                    v.sym.name,
+                    ':' + v.sym.unique.toString(),
                     'sym',
                     v.location,
                 ),
@@ -443,6 +362,12 @@ export const typeVblDeclsToPretty = (
 export const typeToPretty = (env: Env | null, type: Type): PP => {
     switch (type.type) {
         case 'ref':
+            // if (
+            //     type.ref.type === 'builtin' &&
+            //     type.ref.name.startsWith('Tuple')
+            // ) {
+            //     return args(type.typeVbls.map((t) => typeToPretty(env, t)));
+            // }
             if (type.typeVbls.length) {
                 return items(
                     [
@@ -465,7 +390,7 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
                     type.effectVbls.length
                         ? args(
                               type.effectVbls.map((n) =>
-                                  symToPretty(env, { name: 'e', unique: n }),
+                                  symToPretty(env, n.sym),
                               ),
                               '{',
                               '}',
@@ -501,6 +426,25 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
             return symToPretty(env, type.sym, type.location);
         case 'Ambiguous':
             return atom('[ambiguous - error!]');
+        case 'TNotFound':
+            return atom(`[Not Found: ${type.text}]`);
+        case 'THole':
+            return atom('[type hole]');
+        case 'InvalidTypeApplication':
+            return items([
+                atom('[extra vbls '),
+                typeToPretty(env, type.inner),
+                atom(' '),
+                args(type.typeVbls.map((t) => typeToPretty(env, t))),
+                atom(']'),
+            ]);
+        case 'NotASubType':
+            return items([
+                atom('[not a subtype: '),
+                typeToPretty(env, type.inner),
+                atom(' of '),
+                args(type.subTypes.map((id) => idToPretty(env, id, 'subType'))),
+            ]);
         default:
             throw new Error(`Unexpected type ${JSON.stringify(type)}`);
     }
@@ -509,11 +453,12 @@ export const typeToPretty = (env: Env | null, type: Type): PP => {
 export const termOrLetToPretty = (env: Env, term: Term | Let): PP => {
     switch (term.type) {
         case 'Let':
-            env.term.localNames[term.binding.unique] = term.binding.name;
+            env.term.localNames[term.binding.sym.unique] =
+                term.binding.sym.name;
             return items(
                 [
                     atom('const ', ['keyword']),
-                    symToPretty(env, term.binding, term.idLocation),
+                    symToPretty(env, term.binding.sym, term.binding.location),
                     atom(' = '),
                     termToPretty(env, term.value),
                 ],
@@ -524,6 +469,8 @@ export const termOrLetToPretty = (env: Env, term: Term | Let): PP => {
             return termToPretty(env, term);
     }
 };
+
+// export const decoratorToPretty = (env: Env, )
 
 export const termToPretty = (env: Env, term: Term): PP => {
     if (term.decorators) {
@@ -650,7 +597,7 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                     term.is.effectVbls.length
                         ? args(
                               term.is.effectVbls.map((n) =>
-                                  symToPretty(env, { name: 'e', unique: n }),
+                                  symToPretty(env, n.sym),
                               ),
                               '{',
                               '}',
@@ -659,13 +606,7 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                     args(
                         term.args.map((arg, i) =>
                             items([
-                                symToPretty(
-                                    env,
-                                    arg,
-                                    term.idLocations
-                                        ? term.idLocations[i]
-                                        : undefined,
-                                ),
+                                symToPretty(env, arg.sym, arg.location),
                                 atom(': '),
                                 typeToPretty(env, term.is.args[i]),
                             ]),
@@ -775,7 +716,7 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                     env.global.terms[idName(resolvedTarget.ref.id)];
             }
             if (resolvedTarget.type === 'lambda') {
-                argNames = resolvedTarget.args.map((sym) => sym.name);
+                argNames = resolvedTarget.args.map((sym) => sym.sym.name);
             }
             return items(
                 [
@@ -816,7 +757,13 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                 term.location,
             );
         case 'ref':
-            return refToPretty(env, term.ref, 'term', term.location);
+            const deprecatedBy = getDeprecatedBy(env, term.ref);
+            return refToPretty(
+                env,
+                term.ref,
+                deprecatedBy ? 'term-deprecated' : 'term',
+                term.location,
+            );
         case 'var':
             return symToPretty(env, term.sym, term.location);
         case 'Switch':
@@ -1107,6 +1054,44 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                     : null,
                 atom('"', ['string']),
             ]);
+        case 'Hole':
+            return atom('_');
+        case 'InvalidRecordAttributes':
+            return items([
+                atom('INVALID_RECORD_ATTRIBUTES['),
+                termToPretty(env, term.inner),
+                args(
+                    term.extraSpreads.map((v) =>
+                        items([atom('...'), termToPretty(env, v)]),
+                    ),
+                ),
+                args(
+                    term.extraAttributes.map((v) =>
+                        items([
+                            v.ref.type === 'unknown'
+                                ? atom(v.ref.text)
+                                : refToPretty(env, v.ref, 'attribute'),
+                            atom(': '),
+                            termToPretty(env, v.value),
+                        ]),
+                    ),
+                ),
+                atom(']'),
+            ]);
+        case 'InvalidApplication':
+            return items([
+                atom('INVALID_APPLICATION['),
+                termToPretty(env, term.target),
+                args(
+                    term.extraTypeArgs.map((t) => typeToPretty(env, t)),
+                    '<',
+                    '>',
+                ),
+                args(term.extraArgs.map((arg) => termToPretty(env, arg))),
+                atom(']'),
+            ]);
+        case 'NotFound':
+            return atom('NOTFOND(' + term.text + ')');
         default:
             let _x: never = term;
             return atom(
@@ -1115,6 +1100,96 @@ export const _termToPretty = (env: Env, term: Term): PP => {
             );
     }
 };
+
+export const decoratorToPretty = (
+    hideUnique: boolean,
+    toplevel: ToplevelDecorator,
+    env: Env,
+): PP => {
+    return items(
+        [
+            hideUnique
+                ? null
+                : atom(`@unique(${JSON.stringify(toplevel.defn.unique)}) `),
+            atom('decorator '),
+            id(
+                toplevel.name,
+                idName(toplevel.id),
+                'decorator-defn',
+                toplevel.location,
+            ),
+            typeVblDeclsToPretty(env, toplevel.defn.typeVbls),
+            toplevel.defn.arguments.length ||
+            (toplevel.defn.restArg && toplevel.defn.restArg.type)
+                ? args(
+                      toplevel.defn.arguments.map((arg) => {
+                          return items(
+                              [
+                                  id(
+                                      arg.argName,
+                                      '',
+                                      'decorator-arg',
+                                      arg.argLocation,
+                                  ),
+                                  ...(arg.type
+                                      ? [
+                                            atom(': '),
+                                            typeToPretty(env, arg.type),
+                                        ]
+                                      : []),
+                              ],
+                              undefined,
+                              arg.location,
+                          );
+                      }),
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      toplevel.defn.restArg
+                          ? items([
+                                id(
+                                    toplevel.defn.restArg.argName,
+                                    '',
+                                    'decorator-arg',
+                                    toplevel.defn.restArg.argLocation,
+                                ),
+                                ...(toplevel.defn.restArg.type
+                                    ? [
+                                          atom(': '),
+                                          typeToPretty(
+                                              env,
+                                              toplevel.defn.restArg.type,
+                                          ),
+                                      ]
+                                    : []),
+                            ])
+                          : undefined,
+                  )
+                : null,
+            toplevel.defn.targetType
+                ? items([
+                      atom(' '),
+                      typeToPretty(env, toplevel.defn.targetType),
+                  ])
+                : null,
+        ],
+        undefined,
+        toplevel.location,
+    );
+};
+
+function getDeprecatedBy(env: Env, ref: Reference) {
+    if (ref.type !== 'user') {
+        return null;
+    }
+
+    const meta = env.global.metaData[idName(ref.id)];
+    if (meta) {
+        return meta.supersededBy;
+    }
+    return null;
+}
 
 const switchCaseToPretty = (env: Env, kase: SwitchCase): PP =>
     items(
@@ -1243,7 +1318,7 @@ const isCustomBinOp = (env: Env, term: Term) => {
     if (
         term.type !== 'Attribute' ||
         term.ref.type !== 'user' ||
-        term.target.type !== 'ref'
+        (term.target.type !== 'ref' && term.target.type !== 'var')
     ) {
         return false;
     }
@@ -1255,7 +1330,7 @@ const showCustomBinOp = (env: Env, term: Term) => {
     if (
         term.type !== 'Attribute' ||
         term.ref.type !== 'user' ||
-        term.target.type !== 'ref'
+        (term.target.type !== 'ref' && term.target.type !== 'var')
     ) {
         throw new Error(`Not an attribute`);
     }
@@ -1263,7 +1338,9 @@ const showCustomBinOp = (env: Env, term: Term) => {
     // return !name.match(/[\w_$]/);
     return idPretty(
         name,
-        refName(term.target.ref) +
+        (term.target.type === 'ref'
+            ? refName(term.target.ref)
+            : symHash(term.target.sym)) +
             '#' +
             refName(term.ref) +
             '#' +

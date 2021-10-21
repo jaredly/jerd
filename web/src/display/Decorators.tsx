@@ -22,7 +22,7 @@ import {
     Record,
     Term,
 } from '../../../language/src/typing/types';
-import { useUpdated } from '../Workspace';
+import { useUpdated } from '../workspace/Workspace';
 
 export const recordValues = (term: Record): Array<Term> | null => {
     const { base } = term;

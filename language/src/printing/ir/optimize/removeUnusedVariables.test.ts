@@ -17,11 +17,11 @@ describe('removeUnusedVariables', () => {
             removeUnusedVariables,
         );
         expect(result).toMatchInlineSnapshot(`
-            const expr0#🥘: int = ((): int => {
-                const x#:0: int = 10;
-                return x#:0;
-            })()
-        `);
+const expr0#😙: int = ((): int => {
+    const x#:0: int = 10;
+    return x#:0;
+})()
+`);
         const expr = result.irTerms[result.inOrder[0]].expr;
         expectDefinedNames(expr, ['x'], ['y']);
     });
@@ -45,19 +45,19 @@ describe('removeUnusedVariables', () => {
             removeUnusedVariables,
         );
         expect(result).toMatchInlineSnapshot(`
-            const expr0#👏🍬💆‍♀️: int = ((): int => {
-                const x#:0: int = 10;
-                const z#:2: int = 1;
-                const m#:4: () => int = (): int => 23 + z#:2;
-                return ((): int => {
-                    if true {
-                        return ((): int => x#:0 + m#:4())();
-                    } else {
-                        return ((): int => 23)();
-                    };
-                })();
-            })()
-        `);
+const expr0#🧑‍🏫: int = ((): int => {
+    const x#:0: int = 10;
+    const z#:2: int = 1;
+    const m#:4: () => int = (): int => 23 + z#:2;
+    return ((): int => {
+        if true {
+            return ((): int => x#:0 + m#:4())();
+        } else {
+            return ((): int => 23)();
+        };
+    })();
+})()
+`);
         const expr = result.irTerms[result.inOrder[0]].expr;
         expectDefinedNames(expr, ['x', 'z', 'm'], ['y', 'n']);
     });

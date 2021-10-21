@@ -215,9 +215,9 @@ const _termToAstCPS = (
                     [
                         ...args,
                         {
-                            sym: term.binding,
+                            sym: term.binding.sym,
                             type: mapType(term.is),
-                            loc: term.location,
+                            loc: term.binding.location,
                         },
                     ],
                     callDone(

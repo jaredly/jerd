@@ -16,7 +16,7 @@ describe('foldSingleUseAssignments', () => {
                 foldSingleUseAssignments,
             ),
         ).toMatchInlineSnapshot(
-            `const expr0#🌝: () => float = (): float => 2 - 10 + 30`,
+            `const expr0#🤗👭🐨😃: () => float = (): float => 2 - 10 + 30`,
         );
     });
 });

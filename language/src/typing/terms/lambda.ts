@@ -13,6 +13,7 @@ import {
     effectsMatch,
     Env,
     EffectReference,
+    Location,
 } from '../types';
 import typeType, { newEnvWithTypeAndEffectVbls } from '../typeType';
 import { printToString } from '../../printing/printer';
@@ -36,7 +37,7 @@ export const typeLambda = (
     // ok here's where we do a little bit of inference?
     // or do I just say "all is specified, we can infer in the IDE"?
     const inner = subEnv(typeInner);
-    const args: Array<Symbol> = [];
+    const args: Array<{ sym: Symbol; location: Location }> = [];
     const argst: Array<Type> = [];
 
     expr.args.forEach(({ id, type: rawType }, i) => {
@@ -46,7 +47,7 @@ export const typeLambda = (
                 : null;
         const type = typeType(typeInner, rawType, expectedArgType);
         const sym = makeLocal(inner, id, type);
-        args.push(sym);
+        args.push({ sym, location: id.location });
         argst.push(type);
     });
 
@@ -94,7 +95,6 @@ export const typeLambda = (
     return {
         type: 'lambda',
         args,
-        idLocations: expr.args.map((arg) => arg.id.location),
         body,
         location: expr.location,
         is: {

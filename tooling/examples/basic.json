@@ -1,0 +1,1328 @@
+{
+  "types": {
+    "constructors": {
+      "names": {
+        "as": [
+          {
+            "idx": 0,
+            "id": {
+              "hash": "As",
+              "pos": 0,
+              "size": 1
+            }
+          }
+        ],
+        "contents": [
+          {
+            "idx": 0,
+            "id": {
+              "hash": "Some",
+              "pos": 0,
+              "size": 1
+            }
+          }
+        ],
+        "one": [
+          {
+            "id": {
+              "hash": "28794e80",
+              "pos": 0,
+              "size": 1
+            },
+            "idx": 0
+          }
+        ],
+        "two": [
+          {
+            "id": {
+              "hash": "28794e80",
+              "pos": 0,
+              "size": 1
+            },
+            "idx": 1
+          }
+        ],
+        "three": [
+          {
+            "id": {
+              "hash": "066e15da",
+              "pos": 0,
+              "size": 1
+            },
+            "idx": 0
+          }
+        ],
+        "what": [
+          {
+            "id": {
+              "hash": "55361dda",
+              "pos": 0,
+              "size": 1
+            },
+            "idx": 0
+          }
+        ]
+      },
+      "idToNames": {
+        "As": [
+          "as"
+        ],
+        "Some": [
+          "contents"
+        ],
+        "28794e80": [
+          "one",
+          "two"
+        ],
+        "066e15da": [
+          "three"
+        ],
+        "55361dda": [
+          "what"
+        ]
+      }
+    },
+    "defns": {
+      "As": {
+        "defn": {
+          "unique": 2,
+          "type": "Record",
+          "typeVbls": [
+            {
+              "unique": 10000,
+              "subTypes": [],
+              "name": "T",
+              "location": {
+                "start": {
+                  "line": 1,
+                  "column": 0,
+                  "offset": 0
+                },
+                "end": {
+                  "line": 1,
+                  "column": 0,
+                  "offset": 0
+                },
+                "source": "<generated>",
+                "idx": 0
+              }
+            },
+            {
+              "unique": 10001,
+              "subTypes": [],
+              "name": "Y",
+              "location": {
+                "start": {
+                  "line": 1,
+                  "column": 0,
+                  "offset": 0
+                },
+                "end": {
+                  "line": 1,
+                  "column": 0,
+                  "offset": 0
+                },
+                "source": "<generated>",
+                "idx": 0
+              }
+            }
+          ],
+          "effectVbls": [],
+          "extends": [],
+          "items": [
+            {
+              "type": "lambda",
+              "typeVbls": [],
+              "effectVbls": [],
+              "argNames": [
+                null
+              ],
+              "args": [
+                {
+                  "type": "var",
+                  "sym": {
+                    "unique": 10000,
+                    "name": "T"
+                  },
+                  "location": {
+                    "source": "<builtin>"
+                  }
+                }
+              ],
+              "effects": [],
+              "rest": null,
+              "res": {
+                "type": "var",
+                "sym": {
+                  "unique": 10001,
+                  "name": "Y"
+                },
+                "location": {
+                  "source": "<builtin>"
+                }
+              },
+              "location": {
+                "source": "<builtin>"
+              }
+            }
+          ],
+          "location": {
+            "source": "<builtin>"
+          },
+          "ffi": null
+        },
+        "meta": {
+          "created": 0
+        }
+      },
+      "None": {
+        "defn": {
+          "unique": 1,
+          "type": "Record",
+          "typeVbls": [],
+          "effectVbls": [],
+          "extends": [],
+          "items": [],
+          "location": {
+            "source": "<builtin>"
+          },
+          "ffi": null
+        },
+        "meta": {
+          "created": 0
+        }
+      },
+      "Some": {
+        "defn": {
+          "unique": 0,
+          "type": "Record",
+          "typeVbls": [
+            {
+              "unique": 10000,
+              "subTypes": [],
+              "name": "T",
+              "location": {
+                "start": {
+                  "line": 1,
+                  "column": 0,
+                  "offset": 0
+                },
+                "end": {
+                  "line": 1,
+                  "column": 0,
+                  "offset": 0
+                },
+                "source": "<generated>",
+                "idx": 0
+              }
+            }
+          ],
+          "effectVbls": [],
+          "extends": [],
+          "items": [
+            {
+              "type": "var",
+              "sym": {
+                "unique": 10000,
+                "name": "T"
+              },
+              "location": {
+                "source": "<builtin>"
+              }
+            }
+          ],
+          "location": {
+            "source": "<builtin>"
+          },
+          "ffi": null
+        },
+        "meta": {
+          "created": 0
+        }
+      },
+      "28794e80": {
+        "defn": {
+          "type": "Record",
+          "unique": 0.8408403012585762,
+          "typeVbls": [],
+          "location": {
+            "start": {
+              "offset": 65,
+              "line": 3,
+              "column": 29
+            },
+            "end": {
+              "offset": 149,
+              "line": 6,
+              "column": 2
+            },
+            "idx": 17
+          },
+          "effectVbls": [],
+          "ffi": null,
+          "extends": [],
+          "items": [
+            {
+              "type": "ref",
+              "ref": {
+                "type": "builtin",
+                "name": "int"
+              },
+              "location": {
+                "start": {
+                  "offset": 102,
+                  "line": 4,
+                  "column": 10
+                },
+                "end": {
+                  "offset": 113,
+                  "line": 4,
+                  "column": 21
+                },
+                "idx": 12
+              },
+              "typeVbls": []
+            },
+            {
+              "type": "ref",
+              "ref": {
+                "type": "builtin",
+                "name": "string"
+              },
+              "location": {
+                "start": {
+                  "offset": 124,
+                  "line": 5,
+                  "column": 10
+                },
+                "end": {
+                  "offset": 138,
+                  "line": 5,
+                  "column": 24
+                },
+                "idx": 14
+              },
+              "typeVbls": []
+            }
+          ],
+          "defaults": {
+            "1": {
+              "id": null,
+              "idx": 1,
+              "value": {
+                "type": "string",
+                "text": "yes",
+                "location": {
+                  "start": {
+                    "offset": 141,
+                    "line": 5,
+                    "column": 27
+                  },
+                  "end": {
+                    "offset": 146,
+                    "line": 5,
+                    "column": 32
+                  },
+                  "idx": 15
+                },
+                "is": {
+                  "type": "ref",
+                  "ref": {
+                    "type": "builtin",
+                    "name": "string"
+                  },
+                  "location": {
+                    "source": "<builtin>"
+                  },
+                  "typeVbls": []
+                }
+              }
+            }
+          }
+        },
+        "meta": {
+          "created": 2
+        }
+      },
+      "066e15da": {
+        "defn": {
+          "type": "Record",
+          "unique": 0.14972816008023876,
+          "typeVbls": [],
+          "location": {
+            "start": {
+              "offset": 395,
+              "line": 20,
+              "column": 30
+            },
+            "end": {
+              "offset": 478,
+              "line": 23,
+              "column": 2
+            },
+            "idx": 59
+          },
+          "effectVbls": [],
+          "ffi": null,
+          "extends": [
+            {
+              "type": "ref",
+              "ref": {
+                "type": "user",
+                "id": {
+                  "hash": "28794e80",
+                  "size": 1,
+                  "pos": 0
+                }
+              },
+              "typeVbls": [],
+              "location": {
+                "start": {
+                  "offset": 431,
+                  "line": 21,
+                  "column": 8
+                },
+                "end": {
+                  "offset": 449,
+                  "line": 21,
+                  "column": 26
+                },
+                "idx": 55
+              }
+            }
+          ],
+          "items": [
+            {
+              "type": "ref",
+              "ref": {
+                "type": "builtin",
+                "name": "float"
+              },
+              "location": {
+                "start": {
+                  "offset": 462,
+                  "line": 22,
+                  "column": 12
+                },
+                "end": {
+                  "offset": 475,
+                  "line": 22,
+                  "column": 25
+                },
+                "idx": 57
+              },
+              "typeVbls": []
+            }
+          ]
+        },
+        "meta": {
+          "created": 3
+        }
+      },
+      "55361dda": {
+        "defn": {
+          "type": "Record",
+          "unique": 0.5661807692527293,
+          "typeVbls": [],
+          "location": {
+            "start": {
+              "offset": 613,
+              "line": 31,
+              "column": 29
+            },
+            "end": {
+              "offset": 736,
+              "line": 33,
+              "column": 2
+            },
+            "idx": 93
+          },
+          "effectVbls": [],
+          "ffi": null,
+          "extends": [],
+          "items": [
+            {
+              "type": "lambda",
+              "args": [],
+              "argNames": [],
+              "typeVbls": [],
+              "effectVbls": [],
+              "location": {
+                "start": {
+                  "offset": 646,
+                  "line": 32,
+                  "column": 11
+                },
+                "end": {
+                  "offset": 679,
+                  "line": 32,
+                  "column": 44
+                },
+                "idx": 84
+              },
+              "effects": [
+                {
+                  "type": "ref",
+                  "location": {
+                    "start": {
+                      "offset": 651,
+                      "line": 32,
+                      "column": 16
+                    },
+                    "end": {
+                      "offset": 665,
+                      "line": 32,
+                      "column": 30
+                    },
+                    "idx": 81
+                  },
+                  "ref": {
+                    "type": "user",
+                    "id": {
+                      "hash": "35f4b478",
+                      "size": 1,
+                      "pos": 0
+                    }
+                  }
+                }
+              ],
+              "res": {
+                "type": "ref",
+                "ref": {
+                  "type": "builtin",
+                  "name": "int"
+                },
+                "location": {
+                  "start": {
+                    "offset": 668,
+                    "line": 32,
+                    "column": 33
+                  },
+                  "end": {
+                    "offset": 679,
+                    "line": 32,
+                    "column": 44
+                  },
+                  "idx": 83
+                },
+                "typeVbls": []
+              },
+              "rest": null
+            }
+          ],
+          "defaults": {
+            "0": {
+              "id": null,
+              "idx": 0,
+              "value": {
+                "type": "lambda",
+                "args": [],
+                "idLocations": [],
+                "body": {
+                  "type": "ref",
+                  "location": {
+                    "start": {
+                      "offset": 717,
+                      "line": 32,
+                      "column": 82
+                    },
+                    "end": {
+                      "offset": 733,
+                      "line": 32,
+                      "column": 98
+                    },
+                    "idx": 90
+                  },
+                  "ref": {
+                    "type": "user",
+                    "id": {
+                      "hash": "6e9352f2",
+                      "size": 1,
+                      "pos": 0
+                    }
+                  },
+                  "is": {
+                    "type": "ref",
+                    "location": {
+                      "start": {
+                        "offset": 206,
+                        "line": 10,
+                        "column": 26
+                      },
+                      "end": {
+                        "offset": 208,
+                        "line": 10,
+                        "column": 28
+                      },
+                      "idx": 2
+                    },
+                    "ref": {
+                      "type": "builtin",
+                      "name": "int"
+                    },
+                    "typeVbls": []
+                  }
+                },
+                "location": {
+                  "start": {
+                    "offset": 682,
+                    "line": 32,
+                    "column": 47
+                  },
+                  "end": {
+                    "offset": 733,
+                    "line": 32,
+                    "column": 98
+                  },
+                  "idx": 91
+                },
+                "is": {
+                  "type": "lambda",
+                  "location": {
+                    "start": {
+                      "offset": 682,
+                      "line": 32,
+                      "column": 47
+                    },
+                    "end": {
+                      "offset": 733,
+                      "line": 32,
+                      "column": 98
+                    },
+                    "idx": 91
+                  },
+                  "typeVbls": [],
+                  "effectVbls": [],
+                  "effects": [
+                    {
+                      "type": "ref",
+                      "location": {
+                        "start": {
+                          "offset": 700,
+                          "line": 32,
+                          "column": 65
+                        },
+                        "end": {
+                          "offset": 714,
+                          "line": 32,
+                          "column": 79
+                        },
+                        "idx": 87
+                      },
+                      "ref": {
+                        "type": "user",
+                        "id": {
+                          "hash": "35f4b478",
+                          "size": 1,
+                          "pos": 0
+                        }
+                      }
+                    }
+                  ],
+                  "argNames": [],
+                  "args": [],
+                  "rest": null,
+                  "res": {
+                    "type": "ref",
+                    "location": {
+                      "start": {
+                        "offset": 206,
+                        "line": 10,
+                        "column": 26
+                      },
+                      "end": {
+                        "offset": 208,
+                        "line": 10,
+                        "column": 28
+                      },
+                      "idx": 2
+                    },
+                    "ref": {
+                      "type": "builtin",
+                      "name": "int"
+                    },
+                    "typeVbls": []
+                  }
+                }
+              }
+            }
+          }
+        },
+        "meta": {
+          "created": 1
+        }
+      }
+    },
+    "names": {
+      "As": [
+        {
+          "hash": "As",
+          "pos": 0,
+          "size": 1
+        }
+      ],
+      "Some": [
+        {
+          "hash": "Some",
+          "pos": 0,
+          "size": 1
+        }
+      ],
+      "None": [
+        {
+          "hash": "None",
+          "pos": 0,
+          "size": 1
+        }
+      ],
+      "Something": [
+        {
+          "hash": "28794e80",
+          "pos": 0,
+          "size": 1
+        }
+      ],
+      "OtherThing": [
+        {
+          "hash": "066e15da",
+          "pos": 0,
+          "size": 1
+        }
+      ],
+      "What": [
+        {
+          "hash": "55361dda",
+          "pos": 0,
+          "size": 1
+        }
+      ]
+    },
+    "superTypes": {
+      "As": [],
+      "None": [],
+      "Some": [],
+      "28794e80": [],
+      "066e15da": [
+        {
+          "hash": "28794e80",
+          "size": 1,
+          "pos": 0
+        }
+      ],
+      "55361dda": []
+    }
+  },
+  "terms": {
+    "defns": {
+      "6e9352f2": {
+        "meta": {
+          "created": 1
+        },
+        "defn": {
+          "type": "int",
+          "value": 10,
+          "location": {
+            "start": {
+              "offset": 206,
+              "line": 10,
+              "column": 26
+            },
+            "end": {
+              "offset": 208,
+              "line": 10,
+              "column": 28
+            },
+            "idx": 1
+          },
+          "is": {
+            "type": "ref",
+            "location": {
+              "start": {
+                "offset": 206,
+                "line": 10,
+                "column": 26
+              },
+              "end": {
+                "offset": 208,
+                "line": 10,
+                "column": 28
+              },
+              "idx": 2
+            },
+            "ref": {
+              "type": "builtin",
+              "name": "int"
+            },
+            "typeVbls": []
+          }
+        }
+      },
+      "6580d220": {
+        "meta": {
+          "created": 1
+        },
+        "defn": {
+          "type": "int",
+          "value": 20,
+          "location": {
+            "start": {
+              "offset": 533,
+              "line": 27,
+              "column": 24
+            },
+            "end": {
+              "offset": 535,
+              "line": 27,
+              "column": 26
+            },
+            "idx": 1
+          },
+          "is": {
+            "type": "ref",
+            "location": {
+              "start": {
+                "offset": 533,
+                "line": 27,
+                "column": 24
+              },
+              "end": {
+                "offset": 535,
+                "line": 27,
+                "column": 26
+              },
+              "idx": 2
+            },
+            "ref": {
+              "type": "builtin",
+              "name": "int"
+            },
+            "typeVbls": []
+          }
+        }
+      },
+      "ca849740": {
+        "meta": {
+          "created": 1
+        },
+        "defn": {
+          "type": "int",
+          "value": 310,
+          "location": {
+            "start": {
+              "offset": 794,
+              "line": 37,
+              "column": 27
+            },
+            "end": {
+              "offset": 797,
+              "line": 37,
+              "column": 30
+            },
+            "idx": 1
+          },
+          "is": {
+            "type": "ref",
+            "location": {
+              "start": {
+                "offset": 794,
+                "line": 37,
+                "column": 27
+              },
+              "end": {
+                "offset": 797,
+                "line": 37,
+                "column": 30
+              },
+              "idx": 2
+            },
+            "ref": {
+              "type": "builtin",
+              "name": "int"
+            },
+            "typeVbls": []
+          }
+        }
+      },
+      "2af29f16": {
+        "meta": {
+          "created": 0
+        },
+        "defn": {
+          "type": "Record",
+          "location": {
+            "start": {
+              "offset": 872,
+              "line": 41,
+              "column": 22
+            },
+            "end": {
+              "offset": 958,
+              "line": 41,
+              "column": 108
+            },
+            "idx": 1
+          },
+          "base": {
+            "rows": [
+              {
+                "type": "float",
+                "value": 4,
+                "location": {
+                  "start": {
+                    "offset": 954,
+                    "line": 41,
+                    "column": 104
+                  },
+                  "end": {
+                    "offset": 957,
+                    "line": 41,
+                    "column": 107
+                  },
+                  "idx": 4
+                },
+                "is": {
+                  "type": "ref",
+                  "location": {
+                    "start": {
+                      "offset": 954,
+                      "line": 41,
+                      "column": 104
+                    },
+                    "end": {
+                      "offset": 957,
+                      "line": 41,
+                      "column": 107
+                    },
+                    "idx": 5
+                  },
+                  "ref": {
+                    "type": "builtin",
+                    "name": "float"
+                  },
+                  "typeVbls": []
+                }
+              }
+            ],
+            "ref": {
+              "type": "user",
+              "id": {
+                "hash": "066e15da",
+                "pos": 0,
+                "size": 1
+              }
+            },
+            "type": "Concrete",
+            "spread": null,
+            "location": {
+              "start": {
+                "offset": 872,
+                "line": 41,
+                "column": 22
+              },
+              "end": {
+                "offset": 891,
+                "line": 41,
+                "column": 41
+              },
+              "idx": 2
+            }
+          },
+          "is": {
+            "type": "ref",
+            "ref": {
+              "type": "user",
+              "id": {
+                "hash": "066e15da",
+                "pos": 0,
+                "size": 1
+              }
+            },
+            "location": {
+              "start": {
+                "offset": 872,
+                "line": 41,
+                "column": 22
+              },
+              "end": {
+                "offset": 891,
+                "line": 41,
+                "column": 41
+              },
+              "idx": 3
+            },
+            "typeVbls": []
+          },
+          "subTypes": {
+            "28794e80": {
+              "covered": false,
+              "spread": null,
+              "rows": [
+                {
+                  "type": "int",
+                  "value": 2,
+                  "location": {
+                    "start": {
+                      "offset": 908,
+                      "line": 41,
+                      "column": 58
+                    },
+                    "end": {
+                      "offset": 909,
+                      "line": 41,
+                      "column": 59
+                    },
+                    "idx": 6
+                  },
+                  "is": {
+                    "type": "ref",
+                    "location": {
+                      "start": {
+                        "offset": 908,
+                        "line": 41,
+                        "column": 58
+                      },
+                      "end": {
+                        "offset": 909,
+                        "line": 41,
+                        "column": 59
+                      },
+                      "idx": 7
+                    },
+                    "ref": {
+                      "type": "builtin",
+                      "name": "int"
+                    },
+                    "typeVbls": []
+                  }
+                },
+                {
+                  "type": "string",
+                  "text": "three",
+                  "location": {
+                    "start": {
+                      "offset": 927,
+                      "line": 41,
+                      "column": 77
+                    },
+                    "end": {
+                      "offset": 934,
+                      "line": 41,
+                      "column": 84
+                    },
+                    "idx": 8
+                  },
+                  "is": {
+                    "type": "ref",
+                    "ref": {
+                      "type": "builtin",
+                      "name": "string"
+                    },
+                    "location": {
+                      "source": "<builtin>",
+                      "idx": 9
+                    },
+                    "typeVbls": []
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "2bebdaee": {
+        "meta": {
+          "created": 1,
+          "basedOn": {
+            "hash": "6580d220",
+            "size": 1,
+            "pos": 0
+          },
+          "supercedes": {
+            "hash": "6580d220",
+            "size": 1,
+            "pos": 0
+          }
+        },
+        "defn": {
+          "type": "int",
+          "value": 30,
+          "location": {
+            "start": {
+              "offset": 1091,
+              "line": 47,
+              "column": 24
+            },
+            "end": {
+              "offset": 1093,
+              "line": 47,
+              "column": 26
+            },
+            "idx": 1
+          },
+          "is": {
+            "type": "ref",
+            "location": {
+              "start": {
+                "offset": 1091,
+                "line": 47,
+                "column": 24
+              },
+              "end": {
+                "offset": 1093,
+                "line": 47,
+                "column": 26
+              },
+              "idx": 2
+            },
+            "ref": {
+              "type": "builtin",
+              "name": "int"
+            },
+            "typeVbls": []
+          }
+        }
+      },
+      "23e1789e": {
+        "meta": {
+          "created": 1
+        },
+        "defn": {
+          "type": "int",
+          "value": 210,
+          "location": {
+            "start": {
+              "offset": 1151,
+              "line": 51,
+              "column": 27
+            },
+            "end": {
+              "offset": 1154,
+              "line": 51,
+              "column": 30
+            },
+            "idx": 1
+          },
+          "is": {
+            "type": "ref",
+            "location": {
+              "start": {
+                "offset": 1151,
+                "line": 51,
+                "column": 27
+              },
+              "end": {
+                "offset": 1154,
+                "line": 51,
+                "column": 30
+              },
+              "idx": 2
+            },
+            "ref": {
+              "type": "builtin",
+              "name": "int"
+            },
+            "typeVbls": []
+          }
+        }
+      },
+      "1199f022": {
+        "meta": {
+          "created": 1
+        },
+        "defn": {
+          "type": "int",
+          "value": 410,
+          "location": {
+            "start": {
+              "offset": 1212,
+              "line": 55,
+              "column": 27
+            },
+            "end": {
+              "offset": 1215,
+              "line": 55,
+              "column": 30
+            },
+            "idx": 1
+          },
+          "is": {
+            "type": "ref",
+            "location": {
+              "start": {
+                "offset": 1212,
+                "line": 55,
+                "column": 27
+              },
+              "end": {
+                "offset": 1215,
+                "line": 55,
+                "column": 30
+              },
+              "idx": 2
+            },
+            "ref": {
+              "type": "builtin",
+              "name": "int"
+            },
+            "typeVbls": []
+          }
+        }
+      }
+    },
+    "names": {
+      "awesome": [
+        {
+          "hash": "6e9352f2",
+          "size": 1,
+          "pos": 0
+        }
+      ],
+      "thing": [
+        {
+          "hash": "2bebdaee",
+          "size": 1,
+          "pos": 0
+        },
+        {
+          "hash": "6580d220",
+          "size": 1,
+          "pos": 0
+        }
+      ],
+      "awesome3": [
+        {
+          "hash": "ca849740",
+          "size": 1,
+          "pos": 0
+        }
+      ],
+      "yes": [
+        {
+          "hash": "2af29f16",
+          "size": 1,
+          "pos": 0
+        }
+      ],
+      "awesome2": [
+        {
+          "hash": "23e1789e",
+          "size": 1,
+          "pos": 0
+        }
+      ],
+      "awesome4": [
+        {
+          "hash": "1199f022",
+          "size": 1,
+          "pos": 0
+        }
+      ]
+    }
+  },
+  "effects": {
+    "defns": {
+      "35f4b478": {
+        "meta": {
+          "created": 1
+        },
+        "defn": {
+          "constrs": [
+            {
+              "args": [
+                {
+                  "type": "ref",
+                  "ref": {
+                    "type": "builtin",
+                    "name": "string"
+                  },
+                  "location": {
+                    "start": {
+                      "offset": 284,
+                      "line": 15,
+                      "column": 13
+                    },
+                    "end": {
+                      "offset": 298,
+                      "line": 15,
+                      "column": 27
+                    },
+                    "idx": 37
+                  },
+                  "typeVbls": []
+                }
+              ],
+              "ret": {
+                "type": "ref",
+                "ref": {
+                  "type": "builtin",
+                  "name": "void"
+                },
+                "location": {
+                  "start": {
+                    "offset": 303,
+                    "line": 15,
+                    "column": 32
+                  },
+                  "end": {
+                    "offset": 315,
+                    "line": 15,
+                    "column": 44
+                  },
+                  "idx": 40
+                },
+                "typeVbls": []
+              }
+            }
+          ],
+          "location": {
+            "start": {
+              "line": 1,
+              "column": 0,
+              "offset": 0
+            },
+            "end": {
+              "line": 1,
+              "column": 0,
+              "offset": 0
+            },
+            "source": "<generated>",
+            "idx": 0
+          },
+          "type": "EffectDef"
+        }
+      }
+    },
+    "names": {
+      "Print": [
+        {
+          "hash": "35f4b478",
+          "size": 1,
+          "pos": 0
+        }
+      ]
+    },
+    "constructors": {
+      "names": {
+        "Print.print": [
+          {
+            "id": {
+              "hash": "35f4b478",
+              "size": 1,
+              "pos": 0
+            },
+            "idx": 0
+          }
+        ]
+      },
+      "idToNames": {
+        "35f4b478": [
+          "print"
+        ]
+      }
+    }
+  },
+  "decorators": {
+    "defns": {},
+    "names": {}
+  }
+}

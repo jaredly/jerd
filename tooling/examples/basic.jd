@@ -1,0 +1,48 @@
+
+@createdAt#builtin(1)
+effect Print {
+	print: (string) => void,
+};
+
+@createdAt#builtin(1)
+const awesome = 10;
+
+@createdAt#builtin(1)
+const awesome2 = 210;
+
+@createdAt#builtin(1)
+const awesome3 = 310;
+
+@createdAt#builtin(1)
+const awesome4 = 410;
+
+@createdAt#builtin(1)
+type What = {
+	what: () ={Print}> int = () ={Print}> awesome,
+};
+
+@createdAt#builtin(2)
+type Something = {
+	one: int,
+	two: string = "yes"
+}
+
+@createdAt#builtin(3)
+type OtherThing = {
+	...Something,
+	three: float,
+}
+
+@createdAt#builtin(0)
+const yes = OtherThing{
+	one: 2,
+	two: "three",
+	three: 4.0,
+}
+
+@createdAt#builtin(1)
+const thing = 20;
+
+@createdAt#builtin(1)
+@supercedes#builtin(thing)
+const thing = 30;

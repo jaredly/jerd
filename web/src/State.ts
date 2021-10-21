@@ -1,12 +1,16 @@
 // Type definitions for state
 
-import { Env, Id, Term, Type } from '@jerd/language/src/typing/types';
 import {
+    Env,
+    Id,
+    Term,
+    Type,
+    ToplevelDefine,
     ToplevelEffect,
     ToplevelEnum,
     ToplevelExpression,
     ToplevelRecord,
-} from '../../language/src/typing/env';
+} from '@jerd/language/src/typing/types';
 import { Traces } from './eval';
 
 // hmm so I want
@@ -18,7 +22,7 @@ export type TopContent =
     | {
           type: 'term';
           id: Id;
-          proposed?: null | ToplevelExpression;
+          proposed?: null | ToplevelDefine | ToplevelExpression;
           tests?: true | Array<Id>;
       }
     | { type: 'record'; id: Id; proposed?: null | ToplevelRecord }
@@ -27,6 +31,11 @@ export type TopContent =
 
 export type Content = TopContent | RawContent;
 export type RawContent = { type: 'raw'; text: string };
+// | { type: 'markdown'; text: string };
+
+export const getTopContent = (content: Content): null | TopContent =>
+    content.type === 'raw' ? null : content;
+// || content.type === 'markdown'
 
 export type Cell = {
     id: string;
@@ -70,4 +79,59 @@ export type EvalEnv = {
     terms: { [hash: string]: any };
     executionLimit: { ticks: number; maxTime: number; enabled: boolean };
     traceObj: Traces;
+};
+
+// import { Env, Id } from '@jerd/language/src/typing/types';
+// import { Cell, Display, EvalEnv } from './State';
+
+// Yea
+
+export type HistoryUpdate = {
+    type: 'update';
+    cellId: string;
+    fromId: Id;
+    toId: Id;
+};
+export type HistoryItem =
+    | HistoryUpdate
+    | {
+          type: 'pin';
+          cellId: string;
+          id: string;
+      }; // etc. TODO fill in if I have ideas
+
+export type Workspace = {
+    name: string;
+    cells: { [key: string]: Cell };
+    // TODO: add a history to each pin
+    pins: Array<{ display: Display; id: Id }>;
+    archivedPins: Array<{ display: Display; id: Id }>;
+    currentPin: number;
+    order: number;
+    history: Array<HistoryItem>;
+};
+// TODO: This should just be taken care of by indexeddb
+
+export type Index = {
+    // Things that the key references
+    from: { [key: string]: Array<Id> };
+    // Things that reference the key
+    to: { [key: string]: Array<Id> };
+};
+export type Indices = {
+    termsToTerms: Index;
+    termsToTypes: Index;
+    typesToTypes: Index;
+};
+
+export type State = {
+    version: number;
+    env: Env;
+    // terms to terms
+    // terms to types and types to types
+    // [srcId, srcKind term/type, destId, destKind term/type]
+    index: Indices;
+    activeWorkspace: string;
+    workspaces: { [key: string]: Workspace };
+    evalEnv: EvalEnv;
 };
