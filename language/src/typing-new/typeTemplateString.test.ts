@@ -50,7 +50,12 @@ describe('typeTemplateString', () => {
         expect(res.is).toEqualType(preset.string, ctx);
         expect(res.type).toEqual('TemplateString');
         expect(res).toNotHaveErrors(ctx);
-        expect(termToString(ctx, res)).toEqual(`"he\$#${idName(id)}{10}lo"`);
+        expect(termToString(ctx, res)).toEqual(`"he$#${idName(id)}{10}lo"`);
+        res = parseExpression(ctx, `"he$#${idName(id)}{10}lo"`);
+        expect(res.is).toEqualType(preset.string, ctx);
+        expect(res.type).toEqual('TemplateString');
+        expect(res).toNotHaveErrors(ctx);
+        expect(termToString(ctx, res)).toEqual(`"he$#${idName(id)}{10}lo"`);
     });
 
     it(`builtin as?`, () => {

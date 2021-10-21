@@ -295,6 +295,86 @@ describe('typeRecord', () => {
         );
     });
 
+    it(`if inner attr disagrees with outer, use the name`, () => {
+        const ctx = newContext();
+
+        let id;
+        [ctx.library, id] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.int]),
+            'Hello',
+            ['hello'],
+        );
+
+        let id2;
+        [ctx.library, id2] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.float]),
+            'Hello',
+            ['what'],
+        );
+
+        const res = parseExpression(
+            ctx,
+            `Hello#${idName(id)}{hello#${idName(id2)}: 10}`,
+        );
+        expect(ctx.warnings).toHaveLength(0);
+        expect(res.is).toEqualType(preset.refType(id), ctx);
+        expect(res).toNotHaveErrors(ctx);
+        expect(termToString(ctx, res)).toEqual(
+            `Hello#${idName(id)}{hello#${idName(id)}#0: 10}`,
+        );
+    });
+
+    it.only('name shadow between outer and inner', () => {
+        const ctx = newContext();
+        ctx.builtins.types.int = 0;
+        ctx.builtins.types.float = 0;
+
+        let vec2;
+        [ctx.library, vec2] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.float, preset.float]),
+            'Vec2',
+            ['x', 'y'],
+        );
+        let vec3;
+        [ctx.library, vec3] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.float], [preset.refType(vec2)]),
+            'Vec3',
+            ['x'],
+        );
+
+        let res = parseExpression(
+            ctx,
+            `Vec3{x#${idName(vec2)}#0: 1.0, y: 2.0, x#${idName(vec3)}#0: 3.0}`,
+        );
+        expect(ctx.warnings).toHaveLength(0);
+        expect(res.is).toEqualType(preset.refType(vec3), ctx);
+        expect(termToString(ctx, res)).toEqual(
+            `Vec3#${idName(vec3)}{x#${idName(vec2)}#0: 1.0, y#${idName(
+                vec2,
+            )}#1: 2.0, x#${idName(vec3)}#0: 3.0}`,
+        );
+        expect(res).toNotHaveErrors(ctx);
+
+        //         res = parseExpression(
+        //             ctx,
+        //             `Vec3{...Vec2{x: 1.0, y: 4.0}, y: 2.0, z: 3.0}`,
+        //         );
+        //         expect(ctx.warnings).toHaveLength(0);
+        //         expect(res.is).toEqualType(preset.refType(vec3), ctx);
+        //         expect(res).toNotHaveErrors(ctx);
+        //         expect(termToString(ctx, res)).toEqual(
+        //             `Vec3#${idName(vec3)}{
+        //     ...Vec2#${idName(vec2)}{x#${idName(vec2)}#0: 1.0, y#${idName(vec2)}#1: 4.0},
+        //     y#${idName(vec2)}#1: 2.0,
+        //     z#${idName(vec3)}#0: 3.0,
+        // }`,
+        //         );
+    });
+
     it('lets do a complicated record', () => {
         const ctx = newContext();
         ctx.builtins.types.int = 0;

@@ -7,7 +7,7 @@ import {
     String,
 } from '../parsing/parser-new';
 import { transformTerm } from '../typing/auto-transform';
-import { idName } from '../typing/env';
+import { idFromName, idName } from '../typing/env';
 import { void_ } from '../typing/preset';
 import {
     Id,
@@ -24,9 +24,10 @@ import {
     ErrorTerm,
     isErrorTerm,
     typesEqual,
+    idsEqual,
 } from '../typing/types';
 import { Context, TypeBinding } from './Context';
-import { IdOrSym, parseIdOrSym } from './hashes';
+import { IdOrSym, parseAttrHash, parseIdOrSym, parseOpHash } from './hashes';
 import { Library } from './Library';
 import { applyTypeVariablesToRecord } from './ops';
 import { termToString } from './test-utils';
@@ -214,14 +215,40 @@ export const typeConcreteRecord = (
     );
     const baseRows: Array<Term | null> = defn.items.map((_) => null);
 
+    // Also, we need to enumerate the possible subtypes
+    const subTypeIds = getAllSubTypes(
+        ctx.library,
+        (ctx.library.types.defns[idName(id)].defn as RecordDef).extends.map(
+            (t) => t.ref.id,
+        ),
+    );
+
     let rows =
         record.rows?.items.filter((row, i) => {
             if (row.type === 'RecordLiteralSpread') {
                 return true;
             }
-            const attrName = parseIdTextOrString(row.id.text);
-            const idx = attrName === '_' ? i : baseNames.indexOf(attrName);
-            if (idx !== -1) {
+            let idx = null;
+            const hash = row.id.hash
+                ? parseAttrHash(row.id.hash.slice(1))
+                : null;
+            if (hash) {
+                // This belongs to a subType, ignore
+                if (subTypeIds.find((id) => idsEqual(id, hash.type))) {
+                    return true;
+                }
+                if (idsEqual(hash.type, id) && hash.attr < baseRows.length) {
+                    idx = hash.attr;
+                }
+            }
+            if (idx == null) {
+                const attrName = parseIdTextOrString(row.id.text);
+                idx = attrName === '_' ? i : baseNames.indexOf(attrName);
+            }
+            if (idx !== -1 && idx < baseRows.length) {
+                if (baseRows[idx] != null) {
+                    return true;
+                }
                 baseRows[idx] = typeExpression(ctx, row.value, [
                     defn.items[idx],
                 ]);
@@ -230,14 +257,6 @@ export const typeConcreteRecord = (
             return true;
         }) || [];
     const spread = findSpread(ctx, goalType, record, rows);
-
-    // Also, we need to enumerate the possible subtypes
-    const subTypeIds = getAllSubTypes(
-        ctx.library,
-        (ctx.library.types.defns[idName(id)].defn as RecordDef).extends.map(
-            (t) => t.ref.id,
-        ),
-    );
 
     const baseDefaults: { [key: string]: boolean } = {};
     if (defn.defaults) {
@@ -533,8 +552,8 @@ function processAttributeFolks(
     subTypes: SubTypes,
     subTypeTypes: { [id: string]: RecordDef },
 ): null | UnusedAttribute {
-    let id: Id;
-    let i: number;
+    let id: Id | null = null;
+    let i: number = 0;
     const attrName = parseIdTextOrString(row.id.text);
     // This should already have ... been ... taken care of? I think? yeah.
     if (attrName === '_') {
@@ -544,16 +563,35 @@ function processAttributeFolks(
             value: typeExpression(ctx, row.value, []),
         };
     }
-    if (!names[attrName]) {
-        return {
-            ref: { type: 'unknown', text: attrName },
-            value: typeExpression(ctx, row.value, []),
-            idx: 0,
-        };
+    const hash = row.id.hash ? parseAttrHash(row.id.hash.slice(1)) : null;
+    if (hash) {
+        id = hash.type;
+        i = hash.attr;
+        // Invalid id
+        if (!subTypes[idName(id)] || i >= subTypes[idName(id)].rows.length) {
+            ctx.warnings.push({
+                location: row.location,
+                text: `Invalid attribute hash ${
+                    row.id.hash
+                }. Expected one of ${Object.keys(subTypes).join(', ')}`,
+            });
+            id = null;
+            i = 0;
+        }
     }
-    const got = names[attrName];
-    i = got.i;
-    id = got.id;
+
+    if (id == null) {
+        if (!names[attrName]) {
+            return {
+                ref: { type: 'unknown', text: attrName },
+                value: typeExpression(ctx, row.value, []),
+                idx: 0,
+            };
+        }
+        const got = names[attrName];
+        i = got.i;
+        id = got.id;
+    }
 
     let rowsToMod =
         // id == null && base.type === 'Concrete'

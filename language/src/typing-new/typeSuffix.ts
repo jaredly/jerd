@@ -16,6 +16,8 @@ export const typeSuffix = (
             return typeApply(ctx, suffix, inner, expected);
             // suffix.
         }
+        case 'AsSuffix': {
+        }
     }
     throw new Error(`nope suffixed ${suffix.type}`);
 };
