@@ -1,4 +1,9 @@
 
+## Syntax evolution
+
+Before I make any breaking printer changes, I need to capture & retain comments.
+Then I can be confident doing a `jd-to-json` en masse, in prepartion for syntax changes.
+
 ## New Typing
 
 - [x] int/float/bool

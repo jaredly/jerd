@@ -83,16 +83,22 @@ export const showTypeErrors = (ctx: Context, res: Type) => {
         .join('\n');
 };
 
-export const parseToplevels = (ctx: Context, raw: string): Library => {
+export const parseToplevels = (
+    ctx: Context,
+    raw: string,
+): [Library, Array<Id>] => {
     let library = ctx.library;
     const parsed = parseTyped(raw);
+    const ids: Array<Id> = [];
     parsed.tops!.items.forEach(({ top }) => {
         const typed = typeToplevel({ ...ctx, library }, top);
         if (typed) {
-            [library] = addToplevel(library, typed);
+            let id;
+            [library, id] = addToplevel(library, typed);
+            ids.push(id);
         }
     });
-    return library;
+    return [library, ids];
 };
 
 export const parseExpression = (
@@ -252,7 +258,7 @@ export const newContext = (): Context => ({
     idRemap: {},
     builtins: {
         terms: {},
-        types: {},
+        types: { int: 0, float: 0, string: 0 },
         decorators: {},
         ops: { unary: {}, binary: {} },
     },

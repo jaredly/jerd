@@ -11,6 +11,7 @@ import { typeRaise } from './typeRaise';
 import { typeSuffix } from './typeSuffix';
 import { typeRecord } from './typeRecord';
 import { typeUnary } from './typeUnary';
+import { typeTemplateString } from './typeTemplateString';
 
 export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
     if (expected.length && !expected.some((t) => typesEqual(t, term.is))) {
@@ -163,6 +164,8 @@ export const typeExpression = (
                 },
                 expected,
             );
+        case 'TemplateString':
+            return typeTemplateString(ctx, term, expected);
         default:
             let _x: never = term;
     }

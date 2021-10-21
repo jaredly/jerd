@@ -18,7 +18,7 @@ expect.addSnapshotSerializer(rawSnapshotSerializer);
 expect.addSnapshotSerializer(errorSerilaizer);
 expect.addSnapshotSerializer(warningsSerializer);
 
-describe('typeRecord', () => {
+describe('typeUnary', () => {
     it(`missing`, () => {
         const ctx = newContext();
         let res = parseExpression(ctx, `-5`, [preset.string]);
