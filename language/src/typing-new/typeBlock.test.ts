@@ -148,10 +148,9 @@ describe('typeBlock', () => {
             ctx,
             `{ const a: int = 10; const x: float = a; x }`,
         );
-        expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(`
-Expected [Not Found: int], found int#builtin : 10 at 1:18-1:20
-Expected float#builtin, found [Not Found: int] : a#:1 at 1:39-1:40
-`);
+        expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
+            `Expected float#builtin, found int#builtin : a#:1 at 1:39-1:40`,
+        );
         expect(res.is).toEqualType(preset.float, ctx);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(`

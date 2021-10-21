@@ -297,12 +297,12 @@ describe('typeType', () => {
 
         it('basic missing id', () => {
             const ctx = newContext();
-            const res = parseType(ctx, 'int');
+            const res = parseType(ctx, 'what');
             expect(typeToString(ctx, res)).toMatchInlineSnapshot(
-                `[Not Found: int]`,
+                `[Not Found: what]`,
             );
             expect(showTypeErrors(ctx, res)).toMatchInlineSnapshot(
-                `[Not Found: int] at 1:10-1:13`,
+                `[Not Found: what] at 1:10-1:14`,
             );
         });
     });
