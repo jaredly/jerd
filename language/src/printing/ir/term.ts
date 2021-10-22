@@ -591,6 +591,7 @@ const _printTerm = (env: Env, opts: OutputOptions, term: Term): Expr => {
         case 'NotFound':
         case 'InvalidApplication':
         case 'InvalidRecordAttributes':
+        case 'InvalidAttribute':
         case 'TypeError':
             console.log(term);
             throw new LocatedError(

@@ -192,6 +192,7 @@ export const typeExpression = (
         case 'EnumLiteral':
             return typeEnum(ctx, term, expected);
         case 'Decorated':
+            break;
         default:
             let _x: never = term;
     }

@@ -767,6 +767,7 @@ export const termDependencies = (term: Term): Array<Reference> => {
         case 'self':
         case 'TemplateString':
         case 'InvalidApplication':
+        case 'InvalidAttribute':
         case 'InvalidRecordAttributes':
         case 'Hole':
         case 'NotFound':
