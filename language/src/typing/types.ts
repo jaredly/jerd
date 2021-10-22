@@ -1408,6 +1408,7 @@ export const getEffects = (t: Term | Let): Array<EffectRef> => {
         case 'NotFound':
         case 'InvalidApplication':
         case 'InvalidRecordAttributes':
+        case 'InvalidAttribute':
         case 'Hole':
             return [];
         case 'handle':
@@ -1585,6 +1586,7 @@ export const walkTerm = (
         case 'NotFound':
         case 'InvalidApplication':
         case 'InvalidRecordAttributes':
+        case 'InvalidAttribute':
         case 'Hole':
             return;
         case 'TemplateString':

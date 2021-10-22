@@ -135,15 +135,7 @@ export const typeVariableRecord = (
     const spread = findSpread(ctx, goalType, record, rows);
 
     // Also, we need to enumerate the possible subtypes
-    const subTypeIds = binding.subTypes.concat(
-        ...binding.subTypes.map((id) =>
-            getAllSubTypes(
-                ctx.library,
-                (ctx.library.types.defns[idName(id)]
-                    .defn as RecordDef).extends.map((t) => t.ref.id),
-            ),
-        ),
-    );
+    const subTypeIds = subTypesForBinding(binding, ctx);
     const { subTypes, unusedAttributes, unusedSpreads } = calculateSubTypes(
         ctx,
         subTypeIds,
@@ -197,18 +189,23 @@ export const typeConcreteRecord = (
     const typeVbls =
         record.typeVbls?.inner.items.map((item) => typeType(ctx, item)) || [];
 
+    let defn = ctx.library.types.defns[idName(id)].defn as RecordDef;
+
     const goalType: UserTypeReference = {
         type: 'ref',
         ref: { type: 'user', id },
-        typeVbls,
+        typeVbls: defn.typeVbls.map((_, i) =>
+            i >= typeVbls.length
+                ? { type: 'THole', location: record.location }
+                : typeVbls[i],
+        ),
         location: record.id.location,
     };
 
-    let defn = ctx.library.types.defns[idName(id)].defn as RecordDef;
     defn = applyTypeVariablesToRecord(
         ctx,
         defn,
-        typeVbls,
+        goalType.typeVbls,
         [],
         record.location,
         '',
@@ -543,6 +540,18 @@ const calculateSubTypes = (
 
 export const parseIdTextOrString = (id: IdTextOrString) =>
     typeof id === 'string' ? id : parseString(id);
+
+export function subTypesForBinding(binding: TypeBinding, ctx: Context) {
+    return binding.subTypes.concat(
+        ...binding.subTypes.map((id) =>
+            getAllSubTypes(
+                ctx.library,
+                (ctx.library.types.defns[idName(id)]
+                    .defn as RecordDef).extends.map((t) => t.ref.id),
+            ),
+        ),
+    );
+}
 
 // NOTE: This is only for non-base things
 function processAttributeFolks(

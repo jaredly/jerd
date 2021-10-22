@@ -1,11 +1,15 @@
 import { AttributeSuffix, BinOp, Expectation } from '../parsing/parser-new';
 import { idName } from '../typing/env';
 import { void_ } from '../typing/preset';
-import { idsEqual, RecordDef, Term, Type } from '../typing/types';
+import { Id, idsEqual, RecordDef, Term, Type } from '../typing/types';
 import { Context } from './Context';
 import { parseAttrHash } from './hashes';
 import { typeExpression, wrapExpected } from './typeExpression';
-import { parseIdTextOrString } from './typeRecord';
+import {
+    getAllSubTypes,
+    parseIdTextOrString,
+    subTypesForBinding,
+} from './typeRecord';
 
 export const typeAttribute = (
     ctx: Context,
@@ -65,7 +69,22 @@ export const typeAttribute = (
     // TODO: um
     // need to be able to not specify the variables here again.
     const typed = typeExpression(ctx, inner, []);
-    if (typed.is.type !== 'ref' || typed.is.ref.type !== 'user') {
+    let ids: Array<Id> = [];
+    if (typed.is.type === 'var') {
+        const s = typed.is.sym.unique;
+        const binding = ctx.bindings.types.find((t) => t.sym.unique === s);
+        if (binding) {
+            ids = subTypesForBinding(binding, ctx);
+        } else {
+            return {
+                type: 'InvalidAttribute',
+                is: expected.length ? expected[0] : void_,
+                text: attrName,
+                inner: typed,
+                location: attribute.location,
+            };
+        }
+    } else if (typed.is.type !== 'ref' || typed.is.ref.type !== 'user') {
         // OK FOLKS
         // yeah we really need an `InvalidAttribute`
         return {
@@ -75,11 +94,21 @@ export const typeAttribute = (
             inner: typed,
             location: attribute.location,
         };
+    } else {
+        let id = typed.is.ref.id;
+        ids = [id].concat(
+            getAllSubTypes(
+                ctx.library,
+                (ctx.library.types.defns[idName(id)]
+                    .defn as RecordDef).extends.map((t) => t.ref.id),
+            ),
+        );
     }
-    const tid = typed.is.ref.id;
+
+    // const tid = typed.is.ref.id;
 
     for (let option of options) {
-        if (idsEqual(option.id, tid)) {
+        if (ids.some((id) => idsEqual(option.id, id))) {
             const defn = ctx.library.types.defns[idName(option.id)]
                 .defn as RecordDef;
             return wrapExpected(
@@ -90,7 +119,7 @@ export const typeAttribute = (
                     inferred: false,
                     is: defn.items[option.idx],
                     location: attribute.location,
-                    ref: typed.is.ref,
+                    ref: { type: 'user', id: option.id },
                     target: typed,
                 },
                 expected,

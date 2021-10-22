@@ -12,6 +12,7 @@ import { typeSuffix } from './typeSuffix';
 import { typeRecord } from './typeRecord';
 import { typeUnary } from './typeUnary';
 import { typeTemplateString } from './typeTemplateString';
+import { typeEnum } from './typeEnum';
 
 export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
     if (expected.length && !expected.some((t) => typesEqual(t, term.is))) {
@@ -166,6 +167,31 @@ export const typeExpression = (
             );
         case 'TemplateString':
             return typeTemplateString(ctx, term, expected);
+        case 'If': {
+            const cond = typeExpression(ctx, term.cond, [preset.bool]);
+            const yes = typeExpression(ctx, term.yes, expected);
+            const no = term.no
+                ? typeExpression(
+                      ctx,
+                      term.no.type === 'IfElse' ? term.no.v : term.no,
+                      [yes.is],
+                  )
+                : term.no;
+            return {
+                type: 'if',
+                cond,
+                is: yes.is,
+                location: term.location,
+                no,
+                yes,
+            };
+        }
+        case 'Handle':
+        case 'Switch':
+            break;
+        case 'EnumLiteral':
+            return typeEnum(ctx, term, expected);
+        case 'Decorated':
         default:
             let _x: never = term;
     }

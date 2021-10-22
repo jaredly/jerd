@@ -19,7 +19,7 @@ expect.addSnapshotSerializer(rawSnapshotSerializer);
 expect.addSnapshotSerializer(errorSerilaizer);
 expect.addSnapshotSerializer(warningsSerializer);
 
-describe('typeRecord', () => {
+describe('typeAttribute', () => {
     it(`let's try something simple`, () => {
         const ctx = newContext();
 
@@ -52,6 +52,24 @@ describe('typeRecord', () => {
         );
         expect(res.is).toEqualType(preset.int, ctx);
         expect(res).toNotHaveErrors(ctx);
+    });
+
+    it(`type vbl`, () => {
+        const ctx = newContext();
+
+        let id;
+        [ctx.library, id] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.int]),
+            'Hello',
+            ['hello'],
+        );
+
+        let res = parseExpression(ctx, `<T: Hello>(m: T) => m.hello`);
+        expect(res).toNotHaveErrors(ctx);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `<T#:2: Hello#688af3e6>(m#:3: T#:2): int#builtin ={}> m#:3.hello#688af3e6#0`,
+        );
     });
 
     it(`some errors`, () => {

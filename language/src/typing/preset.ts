@@ -22,6 +22,8 @@ import {
     RecordSubType,
     Lambda,
     UserTypeReference,
+    EnumDef,
+    TypeVar,
 } from './types';
 
 export const builtinLocation: Location = {
@@ -45,6 +47,12 @@ export const builtinType = (
     location: builtinLocation,
     typeVbls,
     // effectVbls: [],
+});
+
+export const varType = (sym: Symbol): TypeVar => ({
+    type: 'var',
+    sym,
+    location: builtinLocation,
 });
 
 export const refType = (
@@ -114,6 +122,20 @@ export const pureFunction = (
         location: builtinLocation,
     };
 };
+
+export const enumDefn = (
+    items: Array<UserTypeReference>,
+    typeVbls: Array<TypeVblDecl> = [],
+    location: Location = nullLocation,
+    unique: number = 0,
+): EnumDef => ({
+    type: 'Enum',
+    effectVbls: [],
+    extends: [],
+    items,
+    location,
+    typeVbls,
+});
 
 export const recordDefn = (
     items: Array<Type>,

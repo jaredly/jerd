@@ -221,6 +221,35 @@ export const addEffect = (
     ];
 };
 
+export const addEnum = (
+    lib: Library,
+    enu: EnumDef,
+    name: string,
+): [Library, Id] => {
+    const id = idFromName(hashObject(enu));
+    if (lib.types.defns[idName(id)] != null) {
+        console.warn(`Redefining record!`);
+    }
+    const meta: MetaData = { created: Date.now() };
+    return [
+        {
+            ...lib,
+            types: {
+                ...lib.types,
+                defns: {
+                    ...lib.types.defns,
+                    [idName(id)]: { defn: enu, meta },
+                },
+                names: {
+                    ...lib.types.names,
+                    [name]: [id].concat(lib.types.names[name] || []),
+                },
+            },
+        },
+        id,
+    ];
+};
+
 export const addRecord = (
     lib: Library,
     record: RecordDef,
