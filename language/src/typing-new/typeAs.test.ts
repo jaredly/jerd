@@ -54,5 +54,16 @@ describe('typeTemplateString', () => {
         let res = parseExpression(ctx, `"hello" as int`);
         expect(res.is).toEqualType(preset.int, ctx);
         expect(termToString(ctx, res)).toEqual(`as#${idName(id)}(v: "hello")`);
+
+        res = parseExpression(ctx, `"hello" as#${idName(id)} int`);
+        expect(res.is).toEqualType(preset.int, ctx);
+        expect(termToString(ctx, res)).toEqual(`as#${idName(id)}(v: "hello")`);
+
+        res = parseExpression(ctx, `"hello" as#hello int`);
+        expect(res.is).toEqualType(preset.int, ctx);
+        expect(ctx.warnings).toMatchInlineSnapshot(
+            `1:8-1:21: Invalid hash #hello`,
+        );
+        expect(termToString(ctx, res)).toEqual(`as#${idName(id)}(v: "hello")`);
     });
 });

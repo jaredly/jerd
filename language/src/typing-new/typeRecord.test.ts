@@ -326,7 +326,7 @@ describe('typeRecord', () => {
         );
     });
 
-    it.only('name shadow between outer and inner', () => {
+    it('name shadow between outer and inner', () => {
         const ctx = newContext();
         ctx.builtins.types.int = 0;
         ctx.builtins.types.float = 0;

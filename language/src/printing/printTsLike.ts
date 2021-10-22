@@ -1092,6 +1092,12 @@ export const _termToPretty = (env: Env, term: Term): PP => {
             ]);
         case 'NotFound':
             return atom('NOTFOND(' + term.text + ')');
+        case 'InvalidAttribute':
+            return items([
+                termToPretty(env, term.inner),
+                atom('.'),
+                atom(term.text),
+            ]);
         default:
             let _x: never = term;
             return atom(

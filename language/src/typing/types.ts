@@ -774,6 +774,22 @@ export type UnusedAttribute = {
     value: Term;
 };
 
+// uh
+// at this point
+// I'm like, should this be just sugar for function application?
+// and I think not. tbh.
+// because there's more cool things you can do
+// I mean, there's also nice things you can do
+// if they're just function ... 🤔.
+export type InvalidAttribute = {
+    type: 'InvalidAttribute';
+    is: Type;
+    location: Location;
+    decorators?: Decorators;
+    text: string;
+    inner: Term;
+};
+
 export type InvalidRecordAttributes = {
     type: 'InvalidRecordAttributes';
     is: Type;
@@ -815,6 +831,7 @@ export type ErrorTerm =
     | NotFound
     | TermHole
     | InvalidRecordAttributes
+    | InvalidAttribute
     | InvalidApplication;
 
 export const isErrorTerm = (type: Term) => {
@@ -824,6 +841,7 @@ export const isErrorTerm = (type: Term) => {
         case 'TypeError':
         case 'Ambiguous':
         case 'InvalidApplication':
+        case 'InvalidAttribute':
         case 'InvalidRecordAttributes':
             return true;
     }
