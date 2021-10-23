@@ -1265,7 +1265,12 @@ export const patternToPretty = (env: Env, pattern: Pattern): PP => {
                             ? [
                                   items([
                                       atom('...'),
-                                      patternToPretty(env, pattern.spread),
+                                      pattern.spread.type === 'Ignore'
+                                          ? null
+                                          : patternToPretty(
+                                                env,
+                                                pattern.spread,
+                                            ),
                                   ]),
                               ]
                             : [],

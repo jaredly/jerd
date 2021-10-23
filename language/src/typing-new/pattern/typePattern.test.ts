@@ -79,4 +79,24 @@ describe('typePattern', () => {
         expect(bindings.map((b) => b.sym)).toEqual([{ unique: 1, name: 'a' }]);
         expect(res).toNotHaveErrorsP(ctx);
     });
+
+    it('array stuff?', () => {
+        const ctx = newContext();
+        const t = preset.builtinType('Array', [preset.int]);
+
+        let res = parsePattern(ctx, '[]', [], t);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(patternToString(ctx, res)).toEqual(`[]`);
+        expect(res).toNotHaveErrorsP(ctx);
+
+        res = parsePattern(ctx, '[a, ..., 2]', [], t);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(patternToString(ctx, res)).toEqual(`[a#:1, ..., 2]`);
+        expect(res).toNotHaveErrorsP(ctx);
+
+        res = parsePattern(ctx, '[a, b, 23, ...]', [], t);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(patternToString(ctx, res)).toEqual(`[a#:2, b#:3, 23, ...]`);
+        expect(res).toNotHaveErrorsP(ctx);
+    });
 });

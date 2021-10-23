@@ -8,7 +8,7 @@
         "prepare": "yarn build",
         "build": "yarn peg && yarn compile",
         "compile": "esbuild --bundle --sourcemap --external:@babel/core --external:@babel/types --loader:.jd=text src/main.ts --platform=node --outfile=main.js",
-        "start": "env NODE_OPTIONS=--stack-trace-limit=100 node --enable-source-maps bootstrap.js ../language/src/typing/types.ts ../language/src/typing/auto-transform.ts Term,Pattern,Let,ToplevelT,Type,Location,Reference,EffectRef,UserTypeReference,UserReference,Decorator Term,Pattern,Type",
+        "start": "env NODE_OPTIONS=--stack-trace-limit=100 node --enable-source-maps bootstrap.js ../language/src/typing/types.ts ../language/src/typing/auto-transform.ts Term,Pattern,Let,ToplevelT,Type,Location,Reference,EffectRef,UserTypeReference,UserReference,Decorator ErrorTerm,Term ErrorType,Type ErrorPattern,Pattern",
         "ir": "env NODE_OPTIONS=--stack-trace-limit=100 node --enable-source-maps bootstrap.js ../language/src/printing/ir/types.ts ../language/src/printing/ir/auto-transform.ts Expr,Pattern,Location,Stmt,Type",
         "migrate": "esbuild src/migrate.ts --platform=node --bundle | node - json-to-jd ~/Downloads/re-uploaded-n-stuff-strangeloop.json env.jd",
         "compile:migrate": "esbuild src/migrate.ts --sourcemap --platform=node --bundle --outfile=migrate.js",

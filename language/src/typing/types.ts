@@ -666,9 +666,10 @@ export type Pattern =
     | ArrayPattern
     | EnumPattern
     | Ignore
-    | PHole
-    | PTypeError
+    | ErrorPattern
     | Binding;
+
+export type ErrorPattern = PHole | PTypeError;
 
 export type PHole = {
     type: 'PHole';

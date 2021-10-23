@@ -865,7 +865,7 @@ const optionForValue = (
                 ctx,
                 myDecl,
                 type.typeVbls,
-                [],
+                // [],
                 location,
                 idName(type.ref.id),
             );

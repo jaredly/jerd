@@ -206,7 +206,7 @@ export const typeConcreteRecord = (
         ctx,
         defn,
         goalType.typeVbls,
-        [],
+        // [],
         record.location,
         '',
     );

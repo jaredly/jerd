@@ -13,7 +13,7 @@ const [
     inFile,
     outFile,
     visitorTypesRaw,
-    distinguishTypesRaw,
+    ...distinguishTypesRaw
 ] = process.argv;
 const ast = babel.parse(fs.readFileSync(inFile, 'utf8'), {
     filename: inFile,
@@ -46,7 +46,6 @@ body.forEach((stmt) => {
 });
 
 const visitorTypes = visitorTypesRaw.split(',');
-const distinguishTypes = (distinguishTypesRaw || '').split(',').filter(Boolean);
 /*
 Ok, so general plan:
 make a `transform{X}` function, that does `(value: X, visitor: Visitor<Ctx>, ctx: Ctx) => X`
@@ -575,6 +574,25 @@ let text =
         .map((k) => transformers[k])
         .join('\n\n');
 
+distinguishTypesRaw.forEach((item) => {
+    const [name, ...rest] = item.split(',').filter(Boolean);
+    if (!types[name]) {
+        throw new Error(`Unknown type ${name}`);
+    }
+    // we're distinguishing the First from the Others
+    text += `\nexport const is${name} = (value: ${name} | ${rest.join(
+        ' | ',
+    )}): value is ${name} => {
+        switch (value.type) {
+            ${getUnionNames(types[name].type as t.TSUnionType)
+                .map((name) => `case "${name}":`)
+                .join('\n        ')}
+                return true
+            default:
+                return false
+        }
+    }`;
+});
 // let used: {[key: string]: string} = {}
 // text += distinguishTypes
 //     .filter((name) => types[name].type.type === 'TSUnionType')
