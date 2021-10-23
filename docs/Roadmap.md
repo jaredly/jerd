@@ -10,9 +10,87 @@ Then I can be confident doing a `jd-to-json` en masse, in prepartion for syntax 
 - [x] Array literal
 - [x] lambda
 - [x] apply
-- [ ] recorddddddddddddddddddddddddd
+- [x] recorddddddddddddddddddddddddd
   - huh maybe I don't want .. to flatten them?
     I just need a way to order the spreads .. 🤔
+- [ ] Switch! Patterns y'all
+- [ ] Handle? ugh ok
+  could I just fake it as a variant of switch somehow?
+  like why the special treatment.
+
+```ts
+// current setup
+handle! whatsit {
+  Get(() => k) => ...,
+  Put((v) => k) => ...,
+  pure(v) => ...
+}
+// but so custom! so bleh.
+// What if, you just got an actual value
+// and you could choose what to do with it.
+// like, ... handle ... is a ... hmm
+// a builtin function? that has the magical
+// property of being able to ... 
+// no, it can't be a builtin function, because
+// it can't be passed around. That would break things?
+// I think?
+
+// So this represents the fact that,
+// conceptually,
+// the result of `k`, is the result
+// of whatever computation we happen
+// to be running.
+enum Stdio<Result> {
+  Get{k: (int) => Result},
+  Put{v: int, k: () => Result}
+}
+
+// ... do we say ...
+// that each item of an effectable enum ...
+// must inherit from one of two dealios?
+// Get{...ValueEffect<int>},
+// Put{...VoidEffect, v: int}
+// that might be leaning in a little too hard/weird?
+
+// ok, I'm not deep enough in this right now to remember
+// if this would even work; to produce a `k` that could
+// be callable / computable in a remotely normal way.
+// we'll see.
+
+handle!<Stdio>(
+  whatsit,
+  // might like anonymous switch here
+  switch {
+    Get{k} => k(10),
+    Put{v, k} => loop(v, k)
+  },
+  (v) => ...,
+)
+// So that feels less ... custom, which I like.
+// oooh but wait.
+// k is not the same, between the cases.
+// in the first, k takes a value.
+// in the second, it doesn't.
+
+// # and then we would have
+
+raise!(k => Stdio::Get{k})
+
+// or something like that.
+// which again, I'm not sure would be ... reasonable?
+
+```
+
+
+- [ ] decorated
+- [ ] toplevels:
+  - [ ] enum (incl inline recordss)
+  - [ ] record
+  - [ ] decoratordef
+- [ ] comments? comments? yes???? Do comments just live .. at like some level
+  and at the start of "printTerm", if there are comments that haven't been
+  picked up, we pick them up?
+  that seems somewhat ok.
 
 
 

@@ -670,12 +670,12 @@ function peg$parse(input: string, options?: IParseOptions) {
       body
     };
   };
-  const peg$c116 = function(inner: any, as_: any): any {
-    return {
-      type: "Pattern",
+  const peg$c116 = function(inner: any, as_drop: any): any {
+    return !as_drop ? inner : {
+      type: "PatternAs",
       location: myLocation(),
       inner,
-      as_: as_ ? as_[3] : as_
+      as: as_drop ? as_drop[3] : as_drop
     };
   };
   const peg$c117 = function(items: any): any {
@@ -1822,7 +1822,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     if (s1 !== peg$FAILED) {
       s2 = peg$parse__();
       if (s2 !== peg$FAILED) {
-        s3 = peg$parsePattern();
+        s3 = peg$parsePatternAs();
         if (s3 !== peg$FAILED) {
           peg$savedPos = s0;
           s1 = peg$c22(s3);
@@ -1896,7 +1896,7 @@ function peg$parse(input: string, options?: IParseOptions) {
           s3 = null;
         }
         if (s3 !== peg$FAILED) {
-          s4 = peg$parseIdentifier();
+          s4 = peg$parsePatternAs();
           if (s4 !== peg$FAILED) {
             s5 = peg$currPos;
             s6 = peg$parse_();
@@ -5343,7 +5343,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     let s0, s1, s2, s3, s4, s5;
 
     s0 = peg$currPos;
-    s1 = peg$parsePattern();
+    s1 = peg$parsePatternAs();
     if (s1 !== peg$FAILED) {
       s2 = peg$parse__();
       if (s2 !== peg$FAILED) {
@@ -5386,7 +5386,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     return s0;
   }
 
-  function peg$parsePattern(): any {
+  function peg$parsePatternAs(): any {
     let s0, s1, s2, s3, s4, s5, s6;
 
     s0 = peg$currPos;
@@ -5632,7 +5632,7 @@ function peg$parse(input: string, options?: IParseOptions) {
 
     s0 = peg$parseArrayPatternSpread();
     if (s0 === peg$FAILED) {
-      s0 = peg$parsePattern();
+      s0 = peg$parsePatternAs();
     }
 
     return s0;
@@ -5650,7 +5650,7 @@ function peg$parse(input: string, options?: IParseOptions) {
       if (peg$silentFails === 0) { peg$fail(peg$c45); }
     }
     if (s1 !== peg$FAILED) {
-      s2 = peg$parsePattern();
+      s2 = peg$parsePatternAs();
       if (s2 === peg$FAILED) {
         s2 = null;
       }
@@ -5861,7 +5861,7 @@ function peg$parse(input: string, options?: IParseOptions) {
         if (s4 !== peg$FAILED) {
           s5 = peg$parse_();
           if (s5 !== peg$FAILED) {
-            s6 = peg$parsePattern();
+            s6 = peg$parsePatternAs();
             if (s6 !== peg$FAILED) {
               s3 = [s3, s4, s5, s6];
               s2 = s3;
@@ -5957,7 +5957,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     let s0, s1, s2, s3, s4, s5, s6, s7;
 
     s0 = peg$currPos;
-    s1 = peg$parsePattern();
+    s1 = peg$parsePatternAs();
     if (s1 !== peg$FAILED) {
       s2 = [];
       s3 = peg$currPos;
@@ -5973,7 +5973,7 @@ function peg$parse(input: string, options?: IParseOptions) {
         if (s5 !== peg$FAILED) {
           s6 = peg$parse_();
           if (s6 !== peg$FAILED) {
-            s7 = peg$parsePattern();
+            s7 = peg$parsePatternAs();
             if (s7 !== peg$FAILED) {
               s4 = [s4, s5, s6, s7];
               s3 = s4;
@@ -6009,7 +6009,7 @@ function peg$parse(input: string, options?: IParseOptions) {
             if (s5 !== peg$FAILED) {
               s6 = peg$parse_();
               if (s6 !== peg$FAILED) {
-                s7 = peg$parsePattern();
+                s7 = peg$parsePatternAs();
                 if (s7 !== peg$FAILED) {
                   s4 = [s4, s5, s6, s7];
                   s3 = s4;
@@ -10508,7 +10508,7 @@ export type Define = {
   type: "Define";
   location: Location;
   rec: string | null;
-  id: Identifier;
+  id: Pattern;
   ann: Type | null;
   expr: Expression;
 };
@@ -10857,12 +10857,16 @@ export type SwitchCase = {
   body: Expression;
 };
 
-export type Pattern = {
-  type: "Pattern";
+export type Pattern = PatternAs;
+
+export type PatternAs_inner = {
+  type: "PatternAs";
   location: Location;
   inner: PatternInner;
-  as_: Identifier | null;
+  as: Identifier;
 };
+
+export type PatternAs = PatternAs_inner | PatternInner;
 
 export type PatternInner = ArrayPattern | RecordPattern | TuplePattern | LiteralWithString | Identifier;
 

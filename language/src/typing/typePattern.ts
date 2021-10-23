@@ -63,6 +63,7 @@ export const patternIs = (pattern: Pattern, expected: Type): Type => {
                 location: pattern.location,
             };
     }
+    throw new Error('Unexpected pattern type');
 };
 
 const typePattern = (

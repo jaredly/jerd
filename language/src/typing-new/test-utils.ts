@@ -17,6 +17,7 @@ import {
     ErrorType,
     typesEqual,
     isErrorTerm,
+    Pattern,
 } from '../typing/types';
 import * as preset from '../typing/preset';
 import { GroupedOp, reGroupOps } from './ops';
@@ -25,7 +26,11 @@ import { Context, NamedDefns } from './Context';
 import { typeExpression } from './typeExpression';
 import { addRecord, addTerm, addToplevel, Library } from './Library';
 import { printToString } from '../printing/printer';
-import { termToPretty, typeToPretty } from '../printing/printTsLike';
+import {
+    patternToPretty,
+    termToPretty,
+    typeToPretty,
+} from '../printing/printTsLike';
 import { showLocation } from '../typing/typeExpr';
 import {
     transformTerm,
@@ -337,6 +342,11 @@ export const typeToString = (ctx: Context, term: Type | null | void) =>
     term == null
         ? '[null term]'
         : printToString(typeToPretty(ctxToEnv(ctx), term), 100);
+
+export const patternToString = (ctx: Context, term: Pattern | null | void) =>
+    term == null
+        ? '[null pattern]'
+        : printToString(patternToPretty(ctxToEnv(ctx), term), 100);
 
 export const termToString = (ctx: Context, term: Term | null | void) =>
     term == null

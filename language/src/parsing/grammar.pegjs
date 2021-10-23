@@ -57,7 +57,7 @@ DecExpr = expr:Expression {return {type: 'Expr', expr, location: myLocation()}}
 
 // Toplevels
 
-Define = "const" __ rec:("rec" __)? id:Identifier ann:(_ ":" _ Type)? _ "=" _ expr:Expression {return {
+Define = "const" __ rec:("rec" __)? id:Pattern ann:(_ ":" _ Type)? _ "=" _ expr:Expression {return {
     type: 'define', rec: !!rec, id, expr, ann: ann ? ann[3] : null, location: myLocation()}}
 
 Effect = "effect" __ id:Identifier _ "{" _ constrs:(EfConstr _ "," _)+ "}" {return {
@@ -282,9 +282,10 @@ SwitchCase = pattern:Pattern __ "=>" __ body:Expression {
     return {pattern, body, location: myLocation()}
 }
 
-Pattern = inner:PatternInner as_:(__ "as" __ Identifier)? {
-    if (as_ != null) {
-        return {type: 'Alias', name: as_[3], inner, location: myLocation()}
+Pattern = PatternAs
+PatternAs = inner:PatternInner as_drop:(__ "as" __ Identifier)? {
+    if (as_drop != null) {
+        return {type: 'Alias', name: as_drop[3], inner, location: myLocation()}
     }
     return inner
 }

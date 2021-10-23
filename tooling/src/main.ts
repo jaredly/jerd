@@ -7,7 +7,14 @@ import babel, { traverse } from '@babel/core';
 import fs from 'fs';
 import generate from '@babel/generator';
 
-const [_, __, inFile, outFile, visitorTypesRaw] = process.argv;
+const [
+    _,
+    __,
+    inFile,
+    outFile,
+    visitorTypesRaw,
+    distinguishTypesRaw,
+] = process.argv;
 const ast = babel.parse(fs.readFileSync(inFile, 'utf8'), {
     filename: inFile,
     presets: ['@babel/preset-typescript'],
@@ -39,6 +46,7 @@ body.forEach((stmt) => {
 });
 
 const visitorTypes = visitorTypesRaw.split(',');
+const distinguishTypes = (distinguishTypesRaw || '').split(',').filter(Boolean);
 /*
 Ok, so general plan:
 make a `transform{X}` function, that does `(value: X, visitor: Visitor<Ctx>, ctx: Ctx) => X`
@@ -270,7 +278,6 @@ const unionTransformer = (
     level: number,
     type: t.TSUnionType,
 ) => {
-    const allTypes: Array<[string, t.TSTypeLiteral]> = [];
     // console.log('---> getting');
     let hasCases = false;
     const cases: Array<string> = [];
@@ -502,6 +509,51 @@ visitorTypes.forEach((name) => (transformers[name] = makeTransformer(name)));
 //     });
 // }
 
+const getUnionNames = (t: t.TSUnionType) => {
+    const allTypes: Array<[string, t.TSTypeLiteral]> = [];
+    getAllUnionTypeMembers(allTypes, t, {});
+    return allTypes.map((n) => n[0]);
+};
+
+const getAllUnionTypeMembers = (
+    allTypes: Array<[string, t.TSTypeLiteral]>,
+    t: t.TSType,
+    seen: { [key: string]: boolean },
+) => {
+    if (t.type === 'TSTypeLiteral') {
+        const names = t.members
+            .map(getTypeName)
+            .filter(Boolean) as Array<string>;
+        if (names.length === 1) {
+            allTypes.push([names[0], t]);
+        } else {
+            console.log(JSON.stringify(t));
+            throw new Error(`no 'type' for type`);
+        }
+        return;
+    }
+    if (t.type === 'TSUnionType') {
+        t.types.forEach((t) => getAllUnionTypeMembers(allTypes, t, seen));
+        return;
+    }
+    if (t.type === 'TSTypeReference' && t.typeName.type === 'Identifier') {
+        if (seen[t.typeName.name]) {
+            return;
+        }
+        seen[t.typeName.name] = true;
+        console.log('-', t.typeName.name);
+        if (types[t.typeName.name]) {
+            getAllUnionTypeMembers(allTypes, types[t.typeName.name].type, seen);
+            return;
+        }
+    }
+    if (t.type === 'TSNullKeyword') {
+        throw new Error(`wat null`);
+    }
+    console.log(JSON.stringify(t));
+    throw new Error(`Unexpected type ${t.type}`);
+};
+
 const prelude = `import {${Object.keys(transformerStatus)
     .filter((k) => k !== 'Array')
     .join(', ')}} from './types';
@@ -522,5 +574,23 @@ fs.writeFileSync(
     prelude +
         Object.keys(transformers)
             .map((k) => transformers[k])
-            .join('\n\n'),
+            .join('\n\n') +
+        distinguishTypes
+            .filter((name) => types[name].type.type === 'TSUnionType')
+            .map(
+                (name) =>
+                    `\nexport const is${name} = (value: ${distinguishTypes.join(
+                        ' | ',
+                    )}): ${name} | null => {
+                    switch (value.type) {
+                        ${getUnionNames(types[name].type as t.TSUnionType)
+                            .map((name) => `case "${name}":`)
+                            .join('\n')}
+                        return value
+                        default:
+                            return null
+                    }
+                }`,
+            )
+            .join('\n'),
 );

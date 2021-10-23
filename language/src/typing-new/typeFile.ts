@@ -73,6 +73,12 @@ export const typeToplevel = (
                 name: top.id.text,
             };
         }
+        case 'EnumDef':
+        case 'StructDef':
+        case 'DecoratorDef':
+            break;
+        default:
+            let _x: never = top;
         // case 'Define': {
         //     const t = top.ann ? typeType(ctx, )
         //     const term = typeExpression(ctx, top.expr,)

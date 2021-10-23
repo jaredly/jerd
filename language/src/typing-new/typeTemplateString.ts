@@ -5,7 +5,7 @@ import { Id, LambdaType, Term, Type, typesEqual } from '../typing/types';
 import { Context } from './Context';
 import { typeExpression, wrapExpected } from './typeExpression';
 
-const fixString = (v: string) =>
+export const fixString = (v: string) =>
     JSON.parse(`"${v.replace(/\n/, '\\n').replace(/\t/, '\\t')}"`);
 
 // oh ah yes. Here we run into the question of "As".

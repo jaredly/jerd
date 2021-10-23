@@ -700,6 +700,72 @@ export const transformPattern = <Ctx>(node: Pattern, visitor: Visitor<Ctx>, ctx:
                     break;
                 }
 
+            case 'PHole': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
+            case 'PTypeError': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$inner = transformPattern(updatedNode$0specified.inner, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$inner !== updatedNode$0specified.inner;
+
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, inner: updatedNode$0node$inner, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
             case 'Binding': {
                     const updatedNode$0specified = node;
                     let changed1 = false;
@@ -4639,3 +4705,77 @@ export const transformToplevelT = <Ctx>(node: ToplevelT, visitor: Visitor<Ctx>, 
         return node;
         
     }
+export const isTerm = (value: Term | Pattern | Type): boolean => {
+                    switch (value.type) {
+                        case "Ambiguous":
+case "TypeError":
+case "NotFound":
+case "Hole":
+case "InvalidRecordAttributes":
+case "InvalidAttribute":
+case "InvalidApplication":
+case "raise":
+case "handle":
+case "if":
+case "sequence":
+case "apply":
+case "unary":
+case "self":
+case "Record":
+case "Switch":
+case "Enum":
+case "Trace":
+case "Array":
+case "Tuple":
+case "TupleAccess":
+case "Attribute":
+case "ref":
+case "var":
+case "string":
+case "TemplateString":
+case "float":
+case "int":
+case "boolean":
+case "lambda":
+                        return true
+                        default:
+                            return false
+                    }
+                }
+
+export const isPattern = (value: Term | Pattern | Type): boolean => {
+                    switch (value.type) {
+                        case "string":
+case "float":
+case "int":
+case "boolean":
+case "Alias":
+case "Record":
+case "Tuple":
+case "Array":
+case "Enum":
+case "Ignore":
+case "PHole":
+case "PTypeError":
+case "Binding":
+                        return true
+                        default:
+                            return false
+                    }
+                }
+
+export const isType = (value: Term | Pattern | Type): boolean => {
+                    switch (value.type) {
+                        case "ref":
+case "var":
+case "lambda":
+case "Ambiguous":
+case "TNotFound":
+case "InvalidTypeApplication":
+case "NotASubType":
+case "THole":
+                        return true
+                        default:
+                            return false
+                    }
+                }

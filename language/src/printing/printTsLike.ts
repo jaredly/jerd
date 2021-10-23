@@ -1208,7 +1208,7 @@ const switchCaseToPretty = (env: Env, kase: SwitchCase): PP =>
         kase.location,
     );
 
-const patternToPretty = (env: Env, pattern: Pattern): PP => {
+export const patternToPretty = (env: Env, pattern: Pattern): PP => {
     switch (pattern.type) {
         case 'string':
         case 'int':

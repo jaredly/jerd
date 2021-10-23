@@ -666,7 +666,22 @@ export type Pattern =
     | ArrayPattern
     | EnumPattern
     | Ignore
+    | PHole
+    | PTypeError
     | Binding;
+
+export type PHole = {
+    type: 'PHole';
+    location: Location;
+    decorators?: Decorators;
+};
+export type PTypeError = {
+    type: 'PTypeError';
+    inner: Pattern;
+    location: Location;
+    decorators?: Decorators;
+};
+
 export type Ignore = {
     type: 'Ignore';
     location: Location;
