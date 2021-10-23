@@ -33,6 +33,7 @@ import {
 } from '../printing/printTsLike';
 import { showLocation } from '../typing/typeExpr';
 import {
+    transformPattern,
     transformTerm,
     transformType,
     Visitor,
@@ -44,6 +45,7 @@ import { findErrors } from './typeRecord';
 declare global {
     namespace jest {
         interface Matchers<R> {
+            toNotHaveErrorsP(ctx: Context): CustomMatcherResult;
             toNotHaveErrors(ctx: Context): CustomMatcherResult;
             toNotHaveErrorsT(ctx: Context): CustomMatcherResult;
             toEqualType(t: Type, ctx: Context): CustomMatcherResult;
@@ -178,6 +180,37 @@ export const customMatchers: jest.ExpectExtendMap = {
         }
 
         return { pass: true, message: () => 'ok' };
+    },
+    toNotHaveErrorsP(value, ctx) {
+        if (
+            !value ||
+            typeof value !== 'object' ||
+            typeof value.type !== 'string'
+        ) {
+            return {
+                pass: false,
+                message: () => 'invalid object. must be a term or type',
+            };
+        }
+        const errors: Array<Pattern> = [];
+        transformPattern(
+            value,
+            {
+                Pattern: (node) => {
+                    switch (node.type) {
+                        case 'PHole':
+                        case 'PTypeError':
+                            errors.push(node);
+                    }
+                    return null;
+                },
+            },
+            null,
+        );
+        if (errors.length === 0) {
+            return { pass: true, message: () => 'ok' };
+        }
+        return { pass: false, message: () => JSON.stringify(errors) };
     },
     toNotHaveErrors(value, ctx) {
         if (

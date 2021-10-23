@@ -189,7 +189,7 @@ export const getTypeError = (
                 undefined,
             )
         ) {
-            console.log(mapping.effects);
+            // console.log(mapping.effects);
             return new WrongEffects(
                 found.effects,
                 e.effects,

@@ -569,28 +569,35 @@ export type Visitor<Ctx> = {
 }
 `;
 
-fs.writeFileSync(
-    outFile,
+let text =
     prelude +
-        Object.keys(transformers)
-            .map((k) => transformers[k])
-            .join('\n\n') +
-        distinguishTypes
-            .filter((name) => types[name].type.type === 'TSUnionType')
-            .map(
-                (name) =>
-                    `\nexport const is${name} = (value: ${distinguishTypes.join(
-                        ' | ',
-                    )}): ${name} | null => {
-                    switch (value.type) {
-                        ${getUnionNames(types[name].type as t.TSUnionType)
-                            .map((name) => `case "${name}":`)
-                            .join('\n')}
-                        return value
-                        default:
-                            return null
-                    }
-                }`,
-            )
-            .join('\n'),
-);
+    Object.keys(transformers)
+        .map((k) => transformers[k])
+        .join('\n\n');
+
+// let used: {[key: string]: string} = {}
+// text += distinguishTypes
+//     .filter((name) => types[name].type.type === 'TSUnionType')
+//     .map(
+//         (name) =>
+//             `\nexport const is${name} = (value: ${distinguishTypes.join(
+//                 ' | ',
+//             )}): ${name} | null => {
+//             switch (value.type) {
+//                 ${getUnionNames(types[name].type as t.TSUnionType)
+//                     .map((name) => {
+//                         if (used[name]) {
+//                             throw new Error(`${name} used in multiple types. cannot distinquish.`)
+//                         }
+//                         return `case "${name}":`
+//                     })
+//                     .join('\n')}
+//                 return value
+//                 default:
+//                     return null
+//             }
+//         }`,
+//     )
+//     .join('\n')
+
+fs.writeFileSync(outFile, text);
