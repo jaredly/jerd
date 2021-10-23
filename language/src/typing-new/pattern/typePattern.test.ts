@@ -10,13 +10,9 @@ import {
     errorSerilaizer,
     findPatternErrors,
     newContext,
-    parseExpression,
-    parseToplevels,
     patternErrorToString,
     patternToString,
     rawSnapshotSerializer,
-    showTermErrors,
-    termToString,
     warningsSerializer,
 } from '../test-utils';
 import { typePattern } from './typePattern';
@@ -98,7 +94,7 @@ describe('record', () => {
         );
 
         const bindings: Array<ValueBinding> = [];
-        // What if .. um .. idk
+        // Capture toplevel type errors too
         res = parsePattern(
             ctx,
             `Hello{what: 10, thing#:3}`,
@@ -106,7 +102,11 @@ describe('record', () => {
             preset.int,
         );
         expect(ctx.warnings).toHaveLength(0);
-        expect(showPatternErrors(ctx, res)).toMatchInlineSnapshot(`""`);
+        expect(showPatternErrors(ctx, res)).toEqual(
+            `Expected int#builtin, found Hello#${idName(id)} : Hello#${idName(
+                id,
+            )}{what: 10, thing#:3} 1:7-1:32`,
+        );
         expect(patternToString(ctx, res)).toEqual(
             `Hello#${idName(id)}{what: 10, thing#:3}`,
         );
@@ -228,10 +228,22 @@ describe('array', () => {
             preset.refType(enu),
         );
         expect(ctx.warnings).toHaveLength(0);
-        expect(patternToString(ctx, res)).toMatchInlineSnapshot(
-            `Person#d0ee8d78{name: "what", age#:1}`,
+        expect(patternToString(ctx, res)).toEqual(
+            `Person#${idName(id2)}{name: "what", age#:1}`,
         );
         expect(res).toNotHaveErrorsP(ctx);
+
+        res = parsePattern(ctx, 'HasName{name}', [], preset.refType(enu));
+        expect(ctx.warnings).toHaveLength(0);
+        expect(patternToString(ctx, res)).toEqual(
+            `HasName#${idName(id)}{name#:2}`,
+        );
+
+        expect(showPatternErrors(ctx, res)).toEqual(
+            `Expected Enum#${idName(enu)}, found HasName#${idName(
+                id,
+            )} : HasName#${idName(id)}{name#:2} 1:7-1:20`,
+        );
     });
 });
 

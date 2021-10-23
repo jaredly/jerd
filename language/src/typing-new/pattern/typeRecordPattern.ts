@@ -81,6 +81,8 @@ export function typeRecordPattern(
         };
     }
 
+    const [typeRef, validType] = found;
+
     let t = typeDef(ctx.library, { type: 'user', id });
     if (!t || t.type !== 'Record') {
         return {
@@ -92,7 +94,7 @@ export function typeRecordPattern(
     t = applyTypeVariablesToRecord(
         ctx,
         t,
-        found.typeVbls,
+        typeRef.typeVbls,
         term.location,
         id.hash,
     );
@@ -146,7 +148,7 @@ export function typeRecordPattern(
 
     const res: TPattern = {
         type: 'Record',
-        ref: found,
+        ref: typeRef,
         items,
         location: term.location,
     };
@@ -159,6 +161,14 @@ export function typeRecordPattern(
             location: res.location,
         };
     }
+    if (!validType) {
+        return {
+            type: 'PTypeError',
+            is: expected,
+            inner: res,
+            location: term.location,
+        };
+    }
     return res;
 }
 
@@ -167,19 +177,26 @@ export const findRecordDefn = (
     expected: Type,
     id: Id,
     location: Location,
-): TypeReference | null => {
+): [TypeReference, boolean] | null => {
     // Validate record in enum
     if (expected.type !== 'ref' || expected.ref.type !== 'user') {
         const idDefn = typeDef(ctx.library, { type: 'user', id });
         return idDefn?.type === 'Record'
-            ? { type: 'ref', typeVbls: [], ref: { type: 'user', id }, location }
+            ? [
+                  {
+                      type: 'ref',
+                      typeVbls: [],
+                      ref: { type: 'user', id },
+                      location,
+                  },
+                  false,
+              ]
             : null;
     }
 
-    let found: TypeReference | null = null;
     let enumDef = typeDef(ctx.library, expected.ref);
     if (enumDef && enumDef.type === 'Record') {
-        found = expected;
+        return [expected, true];
     } else {
         const allReferences = getEnumReferences(
             ctx,
@@ -188,13 +205,23 @@ export const findRecordDefn = (
         );
         for (let ref of allReferences) {
             if (refsEqual(ref.ref, { type: 'user', id })) {
-                found = ref;
-                break;
+                return [ref, true];
             }
         }
     }
 
-    return found;
+    const idDefn = typeDef(ctx.library, { type: 'user', id });
+    return idDefn?.type === 'Record'
+        ? [
+              {
+                  type: 'ref',
+                  typeVbls: [],
+                  ref: { type: 'user', id },
+                  location,
+              },
+              false,
+          ]
+        : null;
 };
 
 export function typeRecordPatternItem(
