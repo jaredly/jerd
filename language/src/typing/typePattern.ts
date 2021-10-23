@@ -1,4 +1,5 @@
 import { Pattern as RawPattern } from '../parsing/parser';
+import { isErrorPattern } from './auto-transform';
 import { idName, makeLocal } from './env';
 import { bool, float, int, string } from './preset';
 import {
@@ -27,6 +28,9 @@ import {
 import { assertFits, showType } from './unify';
 
 export const patternIs = (pattern: Pattern, expected: Type): Type => {
+    if (isErrorPattern(pattern)) {
+        return expected;
+    }
     switch (pattern.type) {
         case 'Alias':
             return patternIs(pattern.inner, expected);
@@ -62,9 +66,6 @@ export const patternIs = (pattern: Pattern, expected: Type): Type => {
                 // effectVbls: [],
                 location: pattern.location,
             };
-        case 'PHole':
-        case 'PTypeError':
-            return expected;
         default:
             let _x: never = pattern;
             throw new Error('Unexpected pattern type');

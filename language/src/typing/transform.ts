@@ -1,6 +1,7 @@
 // Ok folks
 
 // import { ToplevelT } from './env';
+import { isErrorPattern } from './auto-transform';
 import { bool, pureFunction, void_ } from './preset';
 import { applyEffectVariables, showLocation } from './typeExpr';
 import {
@@ -407,6 +408,10 @@ export const walkPattern = (
     if (handle(pattern) === false) {
         return;
     }
+    // BROKEN
+    if (isErrorPattern(pattern)) {
+        return;
+    }
     switch (pattern.type) {
         case 'Binding':
         case 'Enum':
@@ -415,8 +420,6 @@ export const walkPattern = (
         case 'int':
         case 'boolean':
         case 'Ignore':
-        case 'PHole':
-        case 'PTypeError':
             return;
         case 'Alias':
             walkPattern(pattern.inner, handle);

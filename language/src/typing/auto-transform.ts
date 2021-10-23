@@ -1,4 +1,4 @@
-import {Term, Location, Loc, Type, TypeVblDecl, Id, Symbol, Decorators, Decorator, DecoratorArg, Pattern, TypeReference, Reference, UserReference, RecordPatternItem, ErrorPattern, PTypeError, EffectVblDecl, EffectRef, ErrorType, TypeHole, RecordBaseConcrete, RecordSubType, SwitchCase, LambdaType, AmbiguousType, Record, UnusedAttribute, Case, LiteralWithTemplateString, Boolean, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
+import {Term, Location, Loc, Type, TypeVblDecl, Id, Symbol, Decorators, Decorator, DecoratorArg, Pattern, TypeReference, Reference, UserReference, RecordPatternItem, ErrorPattern, PNotFound, EffectVblDecl, EffectRef, ErrorType, TypeHole, RecordBaseConcrete, RecordSubType, SwitchCase, LambdaType, Case, ErrorTerm, AmbiguousType, Record, UnusedAttribute, InvalidApplication, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
 
 export type Visitor<Ctx> = {
     Term?: (node: Term, ctx: Ctx) => null | false | Term | [Term | null, Ctx]
@@ -233,9 +233,9 @@ export const transformRecordPatternItem = <Ctx>(node: RecordPatternItem, visitor
         return updatedNode;
     }
 
-export const transformPTypeError = <Ctx>(node: PTypeError, visitor: Visitor<Ctx>, ctx: Ctx): PTypeError => {
+export const transformPNotFound = <Ctx>(node: PNotFound, visitor: Visitor<Ctx>, ctx: Ctx): PNotFound => {
         if (!node) {
-            throw new Error('No PTypeError provided');
+            throw new Error('No PNotFound provided');
         }
         
         let changed0 = false;
@@ -243,10 +243,6 @@ export const transformPTypeError = <Ctx>(node: PTypeError, visitor: Visitor<Ctx>
             let updatedNode = node;
             {
                 let changed1 = false;
-                
-                const updatedNode$inner = transformPattern(node.inner, visitor, ctx);
-                changed1 = changed1 || updatedNode$inner !== node.inner;
-
                 
                 const updatedNode$location = transformLocation(node.location, visitor, ctx);
                 changed1 = changed1 || updatedNode$location !== node.location;
@@ -262,7 +258,7 @@ export const transformPTypeError = <Ctx>(node: PTypeError, visitor: Visitor<Ctx>
         }
         
                 if (changed1) {
-                    updatedNode =  {...updatedNode, inner: updatedNode$inner, location: updatedNode$location, decorators: updatedNode$decorators};
+                    updatedNode =  {...updatedNode, location: updatedNode$location, decorators: updatedNode$decorators};
                     changed0 = true;
                 }
             }
@@ -310,10 +306,45 @@ export const transformErrorPattern = <Ctx>(node: ErrorPattern, visitor: Visitor<
                     break;
                 }
 
+            case 'PTypeError': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$inner = transformPattern(updatedNode$0specified.inner, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$inner !== updatedNode$0specified.inner;
+
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, inner: updatedNode$0node$inner, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
             default: {
                         let changed1 = false;
                         
-                const updatedNode$0node = transformPTypeError(node, visitor, ctx);
+                const updatedNode$0node = transformPNotFound(node, visitor, ctx);
                 changed1 = changed1 || updatedNode$0node !== node;
                         updatedNode = updatedNode$0node;
                     }
@@ -1995,6 +2026,80 @@ export const transformLambdaType = <Ctx>(node: LambdaType, visitor: Visitor<Ctx>
         return updatedNode;
     }
 
+export const transformCase = <Ctx>(node: Case, visitor: Visitor<Ctx>, ctx: Ctx): Case => {
+        if (!node) {
+            throw new Error('No Case provided');
+        }
+        
+        let changed0 = false;
+        
+            let updatedNode = node;
+            {
+                let changed1 = false;
+                
+                let updatedNode$args = node.args;
+                {
+                    let changed2 = false;
+                    const arr1 = node.args.map((updatedNode$args$item1) => {
+                        
+            let result = updatedNode$args$item1;
+            {
+                let changed3 = false;
+                
+                const result$type = transformType(updatedNode$args$item1.type, visitor, ctx);
+                changed3 = changed3 || result$type !== updatedNode$args$item1.type;
+                if (changed3) {
+                    result =  {...result, type: result$type};
+                    changed2 = true;
+                }
+            }
+            
+                        return result
+                    })
+                    if (changed2) {
+                        updatedNode$args = arr1;
+                        changed1 = true;
+                    }
+                }
+                
+
+                
+            let updatedNode$k = node.k;
+            {
+                let changed2 = false;
+                
+                const updatedNode$k$type = transformType(node.k.type, visitor, ctx);
+                changed2 = changed2 || updatedNode$k$type !== node.k.type;
+                if (changed2) {
+                    updatedNode$k =  {...updatedNode$k, type: updatedNode$k$type};
+                    changed1 = true;
+                }
+            }
+            
+
+                
+                const updatedNode$body = transformTerm(node.body, visitor, ctx);
+                changed1 = changed1 || updatedNode$body !== node.body;
+
+                
+        let updatedNode$decorators = undefined;
+        const updatedNode$decorators$current = node.decorators;
+        if (updatedNode$decorators$current != null) {
+            
+                const updatedNode$decorators$1$ = transformDecorators(updatedNode$decorators$current, visitor, ctx);
+                changed1 = changed1 || updatedNode$decorators$1$ !== updatedNode$decorators$current;
+            updatedNode$decorators = updatedNode$decorators$1$;
+        }
+        
+                if (changed1) {
+                    updatedNode =  {...updatedNode, args: updatedNode$args, k: updatedNode$k, body: updatedNode$body, decorators: updatedNode$decorators};
+                    changed0 = true;
+                }
+            }
+            
+        return updatedNode;
+    }
+
 export const transformAmbiguousType = <Ctx>(node: AmbiguousType, visitor: Visitor<Ctx>, ctx: Ctx): AmbiguousType => {
         if (!node) {
             throw new Error('No AmbiguousType provided');
@@ -2111,83 +2216,9 @@ export const transformUnusedAttribute = <Ctx>(node: UnusedAttribute, visitor: Vi
         return updatedNode;
     }
 
-export const transformCase = <Ctx>(node: Case, visitor: Visitor<Ctx>, ctx: Ctx): Case => {
+export const transformInvalidApplication = <Ctx>(node: InvalidApplication, visitor: Visitor<Ctx>, ctx: Ctx): InvalidApplication => {
         if (!node) {
-            throw new Error('No Case provided');
-        }
-        
-        let changed0 = false;
-        
-            let updatedNode = node;
-            {
-                let changed1 = false;
-                
-                let updatedNode$args = node.args;
-                {
-                    let changed2 = false;
-                    const arr1 = node.args.map((updatedNode$args$item1) => {
-                        
-            let result = updatedNode$args$item1;
-            {
-                let changed3 = false;
-                
-                const result$type = transformType(updatedNode$args$item1.type, visitor, ctx);
-                changed3 = changed3 || result$type !== updatedNode$args$item1.type;
-                if (changed3) {
-                    result =  {...result, type: result$type};
-                    changed2 = true;
-                }
-            }
-            
-                        return result
-                    })
-                    if (changed2) {
-                        updatedNode$args = arr1;
-                        changed1 = true;
-                    }
-                }
-                
-
-                
-            let updatedNode$k = node.k;
-            {
-                let changed2 = false;
-                
-                const updatedNode$k$type = transformType(node.k.type, visitor, ctx);
-                changed2 = changed2 || updatedNode$k$type !== node.k.type;
-                if (changed2) {
-                    updatedNode$k =  {...updatedNode$k, type: updatedNode$k$type};
-                    changed1 = true;
-                }
-            }
-            
-
-                
-                const updatedNode$body = transformTerm(node.body, visitor, ctx);
-                changed1 = changed1 || updatedNode$body !== node.body;
-
-                
-        let updatedNode$decorators = undefined;
-        const updatedNode$decorators$current = node.decorators;
-        if (updatedNode$decorators$current != null) {
-            
-                const updatedNode$decorators$1$ = transformDecorators(updatedNode$decorators$current, visitor, ctx);
-                changed1 = changed1 || updatedNode$decorators$1$ !== updatedNode$decorators$current;
-            updatedNode$decorators = updatedNode$decorators$1$;
-        }
-        
-                if (changed1) {
-                    updatedNode =  {...updatedNode, args: updatedNode$args, k: updatedNode$k, body: updatedNode$body, decorators: updatedNode$decorators};
-                    changed0 = true;
-                }
-            }
-            
-        return updatedNode;
-    }
-
-export const transformBoolean = <Ctx>(node: Boolean, visitor: Visitor<Ctx>, ctx: Ctx): Boolean => {
-        if (!node) {
-            throw new Error('No Boolean provided');
+            throw new Error('No InvalidApplication provided');
         }
         
         let changed0 = false;
@@ -2198,6 +2229,61 @@ export const transformBoolean = <Ctx>(node: Boolean, visitor: Visitor<Ctx>, ctx:
                 
                 const updatedNode$is = transformType(node.is, visitor, ctx);
                 changed1 = changed1 || updatedNode$is !== node.is;
+
+                
+                const updatedNode$target = transformTerm(node.target, visitor, ctx);
+                changed1 = changed1 || updatedNode$target !== node.target;
+
+                
+                let updatedNode$extraArgs = node.extraArgs;
+                {
+                    let changed2 = false;
+                    const arr1 = node.extraArgs.map((updatedNode$extraArgs$item1) => {
+                        
+                const result = transformTerm(updatedNode$extraArgs$item1, visitor, ctx);
+                changed2 = changed2 || result !== updatedNode$extraArgs$item1;
+                        return result
+                    })
+                    if (changed2) {
+                        updatedNode$extraArgs = arr1;
+                        changed1 = true;
+                    }
+                }
+                
+
+                
+                let updatedNode$extraTypeArgs = node.extraTypeArgs;
+                {
+                    let changed2 = false;
+                    const arr1 = node.extraTypeArgs.map((updatedNode$extraTypeArgs$item1) => {
+                        
+                const result = transformType(updatedNode$extraTypeArgs$item1, visitor, ctx);
+                changed2 = changed2 || result !== updatedNode$extraTypeArgs$item1;
+                        return result
+                    })
+                    if (changed2) {
+                        updatedNode$extraTypeArgs = arr1;
+                        changed1 = true;
+                    }
+                }
+                
+
+                
+                let updatedNode$extraEffectArgs = node.extraEffectArgs;
+                {
+                    let changed2 = false;
+                    const arr1 = node.extraEffectArgs.map((updatedNode$extraEffectArgs$item1) => {
+                        
+                const result = transformEffectRef(updatedNode$extraEffectArgs$item1, visitor, ctx);
+                changed2 = changed2 || result !== updatedNode$extraEffectArgs$item1;
+                        return result
+                    })
+                    if (changed2) {
+                        updatedNode$extraEffectArgs = arr1;
+                        changed1 = true;
+                    }
+                }
+                
 
                 
                 const updatedNode$location = transformLocation(node.location, visitor, ctx);
@@ -2214,7 +2300,7 @@ export const transformBoolean = <Ctx>(node: Boolean, visitor: Visitor<Ctx>, ctx:
         }
         
                 if (changed1) {
-                    updatedNode =  {...updatedNode, is: updatedNode$is, location: updatedNode$location, decorators: updatedNode$decorators};
+                    updatedNode =  {...updatedNode, is: updatedNode$is, target: updatedNode$target, extraArgs: updatedNode$extraArgs, extraTypeArgs: updatedNode$extraTypeArgs, extraEffectArgs: updatedNode$extraEffectArgs, location: updatedNode$location, decorators: updatedNode$decorators};
                     changed0 = true;
                 }
             }
@@ -2222,16 +2308,107 @@ export const transformBoolean = <Ctx>(node: Boolean, visitor: Visitor<Ctx>, ctx:
         return updatedNode;
     }
 
-export const transformLiteralWithTemplateString = <Ctx>(node: LiteralWithTemplateString, visitor: Visitor<Ctx>, ctx: Ctx): LiteralWithTemplateString => {
+export const transformErrorTerm = <Ctx>(node: ErrorTerm, visitor: Visitor<Ctx>, ctx: Ctx): ErrorTerm => {
         if (!node) {
-            throw new Error('No LiteralWithTemplateString provided');
+            throw new Error('No ErrorTerm provided');
         }
         
         let changed0 = false;
         
         let updatedNode = node;
         switch (node.type) {
-            case 'string': {
+            case 'Ambiguous': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                let updatedNode$0node$options = updatedNode$0specified.options;
+                {
+                    let changed3 = false;
+                    const arr2 = updatedNode$0specified.options.map((updatedNode$0node$options$item2) => {
+                        
+                const result = transformTerm(updatedNode$0node$options$item2, visitor, ctx);
+                changed3 = changed3 || result !== updatedNode$0node$options$item2;
+                        return result
+                    })
+                    if (changed3) {
+                        updatedNode$0node$options = arr2;
+                        changed2 = true;
+                    }
+                }
+                
+
+                
+                const updatedNode$0node$is = transformAmbiguousType(updatedNode$0specified.is, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
+
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, options: updatedNode$0node$options, is: updatedNode$0node$is, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
+            case 'TypeError': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
+
+                
+                const updatedNode$0node$inner = transformTerm(updatedNode$0specified.inner, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$inner !== updatedNode$0specified.inner;
+
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, inner: updatedNode$0node$inner, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
+            case 'NotFound': {
                     const updatedNode$0specified = node;
                     let changed1 = false;
                     
@@ -2266,7 +2443,7 @@ export const transformLiteralWithTemplateString = <Ctx>(node: LiteralWithTemplat
                     break;
                 }
 
-            case 'TemplateString': {
+            case 'Hole': {
                     const updatedNode$0specified = node;
                     let changed1 = false;
                     
@@ -2274,31 +2451,77 @@ export const transformLiteralWithTemplateString = <Ctx>(node: LiteralWithTemplat
             {
                 let changed2 = false;
                 
-                let updatedNode$0node$pairs = updatedNode$0specified.pairs;
-                {
-                    let changed3 = false;
-                    const arr2 = updatedNode$0specified.pairs.map((updatedNode$0node$pairs$item2) => {
-                        
-            let result = updatedNode$0node$pairs$item2;
-            {
-                let changed4 = false;
-                
-                const result$location = transformLocation(updatedNode$0node$pairs$item2.location, visitor, ctx);
-                changed4 = changed4 || result$location !== updatedNode$0node$pairs$item2.location;
+                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
 
                 
-                const result$contents = transformTerm(updatedNode$0node$pairs$item2.contents, visitor, ctx);
-                changed4 = changed4 || result$contents !== updatedNode$0node$pairs$item2.contents;
-                if (changed4) {
-                    result =  {...result, location: result$location, contents: result$contents};
-                    changed3 = true;
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
                 }
             }
             
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
+            case 'InvalidRecordAttributes': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
+
+                
+                const updatedNode$0node$inner = transformRecord(updatedNode$0specified.inner, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$inner !== updatedNode$0specified.inner;
+
+                
+                let updatedNode$0node$extraAttributes = updatedNode$0specified.extraAttributes;
+                {
+                    let changed3 = false;
+                    const arr2 = updatedNode$0specified.extraAttributes.map((updatedNode$0node$extraAttributes$item2) => {
+                        
+                const result = transformUnusedAttribute(updatedNode$0node$extraAttributes$item2, visitor, ctx);
+                changed3 = changed3 || result !== updatedNode$0node$extraAttributes$item2;
                         return result
                     })
                     if (changed3) {
-                        updatedNode$0node$pairs = arr2;
+                        updatedNode$0node$extraAttributes = arr2;
+                        changed2 = true;
+                    }
+                }
+                
+
+                
+                let updatedNode$0node$extraSpreads = updatedNode$0specified.extraSpreads;
+                {
+                    let changed3 = false;
+                    const arr2 = updatedNode$0specified.extraSpreads.map((updatedNode$0node$extraSpreads$item2) => {
+                        
+                const result = transformTerm(updatedNode$0node$extraSpreads$item2, visitor, ctx);
+                changed3 = changed3 || result !== updatedNode$0node$extraSpreads$item2;
+                        return result
+                    })
+                    if (changed3) {
+                        updatedNode$0node$extraSpreads = arr2;
                         changed2 = true;
                     }
                 }
@@ -2309,10 +2532,6 @@ export const transformLiteralWithTemplateString = <Ctx>(node: LiteralWithTemplat
                 changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
 
                 
-                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
-
-                
         let updatedNode$0node$decorators = undefined;
         const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
         if (updatedNode$0node$decorators$current != null) {
@@ -2323,7 +2542,7 @@ export const transformLiteralWithTemplateString = <Ctx>(node: LiteralWithTemplat
         }
         
                 if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, pairs: updatedNode$0node$pairs, location: updatedNode$0node$location, is: updatedNode$0node$is, decorators: updatedNode$0node$decorators};
+                    updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, inner: updatedNode$0node$inner, extraAttributes: updatedNode$0node$extraAttributes, extraSpreads: updatedNode$0node$extraSpreads, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
                     changed1 = true;
                 }
             }
@@ -2332,7 +2551,7 @@ export const transformLiteralWithTemplateString = <Ctx>(node: LiteralWithTemplat
                     break;
                 }
 
-            case 'float': {
+            case 'InvalidAttribute': {
                     const updatedNode$0specified = node;
                     let changed1 = false;
                     
@@ -2340,12 +2559,12 @@ export const transformLiteralWithTemplateString = <Ctx>(node: LiteralWithTemplat
             {
                 let changed2 = false;
                 
-                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
-
-                
                 const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
                 changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
+
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
 
                 
         let updatedNode$0node$decorators = undefined;
@@ -2357,43 +2576,12 @@ export const transformLiteralWithTemplateString = <Ctx>(node: LiteralWithTemplat
             updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
         }
         
+
+                
+                const updatedNode$0node$inner = transformTerm(updatedNode$0specified.inner, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$inner !== updatedNode$0specified.inner;
                 if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, is: updatedNode$0node$is, decorators: updatedNode$0node$decorators};
-                    changed1 = true;
-                }
-            }
-            
-                    updatedNode = updatedNode$0node;
-                    break;
-                }
-
-            case 'int': {
-                    const updatedNode$0specified = node;
-                    let changed1 = false;
-                    
-            let updatedNode$0node = updatedNode$0specified;
-            {
-                let changed2 = false;
-                
-                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
-
-                
-                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
-
-                
-        let updatedNode$0node$decorators = undefined;
-        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
-        if (updatedNode$0node$decorators$current != null) {
-            
-                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
-            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
-        }
-        
-                if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, is: updatedNode$0node$is, decorators: updatedNode$0node$decorators};
+                    updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators, inner: updatedNode$0node$inner};
                     changed1 = true;
                 }
             }
@@ -2405,7 +2593,7 @@ export const transformLiteralWithTemplateString = <Ctx>(node: LiteralWithTemplat
             default: {
                         let changed1 = false;
                         
-                const updatedNode$0node = transformBoolean(node, visitor, ctx);
+                const updatedNode$0node = transformInvalidApplication(node, visitor, ctx);
                 changed1 = changed1 || updatedNode$0node !== node;
                         updatedNode = updatedNode$0node;
                     }
@@ -3114,369 +3302,6 @@ export const transformTerm = <Ctx>(node: Term, visitor: Visitor<Ctx>, ctx: Ctx):
                     break;
                 }
 
-            case 'Ambiguous': {
-                    const updatedNode$0specified = node;
-                    let changed1 = false;
-                    
-            let updatedNode$0node = updatedNode$0specified;
-            {
-                let changed2 = false;
-                
-                let updatedNode$0node$options = updatedNode$0specified.options;
-                {
-                    let changed3 = false;
-                    const arr2 = updatedNode$0specified.options.map((updatedNode$0node$options$item2) => {
-                        
-                const result = transformTerm(updatedNode$0node$options$item2, visitor, ctx);
-                changed3 = changed3 || result !== updatedNode$0node$options$item2;
-                        return result
-                    })
-                    if (changed3) {
-                        updatedNode$0node$options = arr2;
-                        changed2 = true;
-                    }
-                }
-                
-
-                
-                const updatedNode$0node$is = transformAmbiguousType(updatedNode$0specified.is, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
-
-                
-                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
-
-                
-        let updatedNode$0node$decorators = undefined;
-        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
-        if (updatedNode$0node$decorators$current != null) {
-            
-                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
-            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
-        }
-        
-                if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, options: updatedNode$0node$options, is: updatedNode$0node$is, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
-                    changed1 = true;
-                }
-            }
-            
-                    updatedNode = updatedNode$0node;
-                    break;
-                }
-
-            case 'TypeError': {
-                    const updatedNode$0specified = node;
-                    let changed1 = false;
-                    
-            let updatedNode$0node = updatedNode$0specified;
-            {
-                let changed2 = false;
-                
-                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
-
-                
-                const updatedNode$0node$inner = transformTerm(updatedNode$0specified.inner, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$inner !== updatedNode$0specified.inner;
-
-                
-                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
-
-                
-        let updatedNode$0node$decorators = undefined;
-        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
-        if (updatedNode$0node$decorators$current != null) {
-            
-                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
-            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
-        }
-        
-                if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, inner: updatedNode$0node$inner, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
-                    changed1 = true;
-                }
-            }
-            
-                    updatedNode = updatedNode$0node;
-                    break;
-                }
-
-            case 'NotFound': {
-                    const updatedNode$0specified = node;
-                    let changed1 = false;
-                    
-            let updatedNode$0node = updatedNode$0specified;
-            {
-                let changed2 = false;
-                
-                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
-
-                
-                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
-
-                
-        let updatedNode$0node$decorators = undefined;
-        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
-        if (updatedNode$0node$decorators$current != null) {
-            
-                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
-            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
-        }
-        
-                if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
-                    changed1 = true;
-                }
-            }
-            
-                    updatedNode = updatedNode$0node;
-                    break;
-                }
-
-            case 'Hole': {
-                    const updatedNode$0specified = node;
-                    let changed1 = false;
-                    
-            let updatedNode$0node = updatedNode$0specified;
-            {
-                let changed2 = false;
-                
-                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
-
-                
-                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
-
-                
-        let updatedNode$0node$decorators = undefined;
-        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
-        if (updatedNode$0node$decorators$current != null) {
-            
-                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
-            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
-        }
-        
-                if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
-                    changed1 = true;
-                }
-            }
-            
-                    updatedNode = updatedNode$0node;
-                    break;
-                }
-
-            case 'InvalidRecordAttributes': {
-                    const updatedNode$0specified = node;
-                    let changed1 = false;
-                    
-            let updatedNode$0node = updatedNode$0specified;
-            {
-                let changed2 = false;
-                
-                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
-
-                
-                const updatedNode$0node$inner = transformRecord(updatedNode$0specified.inner, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$inner !== updatedNode$0specified.inner;
-
-                
-                let updatedNode$0node$extraAttributes = updatedNode$0specified.extraAttributes;
-                {
-                    let changed3 = false;
-                    const arr2 = updatedNode$0specified.extraAttributes.map((updatedNode$0node$extraAttributes$item2) => {
-                        
-                const result = transformUnusedAttribute(updatedNode$0node$extraAttributes$item2, visitor, ctx);
-                changed3 = changed3 || result !== updatedNode$0node$extraAttributes$item2;
-                        return result
-                    })
-                    if (changed3) {
-                        updatedNode$0node$extraAttributes = arr2;
-                        changed2 = true;
-                    }
-                }
-                
-
-                
-                let updatedNode$0node$extraSpreads = updatedNode$0specified.extraSpreads;
-                {
-                    let changed3 = false;
-                    const arr2 = updatedNode$0specified.extraSpreads.map((updatedNode$0node$extraSpreads$item2) => {
-                        
-                const result = transformTerm(updatedNode$0node$extraSpreads$item2, visitor, ctx);
-                changed3 = changed3 || result !== updatedNode$0node$extraSpreads$item2;
-                        return result
-                    })
-                    if (changed3) {
-                        updatedNode$0node$extraSpreads = arr2;
-                        changed2 = true;
-                    }
-                }
-                
-
-                
-                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
-
-                
-        let updatedNode$0node$decorators = undefined;
-        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
-        if (updatedNode$0node$decorators$current != null) {
-            
-                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
-            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
-        }
-        
-                if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, inner: updatedNode$0node$inner, extraAttributes: updatedNode$0node$extraAttributes, extraSpreads: updatedNode$0node$extraSpreads, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
-                    changed1 = true;
-                }
-            }
-            
-                    updatedNode = updatedNode$0node;
-                    break;
-                }
-
-            case 'InvalidAttribute': {
-                    const updatedNode$0specified = node;
-                    let changed1 = false;
-                    
-            let updatedNode$0node = updatedNode$0specified;
-            {
-                let changed2 = false;
-                
-                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
-
-                
-                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
-
-                
-        let updatedNode$0node$decorators = undefined;
-        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
-        if (updatedNode$0node$decorators$current != null) {
-            
-                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
-            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
-        }
-        
-
-                
-                const updatedNode$0node$inner = transformTerm(updatedNode$0specified.inner, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$inner !== updatedNode$0specified.inner;
-                if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators, inner: updatedNode$0node$inner};
-                    changed1 = true;
-                }
-            }
-            
-                    updatedNode = updatedNode$0node;
-                    break;
-                }
-
-            case 'InvalidApplication': {
-                    const updatedNode$0specified = node;
-                    let changed1 = false;
-                    
-            let updatedNode$0node = updatedNode$0specified;
-            {
-                let changed2 = false;
-                
-                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
-
-                
-                const updatedNode$0node$target = transformTerm(updatedNode$0specified.target, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$target !== updatedNode$0specified.target;
-
-                
-                let updatedNode$0node$extraArgs = updatedNode$0specified.extraArgs;
-                {
-                    let changed3 = false;
-                    const arr2 = updatedNode$0specified.extraArgs.map((updatedNode$0node$extraArgs$item2) => {
-                        
-                const result = transformTerm(updatedNode$0node$extraArgs$item2, visitor, ctx);
-                changed3 = changed3 || result !== updatedNode$0node$extraArgs$item2;
-                        return result
-                    })
-                    if (changed3) {
-                        updatedNode$0node$extraArgs = arr2;
-                        changed2 = true;
-                    }
-                }
-                
-
-                
-                let updatedNode$0node$extraTypeArgs = updatedNode$0specified.extraTypeArgs;
-                {
-                    let changed3 = false;
-                    const arr2 = updatedNode$0specified.extraTypeArgs.map((updatedNode$0node$extraTypeArgs$item2) => {
-                        
-                const result = transformType(updatedNode$0node$extraTypeArgs$item2, visitor, ctx);
-                changed3 = changed3 || result !== updatedNode$0node$extraTypeArgs$item2;
-                        return result
-                    })
-                    if (changed3) {
-                        updatedNode$0node$extraTypeArgs = arr2;
-                        changed2 = true;
-                    }
-                }
-                
-
-                
-                let updatedNode$0node$extraEffectArgs = updatedNode$0specified.extraEffectArgs;
-                {
-                    let changed3 = false;
-                    const arr2 = updatedNode$0specified.extraEffectArgs.map((updatedNode$0node$extraEffectArgs$item2) => {
-                        
-                const result = transformEffectRef(updatedNode$0node$extraEffectArgs$item2, visitor, ctx);
-                changed3 = changed3 || result !== updatedNode$0node$extraEffectArgs$item2;
-                        return result
-                    })
-                    if (changed3) {
-                        updatedNode$0node$extraEffectArgs = arr2;
-                        changed2 = true;
-                    }
-                }
-                
-
-                
-                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
-
-                
-        let updatedNode$0node$decorators = undefined;
-        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
-        if (updatedNode$0node$decorators$current != null) {
-            
-                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
-                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
-            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
-        }
-        
-                if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, target: updatedNode$0node$target, extraArgs: updatedNode$0node$extraArgs, extraTypeArgs: updatedNode$0node$extraTypeArgs, extraEffectArgs: updatedNode$0node$extraEffectArgs, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
-                    changed1 = true;
-                }
-            }
-            
-                    updatedNode = updatedNode$0node;
-                    break;
-                }
-
             case 'raise': {
                     const updatedNode$0specified = node;
                     let changed1 = false;
@@ -3871,10 +3696,216 @@ export const transformTerm = <Ctx>(node: Term, visitor: Visitor<Ctx>, ctx: Ctx):
                     break;
                 }
 
+            case 'string': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
+
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
+            case 'TemplateString': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                let updatedNode$0node$pairs = updatedNode$0specified.pairs;
+                {
+                    let changed3 = false;
+                    const arr2 = updatedNode$0specified.pairs.map((updatedNode$0node$pairs$item2) => {
+                        
+            let result = updatedNode$0node$pairs$item2;
+            {
+                let changed4 = false;
+                
+                const result$location = transformLocation(updatedNode$0node$pairs$item2.location, visitor, ctx);
+                changed4 = changed4 || result$location !== updatedNode$0node$pairs$item2.location;
+
+                
+                const result$contents = transformTerm(updatedNode$0node$pairs$item2.contents, visitor, ctx);
+                changed4 = changed4 || result$contents !== updatedNode$0node$pairs$item2.contents;
+                if (changed4) {
+                    result =  {...result, location: result$location, contents: result$contents};
+                    changed3 = true;
+                }
+            }
+            
+                        return result
+                    })
+                    if (changed3) {
+                        updatedNode$0node$pairs = arr2;
+                        changed2 = true;
+                    }
+                }
+                
+
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, pairs: updatedNode$0node$pairs, location: updatedNode$0node$location, is: updatedNode$0node$is, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
+            case 'float': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, is: updatedNode$0node$is, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
+            case 'int': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, is: updatedNode$0node$is, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
+            case 'boolean': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
+
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, is: updatedNode$0node$is, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
             default: {
                         let changed1 = false;
                         
-                const updatedNode$0node = transformLiteralWithTemplateString(node, visitor, ctx);
+                const updatedNode$0node = transformErrorTerm(node, visitor, ctx);
                 changed1 = changed1 || updatedNode$0node !== node;
                         updatedNode = updatedNode$0node;
                     }
@@ -4772,6 +4803,7 @@ export const isErrorPattern = (value: ErrorPattern | Pattern): value is ErrorPat
         switch (value.type) {
             case "PHole":
         case "PTypeError":
+        case "PNotFound":
                 return true
             default:
                 return false

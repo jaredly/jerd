@@ -21,6 +21,7 @@ import {
     pureFunction,
     typeFromTermType,
 } from './utils';
+import { isErrorPattern } from '../../typing/auto-transform';
 
 // Here's how this looks.
 // If you succeed, return the success branch. otherwise, do nothing.
@@ -367,14 +368,9 @@ export const printPattern = (
 
         return success;
     }
-    switch (pattern.type) {
-        case 'PTypeError':
-        case 'PHole':
-            throw new Error(`Error Patter, cannot print.`);
-        default:
-            const _v: never = pattern;
-            throw new Error(
-                `Pattern not yet supported ${(pattern as any).type}`,
-            );
+    if (isErrorPattern(pattern)) {
+        throw new Error(`Error Patter, cannot print.`);
     }
+    const _v: never = pattern;
+    throw new Error(`Pattern not yet supported ${(pattern as any).type}`);
 };

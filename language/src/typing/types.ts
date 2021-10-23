@@ -669,7 +669,13 @@ export type Pattern =
     | ErrorPattern
     | Binding;
 
-export type ErrorPattern = PHole | PTypeError;
+export type ErrorPattern = PHole | PTypeError | PNotFound;
+export type PNotFound = {
+    type: 'PNotFound';
+    location: Location;
+    decorators?: Decorators;
+    text: string;
+};
 
 export type PHole = {
     type: 'PHole';
@@ -908,7 +914,6 @@ export type Decorators = Array<Decorator>;
 };
 
 export type Term =
-    | ErrorTerm
     | CPSAble
     | Unary
     | { type: 'self'; is: Type; location: Location; decorators?: Decorators }
@@ -932,7 +937,8 @@ export type Term =
     | Ref
     | Var
     | LiteralWithTemplateString
-    | Lambda;
+    | Lambda
+    | ErrorTerm;
 
 export type Ref = {
     type: 'ref';

@@ -1,4 +1,5 @@
 import { Location, Switch } from '../../parsing/parser';
+import { isErrorPattern } from '../auto-transform';
 import { idName } from '../env';
 import { LocatedError } from '../errors';
 import { getTypeError } from '../getTypeError';
@@ -38,6 +39,11 @@ const patternToExPattern = (
     groups: Groups,
     pattern: Pattern,
 ): ExPattern => {
+    if (isErrorPattern(pattern)) {
+        throw new Error(
+            `Pattern contains errors; unable to check exhaustiveness.`,
+        );
+    }
     switch (pattern.type) {
         case 'Alias':
             return patternToExPattern(env, type, groups, pattern.inner);
@@ -108,11 +114,6 @@ const patternToExPattern = (
         case 'Tuple': {
             return tupleToExPattern(type, pattern, groups, env);
         }
-        case 'PHole':
-        case 'PTypeError':
-            throw new Error(
-                `Pattern contains errors; unable to check exhaustiveness.`,
-            );
         default:
             const _x: never = pattern;
             throw new Error(`Unhandled pattern ${(pattern as any).type}`);

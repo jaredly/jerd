@@ -1287,6 +1287,8 @@ export const patternToPretty = (env: Env, pattern: Pattern): PP => {
             return atom('HOLE');
         case 'PTypeError':
             return patternToPretty(env, pattern.inner);
+        case 'PNotFound':
+            return atom(pattern.text);
         default:
             let _x: never = pattern;
             throw new Error(`Unknown pattern ${(pattern as any).type}`);

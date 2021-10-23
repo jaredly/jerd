@@ -553,8 +553,17 @@ const getAllUnionTypeMembers = (
     throw new Error(`Unexpected type ${t.type}`);
 };
 
+// const extraImports: Array<string> = [];
+// distinguishTypesRaw.forEach((item) => {
+//     const [name, ...rest] = item.split(',').filter(Boolean);
+//     if (!transformerStatus[name]) {
+//         extraImports.push(name);
+//     }
+// });
+
 const prelude = `import {${Object.keys(transformerStatus)
     .filter((k) => k !== 'Array')
+    // .concat(extraImports)
     .join(', ')}} from './types';
 
 export type Visitor<Ctx> = {
