@@ -108,6 +108,11 @@ const patternToExPattern = (
         case 'Tuple': {
             return tupleToExPattern(type, pattern, groups, env);
         }
+        case 'PHole':
+        case 'PTypeError':
+            throw new Error(
+                `Pattern contains errors; unable to check exhaustiveness.`,
+            );
         default:
             const _x: never = pattern;
             throw new Error(`Unhandled pattern ${(pattern as any).type}`);

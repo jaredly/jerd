@@ -367,6 +367,14 @@ export const printPattern = (
 
         return success;
     }
-    const _v: never = pattern;
-    throw new Error(`Pattern not yet supported ${(pattern as any).type}`);
+    switch (pattern.type) {
+        case 'PTypeError':
+        case 'PHole':
+            throw new Error(`Error Patter, cannot print.`);
+        default:
+            const _v: never = pattern;
+            throw new Error(
+                `Pattern not yet supported ${(pattern as any).type}`,
+            );
+    }
 };

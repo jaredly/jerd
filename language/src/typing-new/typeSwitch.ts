@@ -1,6 +1,7 @@
 import { Switch } from '../parsing/parser-new';
 import { SwitchCase, Term, Type } from '../typing/types';
-import { Context } from './Context';
+import { Context, ValueBinding } from './Context';
+import { typePattern } from './pattern/typePattern';
 import { typeExpression } from './typeExpression';
 
 export const typeSwitch = (
@@ -23,7 +24,10 @@ export const typeSwitch = (
     // annnd for patterns, I think we'll just ignore expected types? idk
     const cases = term.cases.items.map(
         (kase): SwitchCase => {
-            const pattern = typePattern(ctx, kase.pattern, [input.is]);
+            const bindings: Array<ValueBinding> = [];
+            const pattern = typePattern(ctx, kase.pattern, bindings, [
+                input.is,
+            ]);
             kase.pattern;
             const body = typeExpression(ctx, kase.body, is ? [is] : expected);
             if (is == null) {

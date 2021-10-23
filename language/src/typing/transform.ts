@@ -415,6 +415,8 @@ export const walkPattern = (
         case 'int':
         case 'boolean':
         case 'Ignore':
+        case 'PHole':
+        case 'PTypeError':
             return;
         case 'Alias':
             walkPattern(pattern.inner, handle);

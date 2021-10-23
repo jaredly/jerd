@@ -17,6 +17,9 @@ export const typeBlock = (
             if (st.type === 'Define') {
                 const ann = st.ann ? typeType(ctx, st.ann) : null;
                 const value = typeExpression(ctx, st.expr, ann ? [ann] : []);
+                if (st.id.type !== 'Identifier') {
+                    throw new Error('oops fancy pattern');
+                }
                 const sym = idToSym(ctx, st.id);
                 values.unshift({
                     location: st.location,

@@ -1278,6 +1278,10 @@ export const patternToPretty = (env: Env, pattern: Pattern): PP => {
             );
         case 'Ignore':
             return atom('_', [], pattern.location);
+        case 'PHole':
+            return atom('HOLE');
+        case 'PTypeError':
+            return patternToPretty(env, pattern.inner);
         default:
             let _x: never = pattern;
             throw new Error(`Unknown pattern ${(pattern as any).type}`);

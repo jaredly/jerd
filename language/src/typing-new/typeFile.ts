@@ -44,6 +44,9 @@ export const typeToplevel = (
         case 'Define': {
             const t = top.ann ? typeType(ctx, top.ann) : null;
             const term = typeExpression(ctx, top.expr, t ? [t] : []);
+            if (top.id.type !== 'Identifier') {
+                throw new Error('oops fancy pattern');
+            }
             return {
                 type: 'Define',
                 term,
