@@ -1,17 +1,13 @@
 import { idName } from '../typing/env';
 import * as preset from '../typing/preset';
-import { LambdaType, nullLocation } from '../typing/types';
-import { addEffect, addRecord, addTerm } from './Library';
 import {
     customMatchers,
     errorSerilaizer,
-    fakeOp,
     newContext,
     parseExpression,
     parseToplevels,
     rawSnapshotSerializer,
     showTermErrors,
-    showTypeErrors,
     termToString,
     warningsSerializer,
 } from './test-utils';

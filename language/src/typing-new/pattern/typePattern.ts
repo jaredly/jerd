@@ -1,7 +1,7 @@
 import { Pattern } from '../../parsing/parser-new';
 import { bool, float, int, string } from '../../typing/preset';
 import { patternIs } from '../../typing/typePattern';
-import { Type, Pattern as TPattern } from '../../typing/types';
+import { Type, Pattern as TPattern, typesEqual } from '../../typing/types';
 import { Bindings, Context, idToSym, ValueBinding } from '../Context';
 import { resolveTypeId } from '../resolve';
 import { fixString } from '../typeTemplateString';
@@ -9,11 +9,18 @@ import { typeArrayPattern } from './typeArrayPattern';
 import { typeRecordPattern } from './typeRecordPattern';
 import { typeTuplePattern } from './typeTuplePattern';
 
-// export const wrapExpected = (
-// 	ctx: Context,
-// 	type: Type,
-// ): TPattern => {
-// }
+export const wrapExpected = (inner: TPattern, expected: Type): TPattern => {
+    const found = patternIs(inner, expected);
+    if (typesEqual(found, expected)) {
+        return inner;
+    }
+    return {
+        type: 'PTypeError',
+        inner,
+        location: inner.location,
+        is: expected,
+    };
+};
 
 export const typePattern = (
     ctx: Context,
@@ -38,19 +45,25 @@ export const typePattern = (
             };
         }
         case 'Int':
-            return {
-                type: 'int',
-                is: int,
-                location: term.location,
-                value: parseInt(term.contents),
-            };
+            return wrapExpected(
+                {
+                    type: 'int',
+                    is: int,
+                    location: term.location,
+                    value: parseInt(term.contents),
+                },
+                expected,
+            );
         case 'Float':
-            return {
-                type: 'float',
-                is: float,
-                location: term.location,
-                value: parseFloat(term.contents),
-            };
+            return wrapExpected(
+                {
+                    type: 'float',
+                    is: float,
+                    location: term.location,
+                    value: parseFloat(term.contents),
+                },
+                expected,
+            );
         case 'Boolean':
             return {
                 type: 'boolean',

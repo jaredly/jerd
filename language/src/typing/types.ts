@@ -669,7 +669,7 @@ export type Pattern =
     | ErrorPattern
     | Binding;
 
-export type ErrorPattern = PHole | PTypeError | PNotFound;
+export type ErrorPattern = PHole | PTypeError | PNotFound | DuplicateSpread;
 export type PNotFound = {
     type: 'PNotFound';
     location: Location;
@@ -684,6 +684,13 @@ export type PHole = {
 };
 export type PTypeError = {
     type: 'PTypeError';
+    inner: Pattern;
+    location: Location;
+    is: Type;
+    decorators?: Decorators;
+};
+export type DuplicateSpread = {
+    type: 'DuplicateSpread';
     inner: Pattern;
     location: Location;
     decorators?: Decorators;

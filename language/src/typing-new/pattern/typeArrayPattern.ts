@@ -1,4 +1,5 @@
 import { ArrayPattern } from '../../parsing/parser-new';
+import { void_ } from '../../typing/preset';
 import { Type, Pattern as TPattern } from '../../typing/types';
 import { Context, ValueBinding } from '../Context';
 import { typePattern } from './typePattern';
@@ -12,28 +13,39 @@ export function typeArrayPattern(
     const preItems: Array<TPattern> = [];
     let spread: TPattern | null = null;
     const postItems: Array<TPattern> = [];
+    let expectedElement: Type;
+    let error = false;
     if (
         expected.type !== 'ref' ||
         expected.ref.type !== 'builtin' ||
         expected.ref.name !== 'Array'
     ) {
-        throw new Error(`Array pattern type mismatch`);
+        // OOOOH HERE we want a late binding type for sure,
+        // because otherwise this will /always/ be wrong, which is no fun.
+        expectedElement = void_;
+        error = true;
+    } else {
+        expectedElement = expected.typeVbls[0];
     }
-    const expectedElement = expected.typeVbls[0];
     term.items?.items.forEach((item) => {
         if (item.type === 'ArrayPatternSpread') {
-            if (spread != null) {
-                throw new Error(
-                    `Cannot have multiple spreads in the same array pattern`,
-                );
-            }
+            let typed: TPattern;
             if (item.pattern) {
-                spread = typePattern(ctx, item.pattern, bindings, expected);
+                typed = typePattern(ctx, item.pattern, bindings, expected);
             } else {
-                spread = {
+                typed = {
                     type: 'Ignore',
                     location: item.location,
                 };
+            }
+            if (spread != null) {
+                postItems.push({
+                    type: 'DuplicateSpread',
+                    inner: typed,
+                    location: item.location,
+                });
+            } else {
+                spread = typed;
             }
         } else if (spread == null) {
             preItems.push(typePattern(ctx, item, bindings, expectedElement));
@@ -42,7 +54,7 @@ export function typeArrayPattern(
         }
     });
 
-    return {
+    const res: TPattern = {
         type: 'Array',
         preItems,
         spread,
@@ -50,4 +62,13 @@ export function typeArrayPattern(
         location: term.location,
         is: expectedElement,
     };
+    if (error) {
+        return {
+            type: 'PTypeError',
+            inner: res,
+            location: res.location,
+            is: expected,
+        };
+    }
+    return res;
 }

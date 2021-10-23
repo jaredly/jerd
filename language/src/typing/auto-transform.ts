@@ -1,4 +1,4 @@
-import {Term, Location, Loc, Type, TypeVblDecl, Id, Symbol, Decorators, Decorator, DecoratorArg, Pattern, TypeReference, Reference, UserReference, RecordPatternItem, ErrorPattern, PNotFound, EffectVblDecl, EffectRef, ErrorType, TypeHole, RecordBaseConcrete, RecordSubType, SwitchCase, LambdaType, Case, ErrorTerm, AmbiguousType, Record, UnusedAttribute, InvalidApplication, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
+import {Term, Location, Loc, Type, TypeVblDecl, Id, Symbol, Decorators, Decorator, DecoratorArg, Pattern, TypeReference, Reference, UserReference, RecordPatternItem, ErrorPattern, DuplicateSpread, EffectVblDecl, EffectRef, ErrorType, TypeHole, RecordBaseConcrete, RecordSubType, SwitchCase, LambdaType, Case, ErrorTerm, AmbiguousType, Record, UnusedAttribute, InvalidApplication, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
 
 export type Visitor<Ctx> = {
     Term?: (node: Term, ctx: Ctx) => null | false | Term | [Term | null, Ctx]
@@ -233,9 +233,9 @@ export const transformRecordPatternItem = <Ctx>(node: RecordPatternItem, visitor
         return updatedNode;
     }
 
-export const transformPNotFound = <Ctx>(node: PNotFound, visitor: Visitor<Ctx>, ctx: Ctx): PNotFound => {
+export const transformDuplicateSpread = <Ctx>(node: DuplicateSpread, visitor: Visitor<Ctx>, ctx: Ctx): DuplicateSpread => {
         if (!node) {
-            throw new Error('No PNotFound provided');
+            throw new Error('No DuplicateSpread provided');
         }
         
         let changed0 = false;
@@ -243,6 +243,10 @@ export const transformPNotFound = <Ctx>(node: PNotFound, visitor: Visitor<Ctx>, 
             let updatedNode = node;
             {
                 let changed1 = false;
+                
+                const updatedNode$inner = transformPattern(node.inner, visitor, ctx);
+                changed1 = changed1 || updatedNode$inner !== node.inner;
+
                 
                 const updatedNode$location = transformLocation(node.location, visitor, ctx);
                 changed1 = changed1 || updatedNode$location !== node.location;
@@ -258,7 +262,7 @@ export const transformPNotFound = <Ctx>(node: PNotFound, visitor: Visitor<Ctx>, 
         }
         
                 if (changed1) {
-                    updatedNode =  {...updatedNode, location: updatedNode$location, decorators: updatedNode$decorators};
+                    updatedNode =  {...updatedNode, inner: updatedNode$inner, location: updatedNode$location, decorators: updatedNode$decorators};
                     changed0 = true;
                 }
             }
@@ -341,10 +345,41 @@ export const transformErrorPattern = <Ctx>(node: ErrorPattern, visitor: Visitor<
                     break;
                 }
 
+            case 'PNotFound': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
             default: {
                         let changed1 = false;
                         
-                const updatedNode$0node = transformPNotFound(node, visitor, ctx);
+                const updatedNode$0node = transformDuplicateSpread(node, visitor, ctx);
                 changed1 = changed1 || updatedNode$0node !== node;
                         updatedNode = updatedNode$0node;
                     }
@@ -4804,6 +4839,7 @@ export const isErrorPattern = (value: ErrorPattern | Pattern): value is ErrorPat
             case "PHole":
         case "PTypeError":
         case "PNotFound":
+        case "DuplicateSpread":
                 return true
             default:
                 return false

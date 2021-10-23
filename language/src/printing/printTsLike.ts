@@ -1289,6 +1289,8 @@ export const patternToPretty = (env: Env, pattern: Pattern): PP => {
             return patternToPretty(env, pattern.inner);
         case 'PNotFound':
             return atom(pattern.text);
+        case 'DuplicateSpread':
+            return items([atom('...'), patternToPretty(env, pattern.inner)]);
         default:
             let _x: never = pattern;
             throw new Error(`Unknown pattern ${(pattern as any).type}`);

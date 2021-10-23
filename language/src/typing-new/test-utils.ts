@@ -18,6 +18,7 @@ import {
     typesEqual,
     isErrorTerm,
     Pattern,
+    ErrorPattern,
 } from '../typing/types';
 import * as preset from '../typing/preset';
 import { GroupedOp, reGroupOps } from './ops';
@@ -33,6 +34,8 @@ import {
 } from '../printing/printTsLike';
 import { showLocation } from '../typing/typeExpr';
 import {
+    isErrorPattern,
+    isErrorType,
     transformPattern,
     transformTerm,
     transformType,
@@ -41,6 +44,7 @@ import {
 import { showType } from '../typing/unify';
 import { typeToplevel } from './typeFile';
 import { findErrors } from './typeRecord';
+import { patternIs } from '../typing/typePattern';
 
 declare global {
     namespace jest {
@@ -192,25 +196,17 @@ export const customMatchers: jest.ExpectExtendMap = {
                 message: () => 'invalid object. must be a term or type',
             };
         }
-        const errors: Array<Pattern> = [];
-        transformPattern(
-            value,
-            {
-                Pattern: (node) => {
-                    switch (node.type) {
-                        case 'PHole':
-                        case 'PTypeError':
-                            errors.push(node);
-                    }
-                    return null;
-                },
-            },
-            null,
-        );
+        const errors = findPatternErrors(value);
         if (errors.length === 0) {
             return { pass: true, message: () => 'ok' };
         }
-        return { pass: false, message: () => JSON.stringify(errors) };
+        return {
+            pass: false,
+            message: () =>
+                errors
+                    .map((pattern) => patternErrorToString(ctx, pattern))
+                    .join('\n'),
+        };
     },
     toNotHaveErrors(value, ctx) {
         if (
@@ -256,15 +252,36 @@ export const customMatchers: jest.ExpectExtendMap = {
     },
 };
 
+export const patternErrorToString = (ctx: Context, pattern: ErrorPattern) => {
+    if (pattern.type === 'PTypeError') {
+        return `Expected ${typeToString(ctx, pattern.is)}, found ${typeToString(
+            ctx,
+            patternIs(pattern.inner, pattern.is),
+        )} : ${patternToString(ctx, pattern)}`;
+    }
+    return `${pattern.type}: ` + patternToString(ctx, pattern);
+};
+
+export const findPatternErrors = (pattern: Pattern): Array<ErrorPattern> => {
+    const errors: Array<ErrorPattern> = [];
+    transformPattern(
+        pattern,
+        {
+            Pattern: (node) => {
+                if (isErrorPattern(node)) {
+                    errors.push(node);
+                }
+                return null;
+            },
+        },
+        null,
+    );
+    return errors;
+};
+
 export const typeErrorVisitor = (errors: Array<ErrorType>): Visitor<null> => ({
     Type(node: Type, _) {
-        if (
-            node.type === 'NotASubType' ||
-            node.type === 'InvalidTypeApplication' ||
-            node.type === 'THole' ||
-            node.type === 'Ambiguous' ||
-            node.type === 'TNotFound'
-        ) {
+        if (isErrorType(node)) {
             errors.push(node);
         }
         return null;
