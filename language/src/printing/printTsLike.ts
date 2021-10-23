@@ -1225,12 +1225,14 @@ export const patternToPretty = (env: Env, pattern: Pattern): PP => {
             return symToPretty(env, pattern.sym);
         case 'Enum':
             return refToPretty(env, pattern.ref.ref, 'enum');
-        case 'Record':
-            if (pattern.items.length) {
-                return items([
-                    refToPretty(env, pattern.ref.ref, 'record'),
-                    args(
-                        pattern.items.map((item) =>
+        case 'ErrorRecordPattern':
+            // TODO: if ... the thing inside is a record .. then
+            // do this better.
+            return items([
+                patternToPretty(env, pattern.inner),
+                args(
+                    pattern.items
+                        .map((item) =>
                             items([
                                 atom(
                                     maybeQuoteAttrName(
@@ -1242,7 +1244,43 @@ export const patternToPretty = (env: Env, pattern: Pattern): PP => {
                                 atom(': '),
                                 patternToPretty(env, item.pattern),
                             ]),
+                        )
+                        .concat(
+                            pattern.extraItems.map((item) =>
+                                items([
+                                    atom(item.text),
+                                    atom(': '),
+                                    patternToPretty(env, item.pattern),
+                                ]),
+                            ),
                         ),
+                    '{',
+                    '}',
+                ),
+            ]);
+        case 'Record':
+            if (pattern.items.length) {
+                return items([
+                    refToPretty(env, pattern.ref.ref, 'record'),
+                    args(
+                        pattern.items.map((item) => {
+                            const name =
+                                env.global.recordGroups[idName(item.ref.id)][
+                                    item.idx
+                                ];
+                            if (
+                                item.pattern.type === 'Binding' &&
+                                item.pattern.sym.name === name
+                            ) {
+                                return patternToPretty(env, item.pattern);
+                            }
+
+                            return items([
+                                atom(maybeQuoteAttrName(name)),
+                                atom(': '),
+                                patternToPretty(env, item.pattern),
+                            ]);
+                        }),
                         '{',
                         '}',
                     ),

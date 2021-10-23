@@ -1,9 +1,10 @@
 import { parseTyped } from '../../parsing/parser-new';
-import { idName } from '../../typing/env';
+import { idFromName, idName } from '../../typing/env';
 import * as preset from '../../typing/preset';
 import { patternIs } from '../../typing/typePattern';
 import { Pattern, Type } from '../../typing/types';
 import { Context, ValueBinding } from '../Context';
+import { addRecord } from '../Library';
 import {
     customMatchers,
     errorSerilaizer,
@@ -66,7 +67,73 @@ describe('typePattern', () => {
         expect(patternIs(res, preset.string)).toEqualType(preset.string, ctx);
         expect(res).toNotHaveErrorsP(ctx);
     });
+});
 
+describe('record', () => {
+    it('basic record I think', () => {
+        const ctx = newContext();
+        let id;
+        [ctx.library, id] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.int, preset.float]),
+            'Hello',
+            ['what', 'thing'],
+        );
+
+        let res = parsePattern(ctx, `Hello{what: 10}`, [], preset.refType(id));
+        expect(ctx.warnings).toHaveLength(0);
+        expect(res).toNotHaveErrorsP(ctx);
+        expect(patternToString(ctx, res)).toEqual(
+            `Hello#${idName(id)}{what: 10}`,
+        );
+
+        // We should have good type checing
+        res = parsePattern(ctx, `Hello{what: 10.0}`, [], preset.refType(id));
+        expect(ctx.warnings).toHaveLength(0);
+        expect(showPatternErrors(ctx, res)).toEqual(
+            `Expected int#builtin, found float#builtin : 10.0 1:19-1:23`,
+        );
+        expect(patternToString(ctx, res)).toEqual(
+            `Hello#${idName(id)}{what: 10.0}`,
+        );
+
+        const bindings: Array<ValueBinding> = [];
+        // What if .. um .. idk
+        res = parsePattern(
+            ctx,
+            `Hello{what: 10, thing#:3}`,
+            bindings,
+            preset.int,
+        );
+        expect(ctx.warnings).toHaveLength(0);
+        expect(showPatternErrors(ctx, res)).toMatchInlineSnapshot(`""`);
+        expect(patternToString(ctx, res)).toEqual(
+            `Hello#${idName(id)}{what: 10, thing#:3}`,
+        );
+        expect(bindings.map((m) => m.sym)).toEqual([
+            { unique: 3, name: 'thing' },
+        ]);
+    });
+
+    it('missing record', () => {
+        const ctx = newContext();
+        let res = parsePattern(
+            ctx,
+            `Hello{what: 10}`,
+            [],
+            preset.refType(idFromName('what')),
+        );
+        expect(ctx.warnings).toHaveLength(0);
+        expect(showPatternErrors(ctx, res)).toMatchInlineSnapshot(`
+            ErrorRecordPattern: Hello{what: 10} 1:7-1:22
+            PNotFound: Hello 1:7-1:22
+            Expected void#builtin, found int#builtin : 10 1:19-1:21
+        `);
+        expect(patternToString(ctx, res)).toEqual(`Hello{what: 10}`);
+    });
+});
+
+describe('tuple', () => {
     it('tuples should be nice', () => {
         const ctx = newContext();
         const bindings: Array<ValueBinding> = [];
@@ -81,7 +148,9 @@ describe('typePattern', () => {
         expect(bindings.map((b) => b.sym)).toEqual([{ unique: 1, name: 'a' }]);
         expect(res).toNotHaveErrorsP(ctx);
     });
+});
 
+describe('array', () => {
     it('array stuff?', () => {
         const ctx = newContext();
         const t = preset.builtinType('Array', [preset.int]);
@@ -111,7 +180,9 @@ describe('typePattern', () => {
         expect(patternToString(ctx, res)).toEqual(
             `[a#:1, ...a#:2, ...b#:3, c#:4]`,
         );
-        expect(showPatternErrors(ctx, res)).toEqual(`DuplicateSpread: ...b#:3`);
+        expect(showPatternErrors(ctx, res)).toEqual(
+            `DuplicateSpread: ...b#:3 1:17-1:21`,
+        );
     });
 
     it('spreading a non-array is an error', () => {
@@ -122,7 +193,7 @@ describe('typePattern', () => {
         expect(ctx.warnings).toHaveLength(0);
         expect(patternToString(ctx, res)).toEqual(`[a#:1, ...3, c#:2]`);
         expect(showPatternErrors(ctx, res)).toEqual(
-            `Expected Array#builtin<int#builtin>, found int#builtin : 3`,
+            `Expected Array#builtin<int#builtin>, found int#builtin : 3 1:14-1:15`,
         );
     });
 });

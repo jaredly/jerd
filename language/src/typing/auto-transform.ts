@@ -1,4 +1,4 @@
-import {Term, Location, Loc, Type, TypeVblDecl, Id, Symbol, Decorators, Decorator, DecoratorArg, Pattern, TypeReference, Reference, UserReference, RecordPatternItem, ErrorPattern, DuplicateSpread, EffectVblDecl, EffectRef, ErrorType, TypeHole, RecordBaseConcrete, RecordSubType, SwitchCase, LambdaType, Case, ErrorTerm, AmbiguousType, Record, UnusedAttribute, InvalidApplication, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
+import {Term, Location, Loc, Type, TypeVblDecl, Id, Symbol, Decorators, Decorator, DecoratorArg, Pattern, TypeReference, Reference, UserReference, RecordPatternItem, ErrorPattern, InvalidRecordPattern, EffectVblDecl, EffectRef, ErrorType, TypeHole, RecordBaseConcrete, RecordSubType, SwitchCase, LambdaType, Case, ErrorTerm, AmbiguousType, Record, UnusedAttribute, InvalidApplication, Let, ToplevelT, EffectDef, DecoratorDef, DecoratorDefArg, EnumDef, UserTypeReference, ToplevelRecord, RecordDef} from './types';
 
 export type Visitor<Ctx> = {
     Term?: (node: Term, ctx: Ctx) => null | false | Term | [Term | null, Ctx]
@@ -233,9 +233,9 @@ export const transformRecordPatternItem = <Ctx>(node: RecordPatternItem, visitor
         return updatedNode;
     }
 
-export const transformDuplicateSpread = <Ctx>(node: DuplicateSpread, visitor: Visitor<Ctx>, ctx: Ctx): DuplicateSpread => {
+export const transformInvalidRecordPattern = <Ctx>(node: InvalidRecordPattern, visitor: Visitor<Ctx>, ctx: Ctx): InvalidRecordPattern => {
         if (!node) {
-            throw new Error('No DuplicateSpread provided');
+            throw new Error('No InvalidRecordPattern provided');
         }
         
         let changed0 = false;
@@ -246,6 +246,50 @@ export const transformDuplicateSpread = <Ctx>(node: DuplicateSpread, visitor: Vi
                 
                 const updatedNode$inner = transformPattern(node.inner, visitor, ctx);
                 changed1 = changed1 || updatedNode$inner !== node.inner;
+
+                
+                let updatedNode$items = node.items;
+                {
+                    let changed2 = false;
+                    const arr1 = node.items.map((updatedNode$items$item1) => {
+                        
+                const result = transformRecordPatternItem(updatedNode$items$item1, visitor, ctx);
+                changed2 = changed2 || result !== updatedNode$items$item1;
+                        return result
+                    })
+                    if (changed2) {
+                        updatedNode$items = arr1;
+                        changed1 = true;
+                    }
+                }
+                
+
+                
+                let updatedNode$extraItems = node.extraItems;
+                {
+                    let changed2 = false;
+                    const arr1 = node.extraItems.map((updatedNode$extraItems$item1) => {
+                        
+            let result = updatedNode$extraItems$item1;
+            {
+                let changed3 = false;
+                
+                const result$pattern = transformPattern(updatedNode$extraItems$item1.pattern, visitor, ctx);
+                changed3 = changed3 || result$pattern !== updatedNode$extraItems$item1.pattern;
+                if (changed3) {
+                    result =  {...result, pattern: result$pattern};
+                    changed2 = true;
+                }
+            }
+            
+                        return result
+                    })
+                    if (changed2) {
+                        updatedNode$extraItems = arr1;
+                        changed1 = true;
+                    }
+                }
+                
 
                 
                 const updatedNode$location = transformLocation(node.location, visitor, ctx);
@@ -262,7 +306,7 @@ export const transformDuplicateSpread = <Ctx>(node: DuplicateSpread, visitor: Vi
         }
         
                 if (changed1) {
-                    updatedNode =  {...updatedNode, inner: updatedNode$inner, location: updatedNode$location, decorators: updatedNode$decorators};
+                    updatedNode =  {...updatedNode, inner: updatedNode$inner, items: updatedNode$items, extraItems: updatedNode$extraItems, location: updatedNode$location, decorators: updatedNode$decorators};
                     changed0 = true;
                 }
             }
@@ -326,6 +370,10 @@ export const transformErrorPattern = <Ctx>(node: ErrorPattern, visitor: Visitor<
                 changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
 
                 
+                const updatedNode$0node$is = transformType(updatedNode$0specified.is, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$is !== updatedNode$0specified.is;
+
+                
         let updatedNode$0node$decorators = undefined;
         const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
         if (updatedNode$0node$decorators$current != null) {
@@ -336,7 +384,7 @@ export const transformErrorPattern = <Ctx>(node: ErrorPattern, visitor: Visitor<
         }
         
                 if (changed2) {
-                    updatedNode$0node =  {...updatedNode$0node, inner: updatedNode$0node$inner, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    updatedNode$0node =  {...updatedNode$0node, inner: updatedNode$0node$inner, location: updatedNode$0node$location, is: updatedNode$0node$is, decorators: updatedNode$0node$decorators};
                     changed1 = true;
                 }
             }
@@ -376,10 +424,45 @@ export const transformErrorPattern = <Ctx>(node: ErrorPattern, visitor: Visitor<
                     break;
                 }
 
+            case 'DuplicateSpread': {
+                    const updatedNode$0specified = node;
+                    let changed1 = false;
+                    
+            let updatedNode$0node = updatedNode$0specified;
+            {
+                let changed2 = false;
+                
+                const updatedNode$0node$inner = transformPattern(updatedNode$0specified.inner, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$inner !== updatedNode$0specified.inner;
+
+                
+                const updatedNode$0node$location = transformLocation(updatedNode$0specified.location, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$location !== updatedNode$0specified.location;
+
+                
+        let updatedNode$0node$decorators = undefined;
+        const updatedNode$0node$decorators$current = updatedNode$0specified.decorators;
+        if (updatedNode$0node$decorators$current != null) {
+            
+                const updatedNode$0node$decorators$2$ = transformDecorators(updatedNode$0node$decorators$current, visitor, ctx);
+                changed2 = changed2 || updatedNode$0node$decorators$2$ !== updatedNode$0node$decorators$current;
+            updatedNode$0node$decorators = updatedNode$0node$decorators$2$;
+        }
+        
+                if (changed2) {
+                    updatedNode$0node =  {...updatedNode$0node, inner: updatedNode$0node$inner, location: updatedNode$0node$location, decorators: updatedNode$0node$decorators};
+                    changed1 = true;
+                }
+            }
+            
+                    updatedNode = updatedNode$0node;
+                    break;
+                }
+
             default: {
                         let changed1 = false;
                         
-                const updatedNode$0node = transformDuplicateSpread(node, visitor, ctx);
+                const updatedNode$0node = transformInvalidRecordPattern(node, visitor, ctx);
                 changed1 = changed1 || updatedNode$0node !== node;
                         updatedNode = updatedNode$0node;
                     }
@@ -4840,6 +4923,7 @@ export const isErrorPattern = (value: ErrorPattern | Pattern): value is ErrorPat
         case "PTypeError":
         case "PNotFound":
         case "DuplicateSpread":
+        case "ErrorRecordPattern":
                 return true
             default:
                 return false

@@ -669,7 +669,12 @@ export type Pattern =
     | ErrorPattern
     | Binding;
 
-export type ErrorPattern = PHole | PTypeError | PNotFound | DuplicateSpread;
+export type ErrorPattern =
+    | PHole
+    | PTypeError
+    | PNotFound
+    | DuplicateSpread
+    | InvalidRecordPattern;
 export type PNotFound = {
     type: 'PNotFound';
     location: Location;
@@ -717,6 +722,14 @@ export type AliasPattern = {
 export type EnumPattern = {
     type: 'Enum';
     ref: TypeReference;
+    location: Location;
+    decorators?: Decorators;
+};
+export type InvalidRecordPattern = {
+    type: 'ErrorRecordPattern';
+    inner: Pattern;
+    items: Array<RecordPatternItem>;
+    extraItems: Array<{ text: string; pattern: Pattern }>;
     location: Location;
     decorators?: Decorators;
 };

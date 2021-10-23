@@ -100,23 +100,6 @@ export const typePattern = (
         case 'RecordPattern': {
             return typeRecordPattern(ctx, term, bindings, expected);
         }
-        // case 'RecordPattern': {
-        //     const id = resolveTypeId(ctx, term.id);
-        //     if (!id) {
-        //         return { type: 'PHole', location: term.location };
-        //     }
-        //     return {
-        //         type: 'Record',
-        //         location: term.location,
-        //         ref: {
-        //             type: 'ref',
-        //             ref: { type: 'user', id },
-        //             location: term.location,
-        //             typeVbls: [],
-        //         },
-        //         items,
-        //     };
-        // }
         default:
             let _x: never = term;
     }

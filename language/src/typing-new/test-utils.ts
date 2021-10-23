@@ -257,9 +257,16 @@ export const patternErrorToString = (ctx: Context, pattern: ErrorPattern) => {
         return `Expected ${typeToString(ctx, pattern.is)}, found ${typeToString(
             ctx,
             patternIs(pattern.inner, pattern.is),
-        )} : ${patternToString(ctx, pattern)}`;
+        )} : ${patternToString(ctx, pattern)} ${showLocation(
+            pattern.location,
+        )}`;
     }
-    return `${pattern.type}: ` + patternToString(ctx, pattern);
+    return (
+        `${pattern.type}: ` +
+        patternToString(ctx, pattern) +
+        ' ' +
+        showLocation(pattern.location)
+    );
 };
 
 export const findPatternErrors = (pattern: Pattern): Array<ErrorPattern> => {
