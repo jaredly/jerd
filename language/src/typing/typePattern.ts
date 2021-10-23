@@ -62,8 +62,13 @@ export const patternIs = (pattern: Pattern, expected: Type): Type => {
                 // effectVbls: [],
                 location: pattern.location,
             };
+        case 'PHole':
+        case 'PTypeError':
+            return expected;
+        default:
+            let _x: never = pattern;
+            throw new Error('Unexpected pattern type');
     }
-    throw new Error('Unexpected pattern type');
 };
 
 const typePattern = (

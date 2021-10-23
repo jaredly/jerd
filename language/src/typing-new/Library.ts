@@ -1,3 +1,4 @@
+import { Location } from '../parsing/parser-new';
 import { hashObject, idFromName, idName } from '../typing/env';
 import {
     Id,
@@ -7,8 +8,12 @@ import {
     RecordDef,
     DecoratorDef,
     ToplevelT,
+    Reference,
+    UserTypeReference,
+    TypeReference,
 } from '../typing/types';
-import { NamedDefns, ConstructorNames, MetaData } from './Context';
+import { NamedDefns, ConstructorNames, MetaData, Context } from './Context';
+import { applyTypeVariablesToEnum, matchingTypeVbls } from './typeEnum';
 
 /*
 
@@ -316,4 +321,50 @@ export const addRecord = (
         },
         id,
     ];
+};
+
+export const typeDef = (
+    library: Library,
+    ref: Reference,
+): null | EnumDef | RecordDef => {
+    if (ref.type === 'builtin') {
+        return null;
+    }
+    const got = library.types.defns[idName(ref.id)];
+    return got ? got.defn : null;
+};
+
+export const getEnumReferences = (
+    ctx: Context,
+    enumRef: UserTypeReference,
+    location: Location,
+): Array<UserTypeReference> => {
+    let enumDef = typeDef(ctx.library, enumRef.ref);
+    if (enumDef == null) {
+        return [];
+    }
+    if (enumDef.type !== 'Enum') {
+        return [enumRef as UserTypeReference];
+    }
+    const passVbls = matchingTypeVbls(
+        enumRef.typeVbls,
+        enumDef.typeVbls,
+        location,
+    );
+    enumDef = applyTypeVariablesToEnum(
+        ctx,
+        enumDef,
+        passVbls,
+        // hmm this is a selfHash? Whyy do I need it?
+        // for recursive types? hmmmm
+        // enumRef.ref.type === 'user' ? enumRef.ref.id.hash : undefined,
+        location,
+    );
+    if (!enumDef.extends.length) {
+        return enumDef.items;
+    }
+    // console.log(enumDef);
+    return enumDef.items.concat(
+        ...enumDef.extends.map((r) => getEnumReferences(ctx, r, location)),
+    );
 };

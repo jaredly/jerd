@@ -675,7 +675,7 @@ export const applyTypeVariablesToRecord = (
     ctx: Context,
     type: t.RecordDef,
     vbls: Array<Type>,
-    effectVbls: Array<t.EffectRef>,
+    // effectVbls: Array<t.EffectRef>,
     location: Location,
     selfHash: string,
 ): t.RecordDef => {
@@ -688,9 +688,9 @@ export const applyTypeVariablesToRecord = (
         throw new Error(`can't handle multiple effect vbls just yet`);
     }
     const effMapping =
-        type.effectVbls.length === 1
-            ? { [type.effectVbls[0].sym.unique]: effectVbls }
-            : {};
+        // type.effectVbls.length === 1
+        //     ? { [type.effectVbls[0].sym.unique]: effectVbls } :
+        {};
     return {
         ...type,
         typeVbls: [],

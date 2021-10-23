@@ -93,6 +93,7 @@ export const emptyBindings = (): Bindings => ({
     values: [],
     types: [],
     effects: [],
+    delayedTypes: [],
 });
 
 export type TypeBinding = {
@@ -112,6 +113,7 @@ export type Bindings = {
     self: null | { type: typed.Type; name: string };
     values: Array<ValueBinding>;
     types: Array<TypeBinding>;
+    delayedTypes: Array<{ sym: typed.Symbol; value: typed.Type }>;
     effects: Array<{ location: Location; sym: typed.Symbol }>;
 };
 

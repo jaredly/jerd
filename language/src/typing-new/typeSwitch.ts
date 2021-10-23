@@ -25,10 +25,7 @@ export const typeSwitch = (
     const cases = term.cases.items.map(
         (kase): SwitchCase => {
             const bindings: Array<ValueBinding> = [];
-            const pattern = typePattern(ctx, kase.pattern, bindings, [
-                input.is,
-            ]);
-            kase.pattern;
+            const pattern = typePattern(ctx, kase.pattern, bindings, input.is);
             const body = typeExpression(ctx, kase.body, is ? [is] : expected);
             if (is == null) {
                 is = body.is;

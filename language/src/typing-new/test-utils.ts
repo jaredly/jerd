@@ -304,6 +304,7 @@ export const newContext = (): Context => ({
         unique: { current: 0 },
         self: null,
         types: [],
+        delayedTypes: [],
         values: [],
         effects: [],
     },

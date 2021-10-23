@@ -1,7 +1,14 @@
-import { EnumLiteral } from '../parsing/parser-new';
+import { EnumLiteral, Location } from '../parsing/parser-new';
 import { idFromName, idName } from '../typing/env';
 import { void_ } from '../typing/preset';
-import { EnumDef, Id, Term, Type } from '../typing/types';
+import {
+    EnumDef,
+    Id,
+    Term,
+    Type,
+    TypeVblDecl,
+    UserTypeReference,
+} from '../typing/types';
 import { Context } from './Context';
 import {
     applyTypeVariablesToRecord,
@@ -47,29 +54,17 @@ export const typeEnum = (
             location: term.location,
         };
     }
-    const defn = ctx.library.types.defns[idName(id)].defn as EnumDef;
+    let defn = ctx.library.types.defns[idName(id)].defn as EnumDef;
     const typeVbls =
         term.typeVbls?.inner.items.map((t) => typeType(ctx, t)) || [];
+    const passVbls = matchingTypeVbls(typeVbls, defn.typeVbls, term.location);
     // TODO: preserve extra type arguments
     // TODO: allow these holes to be inferred!
-    const passVbls: Array<Type> = defn.typeVbls.map((_, i) =>
-        i >= typeVbls.length
-            ? { type: 'THole', location: term.location }
-            : typeVbls[i],
-    );
-    const mapping = createTypeVblMapping(
-        ctx,
-        defn.typeVbls,
-        passVbls,
-        term.location,
-    );
-    const items = defn.items.map((t) =>
-        mapTypeAndEffectVariablesInType(mapping!, {}, t),
-    );
+    defn = applyTypeVariablesToEnum(ctx, defn, passVbls, term.location);
     // STOPSHIP: handle enum extends!!
     return {
         type: 'Enum',
-        inner: typeExpression(ctx, term.expr, items),
+        inner: typeExpression(ctx, term.expr, defn.items),
         is: {
             type: 'ref',
             location: term.location,
@@ -78,4 +73,38 @@ export const typeEnum = (
         },
         location: term.location,
     };
+};
+
+export const matchingTypeVbls = (
+    vbls: Array<Type>,
+    decls: Array<TypeVblDecl>,
+    location: Location,
+) =>
+    // TODO: Do a subTypes check? yeah
+    decls.map(
+        (_, i): Type =>
+            i >= vbls.length ? { type: 'THole', location } : vbls[i],
+    );
+
+export const applyTypeVariablesToEnum = (
+    ctx: Context,
+    enumDef: EnumDef,
+    typeVbls: Array<Type>,
+    location: Location,
+): EnumDef => {
+    const mapping = createTypeVblMapping(
+        ctx,
+        enumDef.typeVbls,
+        typeVbls,
+        location,
+    );
+    const items = enumDef.items.map(
+        (t) =>
+            mapTypeAndEffectVariablesInType(
+                mapping!,
+                {},
+                t,
+            ) as UserTypeReference,
+    );
+    return { ...enumDef, items, typeVbls: [] };
 };

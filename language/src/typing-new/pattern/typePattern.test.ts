@@ -27,7 +27,7 @@ export const parsePattern = (
     ctx: Context,
     raw: string,
     bindings: Array<ValueBinding> = [],
-    expected: Array<Type> = [],
+    expected: Type = preset.void_,
 ) => {
     const parsed = parseTyped('const ' + raw + ' = 10');
     const top = parsed.tops!.items[0].top;
@@ -53,7 +53,30 @@ describe('typePattern', () => {
         expect(patternToString(ctx, res)).toEqual(`10.1`);
         expect(patternIs(res, preset.float)).toEqualType(preset.float, ctx);
         expect(res).toNotHaveErrorsP(ctx);
+
+        const bindings: Array<ValueBinding> = [];
+        res = parsePattern(ctx, `"yes" as what`, bindings);
+        expect(ctx.warnings).toHaveLength(0);
+        expect(patternToString(ctx, res)).toEqual(`"yes" as what#:1`);
+        expect(bindings.map((b) => b.sym)).toEqual([
+            { unique: 1, name: 'what' },
+        ]);
+        expect(patternIs(res, preset.string)).toEqualType(preset.string, ctx);
+        expect(res).toNotHaveErrorsP(ctx);
     });
 
-    // it();
+    it('tuples should be nice', () => {
+        const ctx = newContext();
+        const bindings: Array<ValueBinding> = [];
+        let res = parsePattern(
+            ctx,
+            `(a, 2)`,
+            bindings,
+            preset.builtinType('Tuple2', [preset.float, preset.int]),
+        );
+        expect(ctx.warnings).toHaveLength(0);
+        expect(patternToString(ctx, res)).toEqual(`(a#:1, 2)`);
+        expect(bindings.map((b) => b.sym)).toEqual([{ unique: 1, name: 'a' }]);
+        expect(res).toNotHaveErrorsP(ctx);
+    });
 });
