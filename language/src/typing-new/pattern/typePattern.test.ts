@@ -4,7 +4,7 @@ import * as preset from '../../typing/preset';
 import { patternIs } from '../../typing/typePattern';
 import { Pattern, Type } from '../../typing/types';
 import { Context, ValueBinding } from '../Context';
-import { addRecord } from '../Library';
+import { addEnum, addRecord } from '../Library';
 import {
     customMatchers,
     errorSerilaizer,
@@ -195,6 +195,43 @@ describe('array', () => {
         expect(showPatternErrors(ctx, res)).toEqual(
             `Expected Array#builtin<int#builtin>, found int#builtin : 3 1:14-1:15`,
         );
+    });
+
+    it('enum + record subtypes', () => {
+        const ctx = newContext();
+        let id;
+        [ctx.library, id] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.string]),
+            'HasName',
+            ['name'],
+        );
+        let id2;
+        [ctx.library, id2] = addRecord(
+            ctx.library,
+            preset.recordDefn([preset.int, preset.float], [preset.refType(id)]),
+            'Person',
+            ['age', 'money'],
+        );
+
+        let enu;
+        [ctx.library, enu] = addEnum(
+            ctx.library,
+            preset.enumDefn([preset.refType(id2)]),
+            'Enum',
+        );
+
+        let res = parsePattern(
+            ctx,
+            'Person{name: "what", age}',
+            [],
+            preset.refType(enu),
+        );
+        expect(ctx.warnings).toHaveLength(0);
+        expect(patternToString(ctx, res)).toMatchInlineSnapshot(
+            `Person#d0ee8d78{name: "what", age#:1}`,
+        );
+        expect(res).toNotHaveErrorsP(ctx);
     });
 });
 
