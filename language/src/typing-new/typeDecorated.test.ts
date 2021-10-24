@@ -43,13 +43,11 @@ describe('typeDecorated', () => {
         let res = parseExpression(ctx, `(@slider "hi")`);
         expect(ctx.warnings).toEqual([]);
         expect(termToString(ctx, res)).toEqual(`(@slider#${idName(id2)} "hi")`);
-        // expect(res.is).toEqualType(preset.int, ctx);
         expect(res).toNotHaveErrors(ctx);
 
         res = parseExpression(ctx, `(@slider 1.1)`);
         expect(ctx.warnings).toEqual([]);
         expect(termToString(ctx, res)).toEqual(`(@slider#${idName(id)} 1.1)`);
-        // expect(res.is).toEqualType(preset.int, ctx);
         expect(res).toNotHaveErrors(ctx);
     });
 
@@ -81,7 +79,6 @@ describe('typeDecorated', () => {
         expect(termToString(ctx, res)).toEqual(
             `(@slider#${idName(id)}(min: 2, max: 3.0) "yes")`,
         );
-        // expect(res.is).toEqualType(preset.int, ctx);
         expect(res).toNotHaveErrors(ctx);
 
         res = parseExpression(ctx, `(@slider(3.0) "yes")`);
@@ -89,18 +86,8 @@ describe('typeDecorated', () => {
         expect(termToString(ctx, res)).toEqual(
             `(@slider#${idName(id)}(min: 3.0, max: _) "yes")`,
         );
-        // expect(res.is).toEqualType(preset.int, ctx);
         expect(showTermErrors(ctx, res)).toEqual(`\
 Expected int#builtin, found float#builtin : 3.0 at 1:2-1:14
 [Hole] at 1:2-1:20`);
-
-        // // explicit
-        // res = parseExpression(ctx, `what.hello#${idName(id)}#0`);
-        // expect(ctx.warnings).toHaveLength(0);
-        // expect(termToString(ctx, res)).toEqual(
-        //     `what#${idName(what)}.hello#${idName(id)}#0`,
-        // );
-        // expect(res.is).toEqualType(preset.int, ctx);
-        // expect(res).toNotHaveErrors(ctx);
     });
 });
