@@ -12,6 +12,8 @@ import {
 } from '../printing/printTsLike';
 import { sortAllDeps } from '../typing/analyze';
 import {
+    isErrorTerm,
+    isErrorType,
     transformDecoratorDef,
     transformEffectDef,
     transformEnumDef,
@@ -25,8 +27,6 @@ import { refName } from '../typing/typePattern';
 import {
     Env,
     Id,
-    isErrorTerm,
-    isErrorType,
     nullLocation,
     Reference,
     selfEnv,

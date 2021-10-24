@@ -13,6 +13,7 @@ import { typeRecord } from './typeRecord';
 import { typeUnary } from './typeUnary';
 import { typeTemplateString } from './typeTemplateString';
 import { typeEnum } from './typeEnum';
+import { typeSwitch } from './typeSwitch';
 
 export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
     if (expected.length && !expected.some((t) => typesEqual(t, term.is))) {
@@ -186,11 +187,11 @@ export const typeExpression = (
                 yes,
             };
         }
-        case 'Handle':
         case 'Switch':
-            break;
+            return typeSwitch(ctx, term, expected);
         case 'EnumLiteral':
             return typeEnum(ctx, term, expected);
+        case 'Handle':
         case 'Decorated':
             break;
         default:

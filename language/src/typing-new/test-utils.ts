@@ -16,7 +16,6 @@ import {
     Id,
     ErrorType,
     typesEqual,
-    isErrorTerm,
     Pattern,
     ErrorPattern,
 } from '../typing/types';
@@ -35,6 +34,7 @@ import {
 import { showLocation } from '../typing/typeExpr';
 import {
     isErrorPattern,
+    isErrorTerm,
     isErrorType,
     transformPattern,
     transformTerm,
@@ -220,14 +220,19 @@ export const customMatchers: jest.ExpectExtendMap = {
             };
         }
 
-        const errors = findErrors(value);
-        const terrors = findTermTypeErrors(value);
-        if (errors.length || terrors.length) {
+        const tracker = errorTracker();
+        transformTerm(value, errorVisitor(tracker), null);
+
+        if (
+            tracker.terms.length ||
+            tracker.types.length ||
+            tracker.patterns.length
+        ) {
             return {
                 pass: false,
                 message: () => {
                     return (
-                        errors
+                        tracker.terms
                             .map(
                                 (t: ErrorTerm) =>
                                     `${t.type}: ${showErrorTerm(
@@ -236,12 +241,15 @@ export const customMatchers: jest.ExpectExtendMap = {
                                     )} at ${showLocation(t.location)}`,
                             )
                             .join('\n') +
-                        terrors.map(
+                        tracker.types.map(
                             (t: ErrorType) =>
                                 `${t.type}: ${typeToString(
                                     ctx,
                                     t,
                                 )} at ${showLocation(t.location)}`,
+                        ) +
+                        tracker.patterns.map((t: ErrorPattern) =>
+                            patternErrorToString(ctx, t),
                         )
                     );
                 },
@@ -251,6 +259,18 @@ export const customMatchers: jest.ExpectExtendMap = {
         return { pass: true, message: () => 'ok' };
     },
 };
+
+type ErrorTracker = {
+    terms: Array<ErrorTerm>;
+    types: Array<ErrorType>;
+    patterns: Array<ErrorPattern>;
+};
+
+const errorTracker = (): ErrorTracker => ({
+    terms: [],
+    types: [],
+    patterns: [],
+});
 
 export const patternErrorToString = (ctx: Context, pattern: ErrorPattern) => {
     if (pattern.type === 'PTypeError') {
@@ -285,6 +305,27 @@ export const findPatternErrors = (pattern: Pattern): Array<ErrorPattern> => {
     );
     return errors;
 };
+
+export const errorVisitor = (tracker: ErrorTracker): Visitor<null> => ({
+    Term(node: Term) {
+        if (isErrorTerm(node)) {
+            tracker.terms.push(node);
+        }
+        return null;
+    },
+    Pattern(node: Pattern) {
+        if (isErrorPattern(node)) {
+            tracker.patterns.push(node);
+        }
+        return null;
+    },
+    Type(node: Type, _) {
+        if (isErrorType(node)) {
+            tracker.types.push(node);
+        }
+        return null;
+    },
+});
 
 export const typeErrorVisitor = (errors: Array<ErrorType>): Visitor<null> => ({
     Type(node: Type, _) {

@@ -6,7 +6,7 @@ import {
     RecordLiteralSpread,
     String,
 } from '../parsing/parser-new';
-import { transformTerm } from '../typing/auto-transform';
+import { isErrorTerm, transformTerm } from '../typing/auto-transform';
 import { idFromName, idName } from '../typing/env';
 import { void_ } from '../typing/preset';
 import {
@@ -22,7 +22,6 @@ import {
     RecordSubType,
     UserTypeReference,
     ErrorTerm,
-    isErrorTerm,
     typesEqual,
     idsEqual,
 } from '../typing/types';

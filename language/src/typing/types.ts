@@ -876,31 +876,31 @@ export type ErrorTerm =
     | InvalidAttribute
     | InvalidApplication;
 
-export const isErrorTerm = (type: Term) => {
-    switch (type.type) {
-        case 'Hole':
-        case 'NotFound':
-        case 'TypeError':
-        case 'Ambiguous':
-        case 'InvalidApplication':
-        case 'InvalidAttribute':
-        case 'InvalidRecordAttributes':
-            return true;
-    }
-    return false;
-};
+// export const isErrorTerm = (type: Term) => {
+//     switch (type.type) {
+//         case 'Hole':
+//         case 'NotFound':
+//         case 'TypeError':
+//         case 'Ambiguous':
+//         case 'InvalidApplication':
+//         case 'InvalidAttribute':
+//         case 'InvalidRecordAttributes':
+//             return true;
+//     }
+//     return false;
+// };
 
-export const isErrorType = (type: Type) => {
-    switch (type.type) {
-        case 'THole':
-        case 'InvalidTypeApplication':
-        case 'TNotFound':
-        case 'NotASubType':
-        case 'Ambiguous':
-            return true;
-    }
-    return false;
-};
+// export const isErrorType = (type: Type) => {
+//     switch (type.type) {
+//         case 'THole':
+//         case 'InvalidTypeApplication':
+//         case 'TNotFound':
+//         case 'NotASubType':
+//         case 'Ambiguous':
+//             return true;
+//     }
+//     return false;
+// };
 
 // some-term
 // : some-type

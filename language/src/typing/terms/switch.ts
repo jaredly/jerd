@@ -33,7 +33,7 @@ import {
 const groupIdForRef = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : idName(ref.id);
 
-const patternToExPattern = (
+export const patternToExPattern = (
     env: Env,
     type: Type,
     groups: Groups,
@@ -307,7 +307,6 @@ const arrayToExPattern = (
     // type Pattern = {preItems: Array<Pattern>, spread: {pattern: Pattern, postItems: Array<Pattern>}}
     // BUT preItems ends in Anything if we have a spread.
     // type Array<T> = {head: ConsList<T>, }
-
 
     */
 
