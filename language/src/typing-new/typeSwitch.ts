@@ -196,67 +196,6 @@ export const patternToExPattern = (
     }
 };
 
-// export const typeSwitch = (env: Env, expr: Switch): Term => {
-//     const term = typeExpr(env, expr.expr);
-//     // TODO: do I need this?
-//     // const selfHash =
-//     //     term.is.type === 'ref' && term.is.ref.type === 'user'
-//     //         ? term.is.ref.id.hash
-//     //         : undefined;
-//     const cases: Array<{
-//         pattern: Pattern;
-//         body: Term;
-//         location: Location;
-//     }> = [];
-//     let is: Type | null = null;
-//     expr.cases.forEach((c) => {
-//         const inner = subEnv(env);
-//         const pattern = typePattern(inner, c.pattern, term.is);
-//         const body = typeExpr(inner, c.body);
-//         if (is == null) {
-//             is = body.is;
-//         } else {
-//             const err = getTypeError(
-//                 env,
-//                 body.is,
-//                 is,
-//                 c.body.location,
-//                 // selfHash,
-//             );
-//             if (err != null) {
-//                 throw new LocatedError(
-//                     c.body.location,
-//                     `Bodies of case arms don't agree!`,
-//                 ).wrap(err);
-//             }
-//         }
-//         cases.push({
-//             location: c.location,
-//             pattern,
-//             body,
-//         });
-//     });
-//     exhaustivenessCheck(
-//         env,
-//         term.is,
-//         cases.map((c) => c.pattern),
-//         expr.location,
-//     );
-//     // STOPSHIP: gotta ensure exhaustivity here folks!
-//     // hrmmm this could be tricky
-//     // ok, so maybe we can have paths?
-//     // [idName, attr, etc.]
-//     // and if [idName] => true, then that record is covered
-//     // and if [] => true, then we have a wildcard coverage.
-//     return {
-//         type: 'Switch',
-//         term,
-//         cases,
-//         location: expr.location,
-//         is: is!,
-//     };
-// };
-
 const tupleToExPattern = (
     type: Type,
     pattern: TuplePattern,

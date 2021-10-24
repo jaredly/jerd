@@ -46,7 +46,7 @@ CommaDecoratorArg = first:LabeledDecoratorArg rest:(_ "," _ LabeledDecoratorArg)
     return [first].concat(rest.map((r: any) => r[3]))
 }
 
-DecType = ":" __ type:Type {return {type: 'Type', contents: type, location: myLocation()}}
+DecType = ":" __ type_:Type {return {type: 'Type', contents: type_, location: myLocation()}}
 DecPat = "?" __ pattern:Pattern {return {type: 'Pattern', pattern, location: myLocation()}}
 DecExpr = expr:Expression {return {type: 'Expr', expr, location: myLocation()}}
 

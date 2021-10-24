@@ -24,6 +24,9 @@ import {
     UserTypeReference,
     EnumDef,
     TypeVar,
+    DecoratorDef,
+    DecoratorArg,
+    DecoratorDefArg,
 } from './types';
 
 export const builtinLocation: Location = {
@@ -127,7 +130,6 @@ export const enumDefn = (
     items: Array<UserTypeReference>,
     typeVbls: Array<TypeVblDecl> = [],
     location: Location = nullLocation,
-    unique: number = 0,
 ): EnumDef => ({
     type: 'Enum',
     effectVbls: [],
@@ -135,6 +137,23 @@ export const enumDefn = (
     items,
     location,
     typeVbls,
+});
+
+export const decoratorDef = (
+    args: Array<DecoratorDefArg>,
+    targetType: Type | null = null,
+    typeVbls: Array<TypeVblDecl> = [],
+    restArg: DecoratorDefArg | null = null,
+    unique: number = 0,
+    location: Location = nullLocation,
+): DecoratorDef => ({
+    arguments: args,
+    location,
+    restArg,
+    targetType,
+    typeArgs: [],
+    typeVbls,
+    unique,
 });
 
 export const recordDefn = (

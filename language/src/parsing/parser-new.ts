@@ -228,11 +228,11 @@ function peg$parse(input: string, options?: IParseOptions) {
       items: [first, ...rest.map((element: any) => element[3])]
     };
   };
-  const peg$c19 = function(type: any): any {
+  const peg$c19 = function(type_: any): any {
     return {
-      $type: "DecType",
+      type: "DecType",
       location: myLocation(),
-      type
+      type_
     };
   };
   const peg$c20 = "?";
@@ -10487,9 +10487,9 @@ export type CommaDecoratorArg = {
 };
 
 export type DecType = {
-  $type: "DecType";
+  type: "DecType";
   location: Location;
-  type: Type;
+  type_: Type;
 };
 
 export type DecPat = {

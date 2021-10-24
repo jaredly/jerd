@@ -255,6 +255,35 @@ export const addEnum = (
     ];
 };
 
+export const addDecorator = (
+    lib: Library,
+    dec: DecoratorDef,
+    name: string,
+): [Library, Id] => {
+    const id = idFromName(hashObject(dec));
+    if (lib.types.defns[idName(id)] != null) {
+        console.warn(`Redefining record!`);
+    }
+    const meta: MetaData = { created: Date.now() };
+    return [
+        {
+            ...lib,
+            decorators: {
+                ...lib.decorators,
+                defns: {
+                    ...lib.decorators.defns,
+                    [idName(id)]: { defn: dec, meta },
+                },
+                names: {
+                    ...lib.decorators.names,
+                    [name]: [id].concat(lib.decorators.names[name] || []),
+                },
+            },
+        },
+        id,
+    ];
+};
+
 export const addRecord = (
     lib: Library,
     record: RecordDef,

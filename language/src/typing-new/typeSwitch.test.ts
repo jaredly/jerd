@@ -119,4 +119,6 @@ describe('typeSwitch', () => {
             `[Hole] at 1:14-3:5`,
         );
     });
+
+    // TODO TODO: test array, tuple, exhaustiveness stuff.
 });

@@ -218,13 +218,10 @@ export type DecoratorDef = {
     arguments: Array<DecoratorDefArg>;
     typeVbls: Array<TypeVblDecl>;
     // typeargs is a weird name for this
+    // honestly what was I even thinking this was going to be.
+    // it doesn't look like it's used anywhere.
     typeArgs: Array<{ sym: Symbol; location: Location }>;
-    restArg: {
-        argLocation: Location;
-        argName: string;
-        location: Location;
-        type: Type | null;
-    } | null;
+    restArg: DecoratorDefArg | null;
     targetType: Type | null;
     location: Location;
 };

@@ -14,6 +14,7 @@ import { typeUnary } from './typeUnary';
 import { typeTemplateString } from './typeTemplateString';
 import { typeEnum } from './typeEnum';
 import { typeSwitch } from './typeSwitch';
+import { typeDecorated } from './typeDecorated';
 
 export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
     if (expected.length && !expected.some((t) => typesEqual(t, term.is))) {
@@ -191,8 +192,9 @@ export const typeExpression = (
             return typeSwitch(ctx, term, expected);
         case 'EnumLiteral':
             return typeEnum(ctx, term, expected);
-        case 'Handle':
         case 'Decorated':
+            return typeDecorated(ctx, term, expected);
+        case 'Handle':
             break;
         default:
             let _x: never = term;
