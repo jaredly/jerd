@@ -15,6 +15,7 @@ import { typeTemplateString } from './typeTemplateString';
 import { typeEnum } from './typeEnum';
 import { typeSwitch } from './typeSwitch';
 import { typeDecorated } from './typeDecorated';
+import { typeHandle } from './typeHandle';
 
 export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
     if (expected.length && !expected.some((t) => typesEqual(t, term.is))) {
@@ -195,9 +196,9 @@ export const typeExpression = (
         case 'Decorated':
             return typeDecorated(ctx, term, expected);
         case 'Handle':
-            break;
+            return typeHandle(ctx, term, expected);
         default:
             let _x: never = term;
     }
-    throw new Error('no absub: ' + term.type);
+    throw new Error('no absub: ' + (term as any).type);
 };

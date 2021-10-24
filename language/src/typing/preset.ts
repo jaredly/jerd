@@ -27,6 +27,7 @@ import {
     DecoratorDef,
     DecoratorArg,
     DecoratorDefArg,
+    EffectDef,
 } from './types';
 
 export const builtinLocation: Location = {
@@ -137,6 +138,15 @@ export const enumDefn = (
     items,
     location,
     typeVbls,
+});
+
+export const effectDef = (
+    constrs: Array<{ args: Array<Type>; ret: Type }>,
+    location: Location = nullLocation,
+): EffectDef => ({
+    constrs,
+    location,
+    type: 'EffectDef',
 });
 
 export const decoratorDef = (
