@@ -1,15 +1,11 @@
-import { Location } from '../parsing/parser-new';
-import { idName } from '../typing/env';
 import * as preset from '../typing/preset';
-import { nullLocation, Symbol } from '../typing/types';
-import { addEffect, addTerm } from './Library';
+import { addEffect } from './Library';
 import {
     customMatchers,
     errorSerilaizer,
     newContext,
     parseExpression,
     rawSnapshotSerializer,
-    showTermErrors,
     termToString,
     warningsSerializer,
 } from './test-utils';

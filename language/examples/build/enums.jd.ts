@@ -331,7 +331,7 @@ export const hash_340b0d4e: t_58d5ae20<number> = hash_668420b6;
 /**
 ```
 const y1t#08fab53e = (y1#:0: OptionOrTwice#58d5ae20<int#builtin>): int#builtin ={}> switch y1#:0 {
-    Twice#3444f780{one: one#:1, two: two#:2} => one#:1 +#builtin two#:2,
+    Twice#3444f780{one#:1, two#:2} => one#:1 +#builtin two#:2,
     None#280d2df4 => 2,
     _ => 0,
 }
@@ -374,7 +374,7 @@ export const hash_99ff79ce: t_58d5ae20<number> = ({
 } as t_58d5ae20<number>);
 
 /*
-switch y2#99ff79ce {Twice#3444f780{one: one#:0, two: two#:1} => one#:0 +#builtin two#:1, _ => 0} 
+switch y2#99ff79ce {Twice#3444f780{one#:0, two#:1} => one#:0 +#builtin two#:1, _ => 0} 
     ==#6d46a318#3b6b23ae#0 13
 assertCall(
     IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0,
