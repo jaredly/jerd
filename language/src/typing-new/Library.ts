@@ -156,6 +156,14 @@ export const addToplevel = (lib: Library, top: ToplevelT, meta: MetaData) => {
             return addEffect(lib, top.effect, top.name, top.constrNames, meta);
         case 'Decorator':
             return addDecorator(lib, top.defn, top.name, meta);
+        case 'EnumDef':
+            top.inner.forEach((inner) => {
+                // hmm metadata won't really propagate correctly here...
+                // YEAH we should just embed the metadata in the toplevel
+                // yes....
+                [lib] = addToplevel(lib, inner, { created: meta.created });
+            });
+            return addEnum(lib, top.def, top.name, meta);
         default:
             throw new Error('nope');
     }
@@ -237,12 +245,13 @@ export const addEnum = (
     lib: Library,
     enu: EnumDef,
     name: string,
+    meta?: MetaData,
 ): [Library, Id] => {
     const id = idFromName(hashObject(enu));
     if (lib.types.defns[idName(id)] != null) {
         console.warn(`Redefining record!`);
     }
-    const meta: MetaData = { created: Date.now() };
+    meta = meta || { created: Date.now() };
     return [
         {
             ...lib,

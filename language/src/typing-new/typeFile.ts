@@ -13,6 +13,15 @@ import {
     Identifier,
     DecoratorArg,
     LabeledDecoratorArg,
+    RecordSpread,
+    RecordItem,
+    StructDef,
+    DecoratorDef,
+    EnumDef,
+    EnumSpread,
+    RecordDecl,
+    TypeVbls,
+    Location,
 } from '../parsing/parser-new';
 import { hashObject, idFromName } from '../typing/env';
 import { getOpLevel, organizeDeep } from '../typing/terms/ops';
@@ -21,12 +30,13 @@ import * as preset from '../typing/preset';
 import { Term, Type } from '../typing/types';
 import { reGroupOps, typeGroup } from './ops';
 import { parseIdOrSym } from './hashes';
-import { resolveNamedValue, resolveValue } from './resolve';
+import { resolveNamedValue, resolveTypeId, resolveValue } from './resolve';
 import { typeExpression } from './typeExpression';
 import { Context, MetaData } from './Context';
 import { typeType } from './typeType';
 import { typeTypeVblDecl } from './typeArrow';
 import { addToplevel, Library } from './Library';
+import { parseIdTextOrString } from './typeRecord';
 
 export const typeToplevel = (
     ctx: Context,
@@ -80,55 +90,84 @@ export const typeToplevel = (
             };
         }
         case 'DecoratorDef': {
-            const defn: typed.DecoratorDef = {
-                arguments:
-                    top.args?.items.map((arg) => ({
-                        argLocation: arg.id.location,
-                        argName: arg.id.text,
-                        location: arg.location,
-                        type: typeType(ctx, arg.type),
-                    })) || [],
-                location: top.location,
-                restArg: null,
-                targetType: top.targetType
-                    ? typeType(ctx, top.targetType)
-                    : null,
-                typeArgs: [],
-                typeVbls:
-                    top.typeVbls?.items.map((t) => typeTypeVblDecl(ctx, t)) ||
-                    [],
-                unique: unique != null ? unique : ctx.rng(),
-            };
-            return {
-                type: 'Decorator',
-                defn,
-                id: idFromName(hashObject(defn)),
-                location: top.location,
-                name: top.id.text,
-            };
+            return typeDecoratorDef(ctx, top, unique);
+        }
+        case 'StructDef': {
+            return typeStructDef(
+                ctx,
+                top.decl,
+                top.typeVbls,
+                top.id.text,
+                top.location,
+                unique,
+            );
         }
         case 'EnumDef':
-        case 'StructDef':
-            break;
+            return typeEnumDef(ctx, top, unique);
         default:
             let _x: never = top;
-        // case 'Define': {
-        //     const t = top.ann ? typeType(ctx, )
-        //     const term = typeExpression(ctx, top.expr,)
-        // }
-        // case 'DecoratorDef':
-        // 	const defn = typeDecoratorDef(ctx, top.id, top.args, top.targetType)
-        // 	return {
-        // 		type: 'Decorator',
-        // 		id: top.id,
-        // 		location: top.location,
-        // 		name: top.id.text,
-        // 		defn: {
-        // 			unique
-        // 		}
-        // 	}
     }
     throw new Error(`nope`);
+};
+
+export const typeEnumDef = (
+    ctx: Context,
+    top: EnumDef,
+    unique?: number,
+): typed.ToplevelEnum => {
+    const inner: Array<typed.ToplevelRecord> = [];
+    const extends_: Array<typed.UserTypeReference> = [];
+    const items: Array<typed.UserTypeReference> = [];
+    top.items.items.forEach((item) => {
+        switch (item.type) {
+            case 'EnumSpread': {
+                const t = typeType(ctx, item.ref);
+                if (t.type === 'ref' && t.ref.type === 'user') {
+                    extends_.push(t as typed.UserTypeReference);
+                }
+                return;
+            }
+            case 'EnumExternal': {
+                const t = typeType(ctx, item.ref);
+                if (t.type === 'ref' && t.ref.type === 'user') {
+                    items.push(t as typed.UserTypeReference);
+                }
+                return;
+            }
+            case 'EnumInternal': {
+                const sdef = typeStructDef(
+                    ctx,
+                    item.decl,
+                    null,
+                    item.id.text,
+                    item.location,
+                );
+                inner.push(sdef);
+                items.push({
+                    type: 'ref',
+                    ref: { type: 'user', id: sdef.id },
+                    location: item.location,
+                    typeVbls: [],
+                });
+            }
+        }
+    });
+    const defn: typed.EnumDef = {
+        type: 'Enum',
+        effectVbls: [],
+        extends: extends_,
+        items,
+        location: top.location,
+        typeVbls: top.typeVbls?.items.map((v) => typeTypeVblDecl(ctx, v)) || [],
+    };
+    return {
+        type: 'EnumDef',
+        def: defn,
+        id: idFromName(hashObject(defn)),
+        inner,
+        location: top.location,
+        name: top.id.text,
+    };
 };
 
 export const parseMetaId = (
@@ -278,3 +317,78 @@ export const typeFile = (
     }
     return [lib, expressions, ids];
 };
+
+function typeDecoratorDef(
+    ctx: Context,
+    top: DecoratorDef,
+    unique?: number,
+): typed.ToplevelDecorator {
+    const defn: typed.DecoratorDef = {
+        arguments:
+            top.args?.items.map((arg) => ({
+                argLocation: arg.id.location,
+                argName: arg.id.text,
+                location: arg.location,
+                type: typeType(ctx, arg.type),
+            })) || [],
+        location: top.location,
+        restArg: null,
+        targetType: top.targetType ? typeType(ctx, top.targetType) : null,
+        typeArgs: [],
+        typeVbls: top.typeVbls?.items.map((t) => typeTypeVblDecl(ctx, t)) || [],
+        unique: unique != null ? unique : ctx.rng(),
+    };
+    return {
+        type: 'Decorator',
+        defn,
+        id: idFromName(hashObject(defn)),
+        location: top.location,
+        name: top.id.text,
+    };
+}
+
+function typeStructDef(
+    ctx: Context,
+    decl: RecordDecl,
+    typeVbls: TypeVbls | null,
+    name: string,
+    location: Location,
+    unique?: number,
+): typed.ToplevelRecord {
+    const items = decl.items?.items.filter(
+        (item) => item.type !== 'RecordSpread',
+    ) as Array<RecordItem>;
+    const defn: typed.RecordDef = {
+        type: 'Record',
+        effectVbls: [],
+        extends: (decl.items?.items.filter(
+            (item) => item.type === 'RecordSpread',
+        ) as Array<RecordSpread>)
+            .map((item) => {
+                const resolved = resolveTypeId(ctx, item.constr);
+                if (!resolved) {
+                    return null;
+                }
+                return {
+                    type: 'ref',
+                    ref: { type: 'user', id: resolved },
+                    typeVbls: [],
+                    location: item.location,
+                };
+            })
+            .filter(Boolean) as Array<typed.UserTypeReference>,
+        ffi: null,
+        items: items.map((item): typed.Type => typeType(ctx, item.type)),
+        location: location,
+        typeVbls: typeVbls?.items.map((t) => typeTypeVblDecl(ctx, t)) || [],
+        unique: unique != null ? unique : ctx.rng(),
+    };
+    return {
+        type: 'RecordDef',
+        attrNames: items.map((item) => parseIdTextOrString(item.id)),
+        def: defn,
+        id: idFromName(hashObject(defn)),
+        location: location,
+        name,
+    };
+}

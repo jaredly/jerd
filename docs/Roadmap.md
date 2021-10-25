@@ -16,6 +16,8 @@ right?
 Sooo we'll finally need to deal with Ids not being just hashes.
 Annd self needs to have an index. Right?
 
+- [ ] METADATA needs to live in TOPLEVELS.
+
 
 ## Syntax evolution
 

@@ -357,38 +357,41 @@ export const findTermTypeErrors = (term: Term | null | void) => {
 };
 
 export const namedDefns = <T>(): NamedDefns<T> => ({ defns: {}, names: {} });
-export const newContext = (): Context => ({
-    rng: () => 0.0,
-    warnings: [],
-    idRemap: {},
-    builtins: {
-        terms: {},
-        types: { int: 0, float: 0, string: 0 },
-        decorators: {},
-        ops: { unary: {}, binary: {} },
-    },
-    bindings: {
-        unique: { current: 0 },
-        self: null,
-        types: [],
-        delayedTypes: [],
-        values: [],
-        effects: [],
-    },
-    library: {
-        terms: namedDefns(),
-        decorators: namedDefns(),
-        types: {
-            ...namedDefns(),
-            constructors: { names: {}, idToNames: {} },
-            superTypes: {},
+export const newContext = (): Context => {
+    let num = 0;
+    return {
+        rng: () => num++,
+        warnings: [],
+        idRemap: {},
+        builtins: {
+            terms: {},
+            types: { int: 0, float: 0, string: 0 },
+            decorators: {},
+            ops: { unary: {}, binary: {} },
         },
-        effects: {
-            ...namedDefns(),
-            constructors: { names: {}, idToNames: {} },
+        bindings: {
+            unique: { current: 0 },
+            self: null,
+            types: [],
+            delayedTypes: [],
+            values: [],
+            effects: [],
         },
-    },
-});
+        library: {
+            terms: namedDefns(),
+            decorators: namedDefns(),
+            types: {
+                ...namedDefns(),
+                constructors: { names: {}, idToNames: {} },
+                superTypes: {},
+            },
+            effects: {
+                ...namedDefns(),
+                constructors: { names: {}, idToNames: {} },
+            },
+        },
+    };
+};
 
 export const rawSnapshotSerializer: jest.SnapshotSerializerPlugin = {
     test(value) {

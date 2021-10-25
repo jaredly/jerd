@@ -1,7 +1,7 @@
 import { parseTyped } from '../parsing/parser-new';
 import { idName } from '../typing/env';
 import * as preset from '../typing/preset';
-import { nullLocation } from '../typing/types';
+import { nullLocation, RecordDef } from '../typing/types';
 import { addRecord, addTerm } from './Library';
 import {
     customMatchers,
@@ -32,16 +32,17 @@ describe('typeFile', () => {
 
     it(`defn`, () => {
         const ctx = newContext();
-        let exprs, id;
-        [ctx.library, exprs, [id]] = typeFile(
+        let expr, id;
+        [ctx.library, [expr], [id]] = typeFile(
             ctx,
             parseTyped(`const x = 10\nx`),
         );
         expect(ctx.library.terms.names.x).toEqual([id]);
-        if (exprs[0].type !== 'ref') {
+        if (expr.type !== 'ref') {
             throw new Error('not a ref');
         }
-        expect(exprs[0].ref).toEqual({ type: 'user', id: id });
+        expect(expr).toNotHaveErrors(ctx);
+        expect(expr.ref).toEqual({ type: 'user', id: id });
     });
 
     it(`supercedes`, () => {
@@ -76,18 +77,25 @@ describe('typeFile', () => {
         expect(ctx.library.terms.defns[idName(id3)].meta.basedOn).toEqual(id2);
     });
 
-    it(`enum`, () => {
+    it(`effect`, () => {
         const ctx = newContext();
-        let id;
-        [ctx.library, , [id]] = typeFile(
+        let id, expr;
+        [ctx.library, [expr], [id]] = typeFile(
             ctx,
             parseTyped(`
 			@unique#builtin(100.0)
 			effect Stdio {
 				Read: () => string,
 				Write: (string) => void,
-			}
+			};
+			() ={Stdio}> raise!(Stdio.Read());
 			`),
+        );
+        expect(expr).toNotHaveErrors(ctx);
+        expect(termToString(ctx, expr)).toEqual(
+            `(): string#builtin ={Stdio#${idName(id)}}> raise!(Stdio#${idName(
+                id,
+            )}.Read())`,
         );
         expect(ctx.library.effects.names.Stdio).toEqual([id]);
         // TODO: support uniques for effects
@@ -114,5 +122,56 @@ describe('typeFile', () => {
         expect(expr.decorators![0].name.id).toEqual(id);
     });
 
-    // it(``);
+    it(`record`, () => {
+        const ctx = newContext();
+        let awesome, other, expr;
+        [ctx.library, [expr], [awesome, other]] = typeFile(
+            ctx,
+            parseTyped(`
+			@unique#builtin(12)
+			type Awesome {
+				what: string,
+			};
+			type Other {
+				...Awesome,
+				thing: int,
+			};
+			Other{what: "what", thing: 20}
+			`),
+        );
+        expect(expr).toNotHaveErrors(ctx);
+        expect(
+            (ctx.library.types.defns[idName(awesome)].defn as RecordDef).unique,
+        ).toEqual(12);
+        expect(termToString(ctx, expr)).toEqual(
+            `Other#${idName(other)}{what#${idName(
+                awesome,
+            )}#0: "what", thing#${idName(other)}#0: 20}`,
+        );
+    });
+
+    it(`enum`, () => {
+        const ctx = newContext();
+        let expr, one, two;
+        [ctx.library, [expr], [one, two]] = typeFile(
+            ctx,
+            parseTyped(`
+			type One {what: int};
+			enum Two {
+				One,
+				Three{four: float},
+			};
+			(Two:One{what: 2}, Two:Three{four: 1.1})
+			`),
+        );
+        expect(expr).toNotHaveErrors(ctx);
+        const three = ctx.library.types.names['Three'][0];
+        expect(termToString(ctx, expr)).toEqual(
+            `(Two#${idName(two)}:One#${idName(one)}{what#${idName(
+                one,
+            )}#0: 2}, Two#${idName(two)}:Three#${idName(three)}{four#${idName(
+                three,
+            )}#0: 1.1})`,
+        );
+    });
 });

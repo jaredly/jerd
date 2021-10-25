@@ -92,7 +92,7 @@ EnumInternal = id:Identifier decl:RecordDecl {
     return {type: 'Internal', id, decl, location: myLocation()}
 }
 
-StructDef = "type" __ id:Identifier typeVbls:TypeVbls? __ "=" __ decl:RecordDecl {
+StructDef = "type" __ id:Identifier typeVbls:TypeVbls? __ ("=" __)? decl:RecordDecl {
     return {type: 'StructDef', id, decl, typeVbls: typeVbls || [], location: myLocation()}}
 
 RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items: items || [], location: myLocation()}}
