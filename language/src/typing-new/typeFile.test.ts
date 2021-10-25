@@ -153,9 +153,11 @@ describe('typeFile', () => {
     it(`enum`, () => {
         const ctx = newContext();
         let expr, one, two;
-        [ctx.library, [expr], [one, two]] = typeFile(
+        [ctx.library, [expr], [, one, two]] = typeFile(
             ctx,
             parseTyped(`
+			type OneOld {};
+			@supercedes(: OneOld)
 			type One {what: int};
 			enum Two {
 				One,

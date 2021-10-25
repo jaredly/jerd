@@ -323,19 +323,30 @@ function typeDecoratorDef(
     top: DecoratorDef,
     unique?: number,
 ): typed.ToplevelDecorator {
+    const typeVbls =
+        top.typeVbls?.items.map((t) => typeTypeVblDecl(ctx, t)) || [];
+    const inner = typeVbls.length
+        ? {
+              ...ctx,
+              bindings: {
+                  ...ctx.bindings,
+                  types: typeVbls.concat(ctx.bindings.types),
+              },
+          }
+        : ctx;
     const defn: typed.DecoratorDef = {
         arguments:
             top.args?.items.map((arg) => ({
                 argLocation: arg.id.location,
                 argName: arg.id.text,
                 location: arg.location,
-                type: typeType(ctx, arg.type),
+                type: typeType(inner, arg.type),
             })) || [],
         location: top.location,
         restArg: null,
-        targetType: top.targetType ? typeType(ctx, top.targetType) : null,
+        targetType: top.targetType ? typeType(inner, top.targetType) : null,
         typeArgs: [],
-        typeVbls: top.typeVbls?.items.map((t) => typeTypeVblDecl(ctx, t)) || [],
+        typeVbls,
         unique: unique != null ? unique : ctx.rng(),
     };
     return {
@@ -355,15 +366,18 @@ function typeStructDef(
     location: Location,
     unique?: number,
 ): typed.ToplevelRecord {
-    const items = decl.items?.items.filter(
-        (item) => item.type !== 'RecordSpread',
-    ) as Array<RecordItem>;
+    const items =
+        (decl.items?.items.filter(
+            (item) => item.type !== 'RecordSpread',
+        ) as Array<RecordItem>) || [];
     const defn: typed.RecordDef = {
         type: 'Record',
         effectVbls: [],
-        extends: (decl.items?.items.filter(
-            (item) => item.type === 'RecordSpread',
-        ) as Array<RecordSpread>)
+        extends: (
+            (decl.items?.items.filter(
+                (item) => item.type === 'RecordSpread',
+            ) as Array<RecordSpread>) || []
+        )
             .map((item) => {
                 const resolved = resolveTypeId(ctx, item.constr);
                 if (!resolved) {

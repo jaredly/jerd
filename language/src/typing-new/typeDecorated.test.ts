@@ -1,4 +1,5 @@
-import { idName } from '../typing/env';
+import { parseTyped } from '../parsing/parser-new';
+import { idName, withoutLocations } from '../typing/env';
 import * as preset from '../typing/preset';
 import { nullLocation } from '../typing/types';
 import { addDecorator, addRecord } from './Library';
@@ -13,6 +14,7 @@ import {
     termToString,
     warningsSerializer,
 } from './test-utils';
+import { typeFile } from './typeFile';
 
 expect.extend(customMatchers);
 expect.addSnapshotSerializer(rawSnapshotSerializer);
@@ -81,13 +83,33 @@ describe('typeDecorated', () => {
         );
         expect(res).toNotHaveErrors(ctx);
 
-        res = parseExpression(ctx, `(@slider(3.0) "yes")`);
+        let resErr = parseExpression(ctx, `(@slider(3.0) "yes")`);
         expect(ctx.warnings).toEqual([]);
-        expect(termToString(ctx, res)).toEqual(
+        expect(termToString(ctx, resErr)).toEqual(
             `(@slider#${idName(id)}(min: 3.0, max: _) "yes")`,
         );
-        expect(showTermErrors(ctx, res)).toEqual(`\
+        expect(showTermErrors(ctx, resErr)).toEqual(`\
 Expected int#builtin, found float#builtin : 3.0 at 1:2-1:14
 [Hole] at 1:2-1:20`);
+        let res2 = parseExpression(
+            ctx,
+            `(@slider#${idName(id)}(2, 3.0) "yes")`,
+        );
+        expect(withoutLocations(res2)).toEqual(withoutLocations(res));
+    });
+
+    it(`type variables!`, () => {
+        const ctx = newContext();
+        let id, expr;
+        [ctx.library, [expr], [id]] = typeFile(
+            ctx,
+            parseTyped(`
+		decorator hello<T>(value: T, count: int) float;
+		(@hello<string>("yes", 2) 3.4)
+		`),
+        );
+        const defn = ctx.library.decorators.defns[idName(id)].defn;
+        expect(defn.typeVbls).toHaveLength(1);
+        expect(expr).toNotHaveErrors(ctx);
     });
 });
