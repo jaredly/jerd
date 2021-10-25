@@ -2,7 +2,13 @@
 // ugh nvm that's complicated.
 
 import { type } from 'os';
-import { hashObject, idFromName, idName } from '../../../typing/env';
+import {
+    hashObject,
+    idFromName,
+    idName,
+    nameForId,
+    typeForId,
+} from '../../../typing/env';
 import { Env, Id, Location, UserReference } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
 import {
@@ -60,7 +66,7 @@ export const specializeType = (
     loc: Location,
     types: TypeDefs,
 ) => {
-    const defn = env.global.types[idName(t.ref.id)];
+    const defn = typeForId(env, t.ref.id);
     if (defn.type !== 'Record') {
         return null;
     }
@@ -363,8 +369,10 @@ export const monomorphize = ({ env, exprs }: Context, expr: Expr): Expr => {
             }
             const l = target.expr as LambdaExpr;
             const newType = applyTypeVariables(env, l.is, expr.typeVbls);
-            env.global.idNames[newHash] =
-                env.global.idNames[idName(expr.target.id)];
+            env.global.idNames[newHash] = nameForId(
+                env,
+                idName(expr.target.id),
+            );
             exprs[newHash] = {
                 inline: false,
                 expr: replaceTypeVariablesInLambda(l, expr.typeVbls),

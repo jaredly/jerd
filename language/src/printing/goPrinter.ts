@@ -18,6 +18,10 @@ import {
     hashObject,
     idFromName,
     idName,
+    nameForId,
+    termForIdRaw,
+    typeForId,
+    typeForIdRaw,
     typeToplevelT,
 } from '../typing/env';
 import { LocatedError } from '../typing/errors';
@@ -141,7 +145,7 @@ export const idToGo = (
     // if (isType && builtinTypes[idRaw] != null) {
     //     return atom(builtinTypes[idRaw].name);
     // }
-    const readableName = env.global.idNames[idRaw];
+    const readableName = nameForId(env, idRaw);
     if (opts.includeCanonicalNames && readableName) {
         return atom(readableName + '_' + idRaw);
     }
@@ -220,7 +224,7 @@ export const typeDefToGo = (
     irOpts: IOutputOptions,
     key: string,
 ): PP | null => {
-    const constr = env.global.types[key];
+    const constr = typeForIdRaw(env, key);
     const id = idFromName(key);
     if (constr.type === 'Enum') {
         return enumToGo(env, constr, opts, irOpts, id);
@@ -617,7 +621,7 @@ export const termToGo = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             ) {
                 throw new Error(`isRecord only for user refs`);
             }
-            const constr = env.global.types[idName(expr.value.is.ref.id)];
+            const constr = typeForId(env, expr.value.is.ref.id);
             if (constr.type !== 'Enum') {
                 throw new Error(`expected enum`);
             }
@@ -640,7 +644,7 @@ export const termToGo = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             if (expr.is.ref.type === 'builtin') {
                 throw new Error('nope folks');
             }
-            const constr = env.global.types[idName(expr.is.ref.id)];
+            const constr = typeForId(env, expr.is.ref.id);
             if (constr.type === 'Record') {
                 const attrs = allRecordMembers(env, expr.is.ref.id);
                 return items([
@@ -668,7 +672,7 @@ export const termToGo = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             if (expr.is.ref.type === 'builtin') {
                 throw new Error(`no builtin enums`);
             }
-            const constr = env.global.types[idName(expr.is.ref.id)] as EnumDef;
+            const constr = typeForId(env, expr.is.ref.id) as EnumDef;
             if (constr.type !== 'Enum') {
                 throw new Error(`Not an enum`);
             }
@@ -1240,7 +1244,7 @@ export const fileToGo = (
     );
 
     allTypes.forEach((r) => {
-        if (env.global.types[r]) {
+        if (typeForIdRaw(env, r)) {
             const printed = typeDefToGo(env, opts, irOpts, r);
             if (printed) {
                 items.push(printed);
@@ -1265,11 +1269,11 @@ export const fileToGo = (
     items.push(...enumAliasesToGo(env, allTypes));
 
     inOrder.forEach((name) => {
-        const senv = env.global.terms[name]
+        const senv = termForIdRaw(env, name)
             ? selfEnv(env, {
                   type: 'Term',
                   name,
-                  ann: env.global.terms[name].is,
+                  ann: termForIdRaw(env, name).is,
               })
             : env;
         items.push(

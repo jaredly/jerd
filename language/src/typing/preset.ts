@@ -2,7 +2,7 @@
 
 // import { Location } from '../parsing/parser';
 import { Loc } from '../printing/ir/types';
-import { idFromName } from './env';
+import { idFromName, typeForIdRaw } from './env';
 import { LocatedError } from './errors';
 import { getTypeError } from './getTypeError';
 import {

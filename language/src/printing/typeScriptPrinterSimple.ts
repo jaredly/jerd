@@ -6,7 +6,17 @@ import {
     expressionTypeDeps,
     sortTerms,
 } from '../typing/analyze';
-import { hashObject, idFromName, idName, refName } from '../typing/env';
+import {
+    hashObject,
+    idFromName,
+    idName,
+    nameForId,
+    refName,
+    termForId,
+    termForIdRaw,
+    typeForId,
+    typeForIdRaw,
+} from '../typing/env';
 import { binOps, bool, int } from '../typing/preset';
 import {
     EffectRef,
@@ -685,7 +695,7 @@ export const recordIdName = (env: Env, ref: Reference) => {
     if (ref.type === 'builtin') {
         return ref.name;
     } else {
-        const t = env.global.types[idName(ref.id)] as RecordDef;
+        const t = typeForId(env, ref.id) as RecordDef;
         if (t.ffi != null) {
             return t.ffi.tag;
         }
@@ -720,7 +730,7 @@ export const recordAttributeName = (
         }
         return `h${idName(ref.id)}_${idx}`;
     }
-    const t = env.global.types[id] as RecordDef;
+    const t = typeForIdRaw(env, id) as RecordDef;
     if (t && t.ffi) {
         if (idx >= t.ffi.names.length) {
             throw new Error(
@@ -940,7 +950,7 @@ export const typeExports = (env: Env) => {
             Object.keys(env.global.typeNames).map((name) => {
                 return env.global.typeNames[name].map(
                     (id, i): Array<t.Statement> => {
-                        const decl = env.global.types[idName(id)];
+                        const decl = typeForId(env, id);
                         const args = decl.typeVbls.length
                             ? decl.typeVbls.map((_, i) => 'T' + i)
                             : null;
@@ -1025,7 +1035,7 @@ export const typeDeclarations = (
     });
 
     allTypes.forEach((r) => {
-        const constr = env.global.types[r];
+        const constr = typeForIdRaw(env, r);
         const id = idFromName(r);
         if (constr.type === 'Enum') {
             const comment = printToString(enumToPretty(env, id, constr), 100);
@@ -1145,14 +1155,14 @@ export const fileToTypescript = (
                     id: env.global.exportedTerms[name],
                 },
                 location: nullLocation,
-                is: env.global.terms[idName(env.global.exportedTerms[name])].is,
+                is: termForId(env, env.global.exportedTerms[name]).is,
             })),
         ),
     );
 
     const allTypes = expressionTypeDeps(
         env,
-        orderedTerms.map((t) => env.global.terms[t]),
+        orderedTerms.map((t) => termForIdRaw(env, t)),
     );
 
     items.push(
@@ -1172,8 +1182,8 @@ export const fileToTypescript = (
     const irTerms: Exprs = {};
 
     orderedTerms.forEach((idRaw) => {
-        let term = env.global.terms[idRaw];
-        // console.log(idRaw, env.global.idNames[idRaw]);
+        let term = termForIdRaw(env, idRaw);
+        // console.log(idRaw, nameForId(env, idRaw));
 
         const id = idFromName(idRaw);
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
@@ -1192,7 +1202,7 @@ export const fileToTypescript = (
             const outer = new LocatedError(
                 term.location,
                 `Failed while typing for js ${idRaw} : ${
-                    env.global.idNames[idRaw] || 'no name'
+                    nameForId(env, idRaw) || 'no name'
                 }`,
             ).wrap(err);
             //     .toString();

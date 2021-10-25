@@ -1,4 +1,4 @@
-import { idFromName, idName, newSym } from '../../../typing/env';
+import { idFromName, idName, newSym, typeForIdRaw } from '../../../typing/env';
 import { Env, getAllSubTypes, RecordDef } from '../../../typing/types';
 import { defaultVisitor, transformExpr } from '../transform';
 import { Expr, OutputOptions, Stmt } from '../types';
@@ -125,7 +125,7 @@ export const explicitSpreads = (ctx: Context, expr: Expr): Expr => {
                                   ),
                         ),
                     };
-                    const recordDef = env.global.types[t] as RecordDef;
+                    const recordDef = typeForIdRaw(env, t) as RecordDef;
                     getAllSubTypes(
                         env.global.types,
                         recordDef.extends.map((t) => t.ref.id),
@@ -144,7 +144,7 @@ export const explicitSpreads = (ctx: Context, expr: Expr): Expr => {
                                 );
                             }
                         });
-                        // const d = env.global.types[idName(sub)] as RecordDef;
+                        // const d = typeForId(env, sub) as RecordDef;
                         // return d.items.map((type, i) => ({
                         //     id: sub,
                         //     i,

@@ -35,7 +35,7 @@ type State = {
     env: Env;
 };
 const Pin = ({ env, id, display }: { env: Env; id: Id; display: string }) => {
-    const term = env.global.terms[idName(id)];
+    const term = termForId(env, id);
     // addLocationIndicesToTerm(term)
     const [state, setState] = React.useState(null as null | State);
     React.useEffect(() => {

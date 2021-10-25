@@ -2,7 +2,7 @@
 
 import generate from '@babel/generator';
 import * as t from '@babel/types';
-import { idName, refName } from '../typing/env';
+import { idName, refName, typeForId, typeForIdRaw } from '../typing/env';
 import {
     EffectRef,
     Env,
@@ -248,7 +248,7 @@ export const recordMemberSignature = (
 
 export const allRecordMembers = (env: Env, id: Id) => {
     const name = idName(id);
-    const constr = env.global.types[name] as RecordDef;
+    const constr = typeForIdRaw(env, name) as RecordDef;
     if (constr.type !== 'Record') {
         throw new Error(`Not a record`);
     }
@@ -257,13 +257,11 @@ export const allRecordMembers = (env: Env, id: Id) => {
         .concat(
             ...constr.extends.map(({ ref: { id } }) =>
                 // um shouldn't this be recursive?
-                (env.global.types[idName(id)] as RecordDef).items.map(
-                    (item, i) => ({
-                        id,
-                        item,
-                        i,
-                    }),
-                ),
+                (typeForId(env, id) as RecordDef).items.map((item, i) => ({
+                    id,
+                    item,
+                    i,
+                })),
             ),
         );
 };

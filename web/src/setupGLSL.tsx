@@ -400,7 +400,7 @@ export const getStateLocations = (
             gl.uniform4f(ustate, state.x, state.y, state.z, state.w);
         };
     } else if (type.type === 'user') {
-        const constr = env.global.types[idName(type.id)];
+        const constr = typeForId(env, idName(type.id));
         if (constr.type === 'Record') {
             const attrs = allRecordMembers(env, type.id).map((member) => {
                 const name = recordAttributeName(

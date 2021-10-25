@@ -1,6 +1,15 @@
 import { TypeDefs } from '../printing/ir/optimize/optimize';
 import { defaultVisitor } from '../printing/ir/transform';
-import { idFromName, idName, refName } from './env';
+import {
+    allTypeIdsRaw,
+    idFromName,
+    idName,
+    refName,
+    termForId,
+    termForIdRaw,
+    typeForId,
+    typeForIdRaw,
+} from './env';
 import { void_ } from './preset';
 import {
     transform,
@@ -454,7 +463,7 @@ export const allLiteral = (env: Env, type: Type): boolean => {
                 return !type.typeVbls.some((v) => !allLiteral(env, v));
             }
             env.global.builtins;
-            const defn = env.global.types[idName(type.ref.id)];
+            const defn = typeForId(env, type.ref.id);
             if (defn.type === 'Enum') {
                 return !getEnumReferences(env, type, type.location).some(
                     (t) => !allLiteral(env, t),
@@ -575,12 +584,7 @@ export const expressionDeps = (env: Env, terms: Array<Term>): Array<string> => {
     const allDeps: { [key: string]: Array<Id> } = {};
     terms.forEach((term) =>
         getUserDependencies(term).forEach((id) =>
-            populateDependencyMap(
-                env,
-                allDeps,
-                env.global.terms[idName(id)],
-                id,
-            ),
+            populateDependencyMap(env, allDeps, termForId(env, id), id),
         ),
     );
 
@@ -589,7 +593,7 @@ export const expressionDeps = (env: Env, terms: Array<Term>): Array<string> => {
 
 export const sortedTypes = (env: Env) => {
     const allDeps: { [key: string]: Array<Id> } = {};
-    Object.keys(env.global.types).forEach((id) =>
+    allTypeIdsRaw(env).forEach((id) =>
         populateTypeDependencyMap(env, allDeps, idFromName(id)),
     );
     return sortAllDeps(allDeps);
@@ -612,7 +616,7 @@ export const sortTerms = (env: Env, terms: Array<string>) => {
         populateDependencyMap(
             env,
             allDeps,
-            env.global.terms[id],
+            termForIdRaw(env, id),
             idFromName(id),
         ),
     );
@@ -653,7 +657,7 @@ export const populateTypeDependencyMap = (
         if (allDeps[k] != null) {
             continue;
         }
-        const typeDef = env.global.types[k];
+        const typeDef = typeForIdRaw(env, k);
         const tDeps: Array<Id> = [];
         if (!typeDef) {
             if (!types || !types[k]) {
@@ -721,7 +725,7 @@ export const populateDependencyMap = (
         if (allDeps[k] != null) {
             continue;
         }
-        const t = env.global.terms[k];
+        const t = termForIdRaw(env, k);
         if (!t) {
             console.warn(`Dependency not found ${k}`);
             continue;

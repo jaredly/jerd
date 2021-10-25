@@ -1,5 +1,11 @@
 import { AsSuffix } from '../../parsing/parser';
-import { idFromName, idName, symPrefix } from '../env';
+import {
+    allTermIdsRaw,
+    idFromName,
+    idName,
+    symPrefix,
+    termForIdRaw,
+} from '../env';
 import { LocatedError } from '../errors';
 import { getTypeError } from '../getTypeError';
 import { pureFunction } from '../preset';
@@ -27,8 +33,8 @@ export const findAs = (
     //     location,
     // };
     let found = null;
-    Object.keys(env.global.terms).some((k) => {
-        const t = env.global.terms[k];
+    allTermIdsRaw(env).some((k) => {
+        const t = termForIdRaw(env, k);
         if (getTypeError(env, goalType, t.is, location) == null) {
             found = idFromName(k);
             return true;
@@ -94,7 +100,7 @@ export const typeAs = (env: Env, target: Term, suffix: AsSuffix): Term => {
             if (env.global.idRemap[rawId]) {
                 rawId = idName(env.global.idRemap[rawId]);
             }
-            const t = env.global.terms[rawId];
+            const t = termForIdRaw(env, rawId);
             if (!t) {
                 throw new LocatedError(
                     suffix.location,

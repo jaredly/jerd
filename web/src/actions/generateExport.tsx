@@ -27,23 +27,23 @@ export const generateExport = (
     display?: Display | null,
 ) => {
     const depsInOrder: Array<ToplevelDefine> = expressionDeps(env, [
-        env.global.terms[idName(id)],
+        termForId(env, id),
     ])
         .concat([idName(id)])
         .map((idRaw) => ({
             type: 'Define',
             id: idFromName(idRaw),
-            term: env.global.terms[idRaw],
+            term: termForIdRaw(env, idRaw),
             location: nullLocation,
-            name: env.global.idNames[idRaw],
+            name: nameForId(env, idRaw),
         }));
     const typesInOrder: Array<ToplevelT> = expressionTypeDeps(
         env,
         depsInOrder.map((t) => t.term),
     ).map(
         (idRaw): ToplevelT => {
-            const defn = env.global.types[idRaw];
-            const name = env.global.idNames[idRaw];
+            const defn = typeForId(env, idRaw);
+            const name = nameForId(env, idRaw);
             if (defn.type === 'Record') {
                 return {
                     type: 'RecordDef',
@@ -72,7 +72,7 @@ export const generateExport = (
             defn: env.global.decorators[idName(id)],
             id,
             location: nullLocation,
-            name: env.global.idNames[idName(id)],
+            name: nameForId(env, idName(id)),
         }),
     );
 

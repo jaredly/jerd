@@ -26,27 +26,27 @@ export const getToplevel = (env: Env, content: TopContent): ToplevelT => {
         if (content.proposed) {
             return content.proposed;
         }
-        const name = env.global.idNames[idName(content.id)];
+        const name = nameForId(env, idName(content.id));
         if (name == null) {
             return {
                 type: 'Expression',
                 id: content.id,
-                term: env.global.terms[idName(content.id)],
+                term: termForId(env, content.id),
                 location: nullLocation,
             };
         } else {
             return {
                 type: 'Define',
                 name: name,
-                term: env.global.terms[idName(content.id)],
+                term: termForId(env, content.id),
                 id: content.id,
                 location: nullLocation,
             };
         }
     }
     if (content.type === 'record') {
-        const name = env.global.idNames[idName(content.id)];
-        const defn = env.global.types[idName(content.id)];
+        const name = nameForId(env, idName(content.id));
+        const defn = typeForId(env, idName(content.id));
         if (!defn) {
             throw new Error(`No type info!`);
         }
@@ -63,7 +63,7 @@ export const getToplevel = (env: Env, content: TopContent): ToplevelT => {
         };
     }
     if (content.type === 'effect') {
-        const name = env.global.idNames[idName(content.id)];
+        const name = nameForId(env, idName(content.id));
         return {
             type: 'Effect',
             constrNames: env.global.effectConstrNames[idName(content.id)],
@@ -80,8 +80,8 @@ export const getToplevel = (env: Env, content: TopContent): ToplevelT => {
     if (content.type === 'enum') {
         return {
             type: 'EnumDef',
-            def: env.global.types[idName(content.id)] as EnumDef,
-            name: env.global.idNames[idName(content.id)],
+            def: typeForId(env, idName(content.id)) as EnumDef,
+            name: nameForId(env, idName(content.id)),
             location: nullLocation,
             id: content.id,
             inner: [],
@@ -99,7 +99,7 @@ const getPidToOverride = (
     if (!prevContent || prevContent.type !== 'term') {
         return;
     }
-    const prevName = env.global.idNames[idName(prevContent.id)];
+    const prevName = nameForId(env, idName(prevContent.id));
     if (prevName === term.name) {
         return prevContent.id;
     }

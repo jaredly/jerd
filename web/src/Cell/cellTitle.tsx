@@ -31,12 +31,12 @@ export const cellTitle = (
         case 'raw':
             return <em>unevaluated</em>;
         case 'effect':
-            const name = env.global.idNames[idName(cell.content.id)];
+            const name = nameForId(env, idName(cell.content.id));
             return `effect ${name}`;
         case 'enum':
         case 'record': {
-            const name = env.global.idNames[idName(cell.content.id)];
-            const type = env.global.types[idName(cell.content.id)];
+            const name = nameForId(env, idName(cell.content.id));
+            const type = typeForId(env, idName(cell.content.id));
             return (
                 <div
                     style={{
@@ -62,8 +62,8 @@ export const cellTitle = (
             );
         }
         case 'term': {
-            const term = env.global.terms[idName(cell.content.id)];
-            const name = env.global.idNames[idName(cell.content.id)];
+            const term = termForId(env, cell.content.id);
+            const name = nameForId(env, idName(cell.content.id));
             if (!term) {
                 return <div>Unknown term</div>;
             }

@@ -186,7 +186,7 @@ export const inlint = (ctx: Context, expr: Expr): Expr => {
                     // console.log(
                     //     'bringing it in',
                     //     expr.id,
-                    //     env.global.idNames[idName(expr.id)],
+                    //     nameForId(env, idName(expr.id)),
                     // );
                     // const innerMax = maxUnique(t.expr);
                     // const unique = {

@@ -46,8 +46,8 @@ export const ShowTrace = ({
                         <div key={`${hash}:${i}`}>
                             <div>
                                 <span style={hashStyle}>
-                                    {env.global.idNames[hash]
-                                        ? env.global.idNames[hash] + '#' + hash
+                                    {nameForId(env, hash)
+                                        ? nameForId(env, hash) + '#' + hash
                                         : '#' + hash}
                                 </span>
                                 trace {i}

@@ -1,7 +1,7 @@
 // General thing
 
 import { Location } from '../../parsing/parser';
-import { idName, newSym, refName } from '../../typing/env';
+import { idName, newSym, refName, typeForIdRaw } from '../../typing/env';
 import { LocatedError, TypeError } from '../../typing/errors';
 import { binOps } from '../../typing/preset';
 import { applyEffectVariables } from '../../typing/typeExpr';
@@ -439,7 +439,7 @@ export const attribute = (
     idx: number,
     loc: Loc,
 ): Expr => {
-    const decl = env.global.types[refName(ref)];
+    const decl = typeForIdRaw(env, refName(ref));
     return {
         type: 'attribute',
         target,

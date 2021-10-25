@@ -119,7 +119,7 @@ export const onClick = (
         );
         return true;
     } else if (kind === 'type') {
-        if (env.global.types[id].type === 'Record') {
+        if (typeForId(env, id).type === 'Record') {
             addCell(recordContent(env, id), position);
             return true;
         } else {
@@ -131,7 +131,7 @@ export const onClick = (
         return true;
     } else if (kind === 'custom-binop') {
         const [term, type, idx] = id.split('#');
-        if (!env.global.terms[term]) {
+        if (!termForIdRaw(env, term)) {
             return false;
         }
         addCell(

@@ -24,7 +24,7 @@ const saveKey = 'jd-repl-cache';
 export const stateToString = (state: State) => {
     const terms: { [key: string]: any } = {};
     Object.keys(state.evalEnv.terms).forEach((k) => {
-        if (allLiteral(state.env, state.env.global.terms[k].is)) {
+        if (allLiteral(state.env, state.termForIdRaw(env, k).is)) {
             terms[k] = state.evalEnv.terms[k];
         }
     });

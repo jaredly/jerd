@@ -53,7 +53,7 @@ const styles = {
 };
 
 const typeContent = (env: Env, idRaw: string): Content => {
-    return env.global.types[idRaw].type === 'Enum'
+    return typeForId(env, idRaw).type === 'Enum'
         ? {
               type: 'enum',
               id: idFromName(idRaw),
@@ -101,8 +101,7 @@ const Library = ({
                                     css={styles.item}
                                     style={{
                                         color:
-                                            env.global.types[hash].type ===
-                                            'Enum'
+                                            typeForId(env, hash).type === 'Enum'
                                                 ? '#afa'
                                                 : 'white',
                                     }}

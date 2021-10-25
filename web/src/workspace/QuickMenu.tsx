@@ -52,8 +52,8 @@ const optionForTerms = (
     const tops: Array<ToplevelT> = ids.map((id) => ({
         type: 'Define',
         name,
-        term: env.global.terms[idName(id)],
-        location: env.global.terms[idName(id)].location,
+        term: termForId(env, id),
+        location: termForId(env, id).location,
         id,
     }));
     return {
@@ -82,7 +82,7 @@ const optionForTypes = (
 ): Option => {
     const ids = env.global.typeNames[name];
     const tops = ids.map((id): ToplevelT | undefined => {
-        const defn = env.global.types[idName(id)];
+        const defn = typeForId(env, idName(id));
         if (defn.type === 'Record') {
             return {
                 type: 'RecordDef',
@@ -147,11 +147,11 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
                     if (options == null) {
                         options = to.map((id) => {
                             const name =
-                                env.global.idNames[idName(id)] || 'unnamed';
+                                nameForId(env, idName(id)) || 'unnamed';
                             const toplevel: ToplevelT = {
                                 type: 'Define',
-                                term: env.global.terms[idName(id)],
-                                location: env.global.terms[idName(id)].location,
+                                term: termForId(env, id),
+                                location: termForId(env, id).location,
                                 name,
                                 id,
                             };
@@ -178,11 +178,11 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
                     if (options == null) {
                         options = to.map((id) => {
                             const name =
-                                env.global.idNames[idName(id)] || 'unnamed';
+                                nameForId(env, idName(id)) || 'unnamed';
                             const toplevel: ToplevelT = {
                                 type: 'Define',
-                                term: env.global.terms[idName(id)],
-                                location: env.global.terms[idName(id)].location,
+                                term: termForId(env, id),
+                                location: termForId(env, id).location,
                                 name,
                                 id,
                             };
@@ -209,13 +209,13 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
                 }
             });
             // const options = index.to[state.refered[0].toplevel]
-            // return options.map(id => env.global.terms[idName(id)] ? {type: 'term', id} : null)
+            // return options.map(id => termForId(env, id) ? {type: 'term', id} : null)
             return options || [];
         }
 
         if (state.input.startsWith('#')) {
             const needle = state.input.slice(1);
-            return Object.keys(env.global.terms)
+            return allTermIdsRaw(env)
                 .filter((id) => id.startsWith(needle))
                 .map(
                     (id) =>
@@ -223,8 +223,8 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
                             title: '#' + id,
                             toplevel: {
                                 type: 'Expression',
-                                term: env.global.terms[id],
-                                location: env.global.terms[id].location,
+                                term: termForIdRaw(env, id),
+                                location: termForIdRaw(env, id).location,
                                 id: idFromName(id),
                             },
                             onClick: () => {
@@ -271,7 +271,7 @@ export const QuickMenu = ({ env, index, onClose, onOpen }: Props) => {
             : current.toplevel;
         // if (current.type === 'term') {
         //     const id = env.global.names[current.name][state.hashIdx];
-        //     const term = env.global.terms[idName(id)];
+        //     const term = termForId(env, id);
         //     return {
         //         type: 'Define',
         //         name: current.name,

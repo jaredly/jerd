@@ -6,7 +6,7 @@
 // So that's probably some information I'll have to hang onto somehow.
 
 import { Location } from '../parsing/parser';
-import { idName, refName } from '../typing/env';
+import { idName, nameForId, refName, termForId } from '../typing/env';
 import { getOpLevel } from '../typing/terms/ops';
 import {
     Case,
@@ -157,7 +157,7 @@ export const idToPretty = (
     kind: string,
     loc?: Location,
 ) => {
-    const name = env ? env.global.idNames[idName(id)] : null;
+    const name = env ? nameForId(env, idName(id)) : null;
     const hash = id.hash + (id.pos !== 0 ? '_' + id.pos : '');
     return idPretty(name ? name : 'unnamed', hash, kind, loc);
     // return idPretty('ahaha', hash, kind, loc);
@@ -479,7 +479,7 @@ export const termToPretty = (env: Env, term: Term): PP => {
                 .map((decorator) => {
                     const hash = idName(decorator.name.id);
                     const defn = env.global.decorators[hash];
-                    const name = env.global.idNames[hash];
+                    const name = nameForId(env, hash);
                     const dargs = decorator.args.length
                         ? args(
                               decorator.args.map((arg, i) => {
@@ -712,8 +712,7 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                 resolvedTarget.type === 'ref' &&
                 resolvedTarget.ref.type === 'user'
             ) {
-                resolvedTarget =
-                    env.global.terms[idName(resolvedTarget.ref.id)];
+                resolvedTarget = termForId(env, resolvedTarget.ref.id);
             }
             if (resolvedTarget.type === 'lambda') {
                 argNames = resolvedTarget.args.map((sym) => sym.sym.name);
@@ -794,7 +793,7 @@ export const _termToPretty = (env: Env, term: Term): PP => {
                                 caseToPretty(
                                     env,
                                     t,
-                                    env.global.idNames[refName(term.effect)],
+                                    nameForId(env, refName(term.effect)),
                                     names,
                                 ),
                             )

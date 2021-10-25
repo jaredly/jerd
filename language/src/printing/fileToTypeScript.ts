@@ -97,8 +97,8 @@ export const typeScriptPrelude = (
 
 //     // TODO: use the topo sort algorithm from the web editor
 //     // to sort these correctly
-//     Object.keys(env.global.terms).forEach((hash) => {
-//         const term = env.global.terms[hash];
+//     allTermIdsRaw(env).forEach((hash) => {
+//         const term = termForIdRaw(env, hash);
 
 //         const comment = printToString(
 //             declarationToPretty(env, idFromName(hash), term),

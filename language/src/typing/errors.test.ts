@@ -2,7 +2,7 @@ import { parse } from '../parsing/grammar';
 import { items, printToString } from '../printing/printer';
 import { declarationToPretty, termToPretty } from '../printing/printTsLike';
 import { getUserDependencies } from './analyze';
-import { idFromName } from './env';
+import { allTermIdsRaw, idFromName, termForIdRaw } from './env';
 import { presetEnv } from './preset';
 import { typeFile } from './typeFile';
 import { Env, newWithGlobal } from './types';
@@ -22,7 +22,7 @@ export const snapshotSerializer: jest.SnapshotSerializerPlugin = {
                     declarationToPretty(
                         env,
                         idFromName(id),
-                        env.global.terms[id],
+                        termForIdRaw(env, id),
                     ),
                     50,
                 ),
@@ -43,7 +43,7 @@ const runFixture = (text: string) => {
     }
     const { env, expressions } = res;
     const newTerms: Array<string> = [];
-    Object.keys(env.global.terms).forEach((t) => {
+    allTermIdsRaw(env).forEach((t) => {
         if (!initialEnv.global.terms[t]) {
             newTerms.push(t);
         }

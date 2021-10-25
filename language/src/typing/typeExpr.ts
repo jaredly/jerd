@@ -31,6 +31,8 @@ import {
     makeLocal,
     resolveIdentifier,
     resolveType,
+    termForIdRaw,
+    typeForId,
 } from './env';
 import { typeLambda } from './terms/lambda';
 import { typeHandle } from './terms/handle';
@@ -393,7 +395,7 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                     let id: Id | null;
                     // Ok, here's where we figure out the `As`
                     if (item.hash) {
-                        const t = env.global.terms[item.hash.slice(1)];
+                        const t = termForIdRaw(env, item.hash.slice(1));
                         if (!t) {
                             throw new LocatedError(
                                 item.location,
@@ -651,7 +653,7 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
             // }
             // const id = ids[0];
 
-            let t = env.global.types[idName(id)] as EnumDef;
+            let t = typeForId(env, id) as EnumDef;
             if (t.type !== 'Enum') {
                 throw new Error(
                     `${expr.id.text} is not an enum. ${showLocation(

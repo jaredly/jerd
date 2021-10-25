@@ -475,9 +475,9 @@ describe('expression types', () => {
             const b#a7afab58 = (m#:0: Companies#779076b4): bool#builtin ={}> switch m#:0 {
                 Company#503a4e65{name: "hello", ages: (_, 23.0)} => false,
                 Company#503a4e65{name: "things", people: []} => true,
-                Company#503a4e65{people: [Person#69e137a8{name: "yes"}, ..._]} => true,
-                Company#503a4e65{people: [..._, Person#69e137a8{name: _, age: 23}]} => false,
-                Company#503a4e65{people: [Person#69e137a8{name: "start"}, ..._, Person#69e137a8{name: "end"}]} => true,
+                Company#503a4e65{people: [Person#69e137a8{name: "yes"}, ...]} => true,
+                Company#503a4e65{people: [..., Person#69e137a8{name: _, age: 23}]} => false,
+                Company#503a4e65{people: [Person#69e137a8{name: "start"}, ..., Person#69e137a8{name: "end"}]} => true,
                 _ => true,
             }
         `));

@@ -1,5 +1,5 @@
 import { parse } from '../../../parsing/grammar';
-import { hashObject, idFromName, idName } from '../../../typing/env';
+import { hashObject, idFromName, idName, nameForId } from '../../../typing/env';
 import { typeFile } from '../../../typing/typeFile';
 import { Env, newWithGlobal, nullLocation, Term } from '../../../typing/types';
 import { assembleItemsForFile, hasInvalidGLSL } from '../../glslPrinter';
@@ -108,9 +108,10 @@ export const snapshotSerializer: jest.SnapshotSerializerPlugin = {
         const extraIdNames: { [id: string]: string } = {};
         inOrder.forEach((id) => {
             if (irTerms[id].source) {
-                extraIdNames[id] = `${
-                    env.global.idNames[idName(irTerms[id].source!.id)]
-                }_${irTerms[id].source!.kind}`;
+                extraIdNames[id] = `${nameForId(
+                    env,
+                    idName(irTerms[id].source!.id),
+                )}_${irTerms[id].source!.kind}`;
             }
         });
         const envWithNames = {
@@ -146,10 +147,10 @@ export const snapshotSerializer: jest.SnapshotSerializerPlugin = {
 
 // const getName = (env: Env, exprs: Exprs, id: string) => {
 //     if (exprs[id].source) {
-//         const parentName = env.global.idNames[idName(exprs[id].source!.id)];
+//         const parentName = nameForId(env, idName(exprs[id).source!.id)];
 //         if (parentName) {
 //             return `${parentName}:${exprs[id].source!.kind}`;
 //         }
 //     }
-//     return env.global.idNames[id] || 'unnamed';
+//     return nameForId(env, id) || 'unnamed';
 // };

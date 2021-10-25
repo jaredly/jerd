@@ -582,7 +582,7 @@ function renderSliders(
                 return (
                     <div key={hash} style={{ padding: 4 }}>
                         <h4>
-                            {termAndEnvWithSliders.env.global.idNames[hash] ||
+                            {termAndEnvWithSliders.nameForId(env, hash) ||
                                 (hash === mainHash ? '' : '#' + hash)}
                         </h4>
                         <div style={{ display: 'flex', flexWrap: 'wrap' }}>

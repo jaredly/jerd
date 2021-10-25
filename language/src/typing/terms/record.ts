@@ -18,7 +18,13 @@ import {
 } from '../types';
 import { Record } from '../../parsing/parser';
 import { showType } from '../unify';
-import { allDefaults, idFromName, idName } from '../env';
+import {
+    allDefaults,
+    idFromName,
+    idName,
+    typeForId,
+    typeForIdRaw,
+} from '../env';
 import typeExpr, {
     applyTypeVariablesToRecord,
     showLocation,
@@ -59,7 +65,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
         };
         subTypeIds = [];
         t.subTypes.forEach((id) => {
-            const t = env.global.types[idName(id)] as RecordDef;
+            const t = typeForId(env, id) as RecordDef;
             subTypeIds.push(
                 ...getAllSubTypes(
                     env.global.types,
@@ -74,7 +80,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             let hash = expr.id.hash.slice(1);
             id = idFromName(hash);
             // console.log(expr.id.hash);
-            if (!env.global.types[hash]) {
+            if (!typeForIdRaw(env, hash)) {
                 if (env.global.idRemap[hash]) {
                     id = env.global.idRemap[hash];
                     hash = idName(id);
@@ -96,7 +102,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
             id = ids[0];
             if (ids.length > 1) {
                 for (let i of ids) {
-                    const def = env.global.types[idName(i)];
+                    const def = typeForId(env, i);
                     if (
                         def.type === 'Record' &&
                         def.typeVbls.length === expr.typeVbls.length
@@ -107,7 +113,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 }
             }
         }
-        const def = env.global.types[idName(id)] as RecordDef;
+        const def = typeForId(env, id) as RecordDef;
         const typeVbls = expr.typeVbls.map((t) => typeType(env, t));
         const t = applyTypeVariablesToRecord(
             env,
@@ -155,7 +161,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     // let spread = null;
 
     subTypeIds.forEach((id) => {
-        const t = env.global.types[idName(id)] as RecordDef;
+        const t = typeForId(env, id) as RecordDef;
         subTypeTypes[idName(id)] = t;
         const rows = new Array(t.items.length);
         t.items.forEach((type, i) => {
@@ -278,7 +284,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
                 : subTypes[idName(id!)].rows;
         const recordType =
             id == null && base.type === 'Concrete'
-                ? (env.global.types[idName(base.ref.id)] as RecordDef)
+                ? (typeForId(env, base.ref.id) as RecordDef)
                 : subTypeTypes[idName(id!)];
         if (rowsToMod[i].value != null) {
             throw new Error(
@@ -309,7 +315,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
     // of course, `rows` will also need to be more clever.
     if (base.type === 'Concrete' && base.spread == null) {
         const r = base.ref;
-        const def = env.global.types[idName(r.id)] as RecordDef;
+        const def = typeForId(env, r.id) as RecordDef;
         base.rows.forEach((row, i) => {
             if (row.value != null) {
                 return;
@@ -349,10 +355,7 @@ export const typeRecord = (env: Env, expr: Record): RecordTerm => {
 
     const defaults =
         base.type === 'Concrete'
-            ? allDefaults(
-                  env.global,
-                  env.global.types[idName(base.ref.id)] as RecordDef,
-              )
+            ? allDefaults(env.global, typeForId(env, base.ref.id) as RecordDef)
             : null;
 
     Object.keys(subTypes).forEach((id) => {

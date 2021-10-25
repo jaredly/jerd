@@ -6,7 +6,16 @@
 import chalk from 'chalk';
 import path from 'path';
 import fs from 'fs';
-import { hashObject, idFromName, idName } from './typing/env';
+import {
+    allTermIdsRaw,
+    allTypeIdsRaw,
+    hashObject,
+    idFromName,
+    idName,
+    nameForId,
+    termForIdRaw,
+    typeForIdRaw,
+} from './typing/env';
 import parse, { Toplevel } from './parsing/parser';
 import {
     fileToTypescript,
@@ -196,15 +205,15 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
     }
 
     // Test terms reprint
-    for (let id of Object.keys(env.global.terms)) {
+    for (let id of allTermIdsRaw(env)) {
         const tenv: Env = {
             ...env,
             local: {
                 ...env.local,
                 self: {
                     type: 'Term',
-                    name: env.global.idNames[id],
-                    ann: env.global.terms[id].is,
+                    name: nameForId(env, id),
+                    ann: termForIdRaw(env, id).is,
                 },
             },
         };
@@ -215,9 +224,9 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
                 {
                     type: 'Define',
                     id: idFromName(id),
-                    term: env.global.terms[id],
-                    location: env.global.terms[id].location!,
-                    name: env.global.idNames[id],
+                    term: termForIdRaw(env, id),
+                    location: termForIdRaw(env, id).location!,
+                    name: nameForId(env, id),
                 },
                 id,
             ) === false
@@ -228,8 +237,8 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
     }
 
     // Type declarations
-    for (let tid of Object.keys(env.global.types)) {
-        const t = env.global.types[tid];
+    for (let tid of allTypeIdsRaw(env)) {
+        const t = typeForIdRaw(env, tid);
         // ermm fix this hack
         if (tid === 'Some' || tid === 'None' || tid === 'As') {
             continue;
@@ -242,7 +251,7 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
                 id: id,
                 def: t,
                 location: t.location!,
-                name: env.global.idNames[idName(id)],
+                name: nameForId(env, idName(id)),
                 attrNames: env.global.recordGroups[idName(id)],
             };
         } else {
@@ -252,7 +261,7 @@ const checkReprint = (raw: string, expressions: Array<Term>, env: Env) => {
                 id,
                 def: t,
                 location: t.location!,
-                name: env.global.idNames[idName(id)],
+                name: nameForId(env, idName(id)),
                 inner: [],
             };
         }

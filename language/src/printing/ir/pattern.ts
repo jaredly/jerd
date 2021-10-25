@@ -7,7 +7,7 @@ import {
 } from '../../typing/types';
 import { showType } from '../../typing/unify';
 import { getEnumReferences } from '../../typing/typeExpr';
-import { idName } from '../../typing/env';
+import { idName, typeForId } from '../../typing/env';
 
 import { Expr, Block, Literal, Loc, OutputOptions } from './types';
 
@@ -147,7 +147,7 @@ export const printPattern = (
         // although it probably doesn't matter, because
         // these can't be effectful
         pattern.items.forEach((item) => {
-            const decl = env.global.types[idName(item.ref.id)];
+            const decl = typeForId(env, item.ref.id);
             success = printPattern(
                 env,
                 opts,

@@ -20,6 +20,7 @@ import {
     hashObject,
     idFromName,
     idName,
+    termForIdRaw,
     typeToplevelT,
 } from '../typing/env';
 import { newWithGlobal, selfEnv } from '../typing/types';
@@ -95,11 +96,11 @@ const processOne = (raw: string, optimizer: Optimizer2 = defaultOptimizer) => {
     inOrder.forEach((name) => {
         const locs = getInvalidLocs(irTerms[name].expr, name);
 
-        const senv = env.global.terms[name]
+        const senv = termForIdRaw(env, name)
             ? selfEnv(env, {
                   type: 'Term',
                   name,
-                  ann: env.global.terms[name].is,
+                  ann: termForIdRaw(env, name).is,
               })
             : env;
         items.push({

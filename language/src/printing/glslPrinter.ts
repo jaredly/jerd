@@ -17,6 +17,11 @@ import {
     addRecord,
     idFromName,
     idName,
+    nameForId,
+    termForId,
+    termForIdRaw,
+    typeForId,
+    typeForIdRaw,
     typeToplevelT,
 } from '../typing/env';
 import { LocatedError, TypeError } from '../typing/errors';
@@ -223,7 +228,7 @@ export const idToGlsl = (
     if (isType && builtinTypes[idRaw] != null) {
         return atom(builtinTypes[idRaw].name);
     }
-    const readableName = env.global.idNames[idRaw];
+    const readableName = nameForId(env, idRaw);
     if (opts.includeCanonicalNames && readableName) {
         return atom(readableName + '_' + idRaw);
     }
@@ -778,7 +783,7 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             ) {
                 throw new Error(`isRecord only for user refs`);
             }
-            const constr = env.global.types[idName(expr.value.is.ref.id)];
+            const constr = typeForId(env, expr.value.is.ref.id);
             if (constr.type !== 'Enum') {
                 throw new Error(`expected enum`);
             }
@@ -801,7 +806,7 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             if (expr.is.ref.type === 'builtin') {
                 throw new Error('nope folks');
             }
-            const constr = env.global.types[idName(expr.is.ref.id)];
+            const constr = typeForId(env, expr.is.ref.id);
             if (constr.type === 'Record') {
                 const attrs = allRecordMembers(env, expr.is.ref.id);
                 return items([
@@ -829,7 +834,7 @@ export const termToGlsl = (env: Env, opts: OutputOptions, expr: Expr): PP => {
             if (expr.is.ref.type === 'builtin') {
                 throw new Error(`no builtin enums`);
             }
-            const constr = env.global.types[idName(expr.is.ref.id)] as EnumDef;
+            const constr = typeForId(env, expr.is.ref.id) as EnumDef;
             if (constr.type !== 'Enum') {
                 throw new Error(`Not an enum`);
             }
@@ -1020,7 +1025,7 @@ export const makeZeroValue = (
                         return { type: 'string', value: '', loc, is: string };
                 }
             } else {
-                const constr = env.global.types[idName(item.ref.id)];
+                const constr = typeForId(env, item.ref.id);
                 if (constr.type === 'Enum') {
                     const id = typeFromTermType(env, opts, constr.items[0]);
                     return {
@@ -1141,7 +1146,7 @@ export const assembleItemsForFile = (
     // TODO: do this for the post-processed IRTerms
     // const allTypes = expressionTypeDeps(
     //     env,
-    //     orderedTerms.map((t) => env.global.terms[t]),
+    //     orderedTerms.map((t) => termForIdRaw(env, t)),
     // );
 
     const irTerms: Exprs = {};
@@ -1150,7 +1155,7 @@ export const assembleItemsForFile = (
 
     orderedTerms.forEach((idRaw) => {
         const id = idFromName(idRaw);
-        let term = env.global.terms[idRaw];
+        let term = termForIdRaw(env, idRaw);
         const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
 
         // // Don't output anything that I'm overriding with builtins
@@ -1182,7 +1187,7 @@ export const assembleItemsForFile = (
             const outer = new LocatedError(
                 term.location,
                 `Failed while typing for glsl ${idRaw} : ${
-                    env.global.idNames[idRaw] || 'no name'
+                    nameForId(env, idRaw) || 'no name'
                 }`,
             ).wrap(err);
             console.log(outer.toString());
@@ -1266,7 +1271,7 @@ export const assembleItemsForFile = (
             const outer = new LocatedError(
                 term.location,
                 `Failed while typing ${idRaw} : ${
-                    env.global.idNames[idRaw] || 'no name'
+                    nameForId(env, idRaw) || 'no name'
                 }`,
             ).wrap(err);
             console.log('hmmmmmm');
@@ -1292,7 +1297,7 @@ export const assembleItemsForFile = (
             const outer = new LocatedError(
                 term.location,
                 `Failed while typing ${idRaw} : ${
-                    env.global.idNames[idRaw] || 'no name'
+                    nameForId(env, idRaw) || 'no name'
                 }`,
             ).wrap(err);
             console.log(outer.toString());
@@ -1359,9 +1364,10 @@ export const assembleItemsForFile = (
     // const extraIdNames: { [id: string]: string } = {};
     inOrder.forEach((id) => {
         if (irTerms[id].source) {
-            env.global.idNames[id] = `${
-                env.global.idNames[idName(irTerms[id].source!.id)]
-            }_${irTerms[id].source!.kind}`;
+            env.global.idNames[id] = `${nameForId(
+                env,
+                idName(irTerms[id].source!.id),
+            )}_${irTerms[id].source!.kind}`;
         }
     });
     // const envWithNames = {
@@ -1435,7 +1441,7 @@ const makeEnvRecord = (env: Env, id: Id, mainType?: ir.Type): Record => {
         }
         arg0 = mainType.args[0];
     } else {
-        const t = env.global.terms[idName(id)];
+        const t = termForId(env, id);
         if (t.is.type !== 'lambda') {
             throw new Error(`Main fn not a lambda`);
         }
@@ -1522,7 +1528,7 @@ export const typeDefToGLSL = (
     irOpts: IOutputOptions,
     key: string,
 ): PP | null => {
-    const constr = env.global.types[key];
+    const constr = typeForIdRaw(env, key);
     const id = idFromName(key);
     if (constr.type === 'Enum') {
         return enumToGLSL(env, constr, opts, irOpts, id);
@@ -1571,7 +1577,7 @@ export const allEnumAttributes = (
             if (tref.ref.type !== 'user') {
                 throw new Error(`nope builtin`);
             }
-            let r = env.global.types[idName(tref.ref.id)] as TermRecordDef;
+            let r = typeForId(env, tref.ref.id) as TermRecordDef;
 
             if (r.type !== 'Record') {
                 throw new Error('nope');
@@ -1671,13 +1677,11 @@ export const getAllRecordAttributes = (
         ...constr.items.map((item, i) => ({ id, item, i })),
         ...([] as Array<RecordAttribute>).concat(
             ...subTypes.map((id) =>
-                env.global.types[idName(id)].items.map(
-                    (item: Type, i: number) => ({
-                        id,
-                        item: typeFromTermType(env, opts, item),
-                        i,
-                    }),
-                ),
+                typeForId(env, id).items.map((item: Type, i: number) => ({
+                    id,
+                    item: typeFromTermType(env, opts, item),
+                    i,
+                })),
             ),
         ),
     ];
@@ -1728,9 +1732,9 @@ export const populateBuiltins = (env: TermEnv) => {
     Object.keys(env.global.metaData).forEach((idRaw) => {
         const tags = env.global.metaData[idRaw].tags;
         if (tags.includes('glsl_builtin')) {
-            const term = env.global.terms[idRaw];
+            const term = termForIdRaw(env, idRaw);
             if (term.is.type === 'lambda') {
-                const name = env.global.idNames[idRaw];
+                const name = nameForId(env, idRaw);
                 builtins[idRaw] = builtin(
                     name,
                     term.location,
@@ -1742,7 +1746,7 @@ export const populateBuiltins = (env: TermEnv) => {
             ) {
                 // throw new Error('aa');
                 const refId = idName(term.base.ref.id);
-                const decl = env.global.types[refId] as TermRecordDef;
+                const decl = typeForIdRaw(env, refId) as TermRecordDef;
                 const names = env.global.recordGroups[refId];
                 builtins[idRaw] = record(
                     refId,
@@ -1768,7 +1772,7 @@ export const makeTermExpr = (id: Id, env: TermEnv): Term => ({
         id,
     },
     location: nullLocation,
-    is: env.global.terms[idName(id)].is,
+    is: termForId(env, id).is,
 });
 
 export const expressionTypeDeps = (env: Env, terms: Array<Expr>) => {
@@ -1818,7 +1822,7 @@ export const shaderAllButMains = (
     );
 
     allTypes.forEach((r) => {
-        if (env.global.types[r]) {
+        if (typeForIdRaw(env, r)) {
             const printed = typeDefToGLSL(env, opts, irOpts, r);
             if (printed) {
                 items.push(printed);
@@ -1893,11 +1897,11 @@ export const shaderAllButMains = (
             invalidLocs.push(loc);
         }
 
-        const senv = env.global.terms[name]
+        const senv = termForIdRaw(env, name)
             ? selfEnv(env, {
                   type: 'Term',
                   name,
-                  ann: env.global.terms[name].is,
+                  ann: termForIdRaw(env, name).is,
               })
             : env;
         items.push(
@@ -2191,7 +2195,7 @@ export const fileToGlsl = (
 
     // orderedTerms.forEach((idRaw) => {
     //     const id = idFromName(idRaw);
-    //     let term = env.global.terms[idRaw];
+    //     let term = termForIdRaw(env, idRaw);
     //     const senv = selfEnv(env, { type: 'Term', name: idRaw, ann: term.is });
 
     //     const maybeAddRecordInlines = (irTerm: ir.Expr) => {
@@ -2254,7 +2258,7 @@ export const fileToGlsl = (
     //     } catch (err) {
     //         const outer = new LocatedError(
     //             term.location,
-    //             `Failed while typing ${idRaw} : ${env.global.idNames[idRaw]}`,
+    //             `Failed while typing ${idRaw} : ${nameForId(env, idRaw)}`,
     //         ).wrap(err);
     //         throw outer;
     //     }

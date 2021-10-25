@@ -1,5 +1,12 @@
 import { AttributeSuffix } from '../../parsing/parser';
-import { hasSubType, idFromName, idName } from '../env';
+import {
+    hasSubType,
+    idFromName,
+    idName,
+    nameForId,
+    typeForId,
+    typeForIdRaw,
+} from '../env';
 import { LocatedError } from '../errors';
 import { applyTypeVariablesToRecord, showLocation } from '../typeExpr';
 import {
@@ -74,7 +81,7 @@ export const typeAttribute = (
         ref = target.is.ref;
     } else if (target.is.type === 'ref' && target.is.ref.type === 'user') {
         const typeName = idName(target.is.ref.id);
-        const defn = env.global.types[typeName];
+        const defn = typeForIdRaw(env, typeName);
         // TODO TODO: allow attribute access on Enums, if all subtypes allow it
         if (defn.type !== 'Record') {
             throw new LocatedError(suffix.location, `Target is not a Record`);
@@ -108,12 +115,11 @@ export const typeAttribute = (
         if (!isRecord(target.is, ref) && !hasSubType(env, target.is, id)) {
             throw new LocatedError(
                 suffix.location,
-                `Expression at ${showLocation(suffix.location)} is not a ${
-                    env.global.idNames[idName(id)]
-                }#${idName(id)} or its supertype. It is a ${showType(
-                    env,
-                    target.is,
-                )}`,
+                `Expression at ${showLocation(
+                    suffix.location,
+                )} is not a ${nameForId(env, idName(id))}#${idName(
+                    id,
+                )} or its supertype. It is a ${showType(env, target.is)}`,
             );
         }
     }
@@ -128,7 +134,7 @@ export const typeAttribute = (
         );
     }
 
-    let t = env.global.types[idName(ref.id)];
+    let t = typeForId(env, ref.id);
     if (t.type !== 'Record') {
         throw new Error(`Not a record ${idName(ref.id)}`);
     }
@@ -185,7 +191,7 @@ function resolveAttributeFromHash(
             // If this is a valid attribute, the hash must be equal to the record type, or
             // an extended record type.
             const rid = target.is.ref.id;
-            const defn = env.global.types[idName(rid)];
+            const defn = typeForId(env, rid);
             if (defn.type === 'Enum') {
                 throw new Error(`can't attribute an enum just yet folks`);
             }

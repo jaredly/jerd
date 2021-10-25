@@ -1,6 +1,7 @@
 // Get the builtins from the typescript folks
 
 import { parseType } from '../parsing/parser';
+import { typeForIdRaw } from '../typing/env';
 import { presetEnv } from '../typing/preset';
 import { Type } from '../typing/types';
 import typeType from '../typing/typeType';

@@ -2,7 +2,7 @@
 
 // import * as t from '@babel/types';
 import { Location } from '../parsing/parser';
-import { idName } from '../typing/env';
+import { idName, nameForId, typeForId } from '../typing/env';
 import { getOpLevel } from '../typing/terms/ops';
 // import { bool } from '../typing/preset';
 import {
@@ -53,7 +53,7 @@ export const idToDebug = (
     loc: Location,
 ): PP => {
     const idRaw = idName(id);
-    const readableName = env.global.idNames[idRaw];
+    const readableName = nameForId(env, idRaw);
     return pp.id(
         readableName || 'unnamed',
         hashToEmoji(idRaw),
@@ -165,7 +165,7 @@ export const _debugExpr = (env: Env, expr: Expr): PP => {
             }
             const base = expr.base;
             const id = expr.base.ref.id;
-            if (!env.global.types[idName(id)]) {
+            if (!typeForId(env, id)) {
                 return atom('RECORDNOTFOUND');
             }
             const rows = allRecordMembers(env, expr.base.ref.id);

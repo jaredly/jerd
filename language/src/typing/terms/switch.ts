@@ -1,6 +1,6 @@
 import { Location, Switch } from '../../parsing/parser';
 import { isErrorPattern } from '../auto-transform';
-import { idName } from '../env';
+import { idName, typeForId, typeForIdRaw } from '../env';
 import { LocatedError } from '../errors';
 import { getTypeError } from '../getTypeError';
 import typeExpr, { getEnumReferences, showLocation } from '../typeExpr';
@@ -347,7 +347,7 @@ const recordToExPattern = (
         const all = getEnumReferences(env, type, pattern.location);
         groups[groupId] = all.map((t) => groupIdForRef(t.ref));
     }
-    const defn = env.global.types[groupIdForRef(pattern.ref.ref)] as RecordDef;
+    const defn = typeForIdRaw(env, groupIdForRef(pattern.ref.ref)) as RecordDef;
     const subTypes = getAllSubTypes(
         env.global.types,
         defn.extends.map((t) => t.ref.id),
@@ -359,7 +359,7 @@ const recordToExPattern = (
         };
     } = {};
     subTypes.forEach((id) => {
-        const defn = env.global.types[idName(id)] as RecordDef;
+        const defn = typeForId(env, id) as RecordDef;
         valuesBySubType[idName(id)] = {
             row: defn.items.map(() => anything),
             types: defn.items,

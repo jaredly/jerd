@@ -862,7 +862,7 @@ export const inlineFunctionCall = (env: Env, term: Term, idx: number): Term => {
             //     t.type === 'ref' &&
             //     t.ref.type === 'user'
             // ) {
-            //     return env.global.terms[idName(t.ref.id)];
+            //     return termForId(env, t.ref.id);
             // }
             // return null;
         },
@@ -877,7 +877,7 @@ export const inlineTerm = (env: Env, term: Term, idx: number): Term => {
                 t.type === 'ref' &&
                 t.ref.type === 'user'
             ) {
-                return env.global.terms[idName(t.ref.id)];
+                return termForId(env, t.ref.id);
             }
             return null;
         },

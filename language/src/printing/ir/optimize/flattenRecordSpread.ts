@@ -1,4 +1,9 @@
-import { idFromName, idName } from '../../../typing/env';
+import {
+    idFromName,
+    idName,
+    typeForId,
+    typeForIdRaw,
+} from '../../../typing/env';
 import { Env, RecordDef, Symbol } from '../../../typing/types';
 import {
     defaultVisitor,
@@ -41,7 +46,7 @@ export const flattenRecordSpread = (
                 });
                 target = { type: 'var', sym: v, loc: expr.loc, is: expr.is };
             }
-            const d = env.global.types[idName(expr.base.ref.id)] as RecordDef;
+            const d = typeForId(env, expr.base.ref.id) as RecordDef;
             const rows: Array<Expr> = expr.base.rows.map((row, i) => {
                 if (row == null) {
                     return {
@@ -61,7 +66,7 @@ export const flattenRecordSpread = (
 
             Object.keys(expr.subTypes).forEach((k) => {
                 const subType = expr.subTypes[k];
-                const d = env.global.types[k] as RecordDef;
+                const d = typeForIdRaw(env, k) as RecordDef;
                 const rows: Array<Expr> = subType.rows.map((row, i) => {
                     if (row == null) {
                         return {
@@ -113,7 +118,7 @@ export const flattenRecordSpread = (
                 });
                 target = { type: 'var', sym: v, loc: expr.loc, is: expr.is };
             }
-            const d = env.global.types[k] as RecordDef;
+            const d = typeForIdRaw(env, k) as RecordDef;
             const rows: Array<Expr> = subType.rows.map((row, i) => {
                 if (row == null) {
                     return {

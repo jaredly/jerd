@@ -73,16 +73,16 @@
 //     `),
 //     );
 
-//     Object.keys(env.global.types).forEach((hash) => {
-//         const defn = env.global.types[hash];
+//     allTypeIdsRaw(env).forEach((hash) => {
+//         const defn = typeForIdRaw(env, hash);
 //         if (defn.type === 'Record') {
 //             result.push(recordTypeToGo(env, {}, idFromName(hash), defn));
 //             result.push(recordTypeToInterface(env, {}, idFromName(hash), defn));
 //         }
 //     });
 
-//     Object.keys(env.global.terms).forEach((hash) => {
-//         const term = env.global.terms[hash];
+//     allTermIdsRaw(env).forEach((hash) => {
+//         const term = termForIdRaw(env, hash);
 //         let irTerm = ir.printTerm(env, {}, term);
 //         irTerm = optimize(env, irTerm);
 //         irTerm = goOptimizations(env, irTerm);
@@ -661,7 +661,7 @@
 //         throw new Error('npe');
 //     }
 //     const id = record.base.ref.id;
-//     const d = env.global.types[idName(id)] as RecordDef;
+//     const d = typeForId(env, id) as RecordDef;
 //     return record.base.rows
 //         .map((value, i) => ({ id, i, value: value }))
 //         .concat(
@@ -681,12 +681,12 @@
 // };
 
 // const getAllRecordItems = (env: Env, id: Id) => {
-//     const d = env.global.types[idName(id)] as RecordDef;
+//     const d = typeForId(env, id) as RecordDef;
 //     return d.items
 //         .map((type, i) => ({ id, i, type }))
 //         .concat(
 //             ...getAllSubTypes(env.global, d).map((sub) => {
-//                 const d = env.global.types[idName(sub)] as RecordDef;
+//                 const d = typeForId(env, sub) as RecordDef;
 //                 return d.items.map((type, i) => ({
 //                     id: sub,
 //                     i,
@@ -718,7 +718,7 @@
 //                 )
 //                 .concat(
 //                     ...getAllSubTypes(env.global, defn).map((sub) => {
-//                         const d = env.global.types[idName(sub)] as RecordDef;
+//                         const d = typeForId(env, sub) as RecordDef;
 //                         return d.items.map((item, i) =>
 //                             items([
 //                                 atom(attributeId(sub, i)),

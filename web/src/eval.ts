@@ -175,7 +175,7 @@ export const runTerm = (
             if (dep !== idn) {
                 // console.log('Evaluating dependency', dep);
             }
-            const depTerm = idn === dep ? term : env.global.terms[dep];
+            const depTerm = idn === dep ? term : termForIdRaw(env, dep);
             const self: Self = { type: 'Term', name: dep, ann: term.is };
             const senv = selfEnv(env, self);
             senv.local.unique.current = maxUnique(depTerm) + 1;

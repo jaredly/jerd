@@ -157,7 +157,7 @@ export const Workspace = ({ state, setState }: Props) => {
         (id: Id) => {
             let results: { [key: string]: any };
             try {
-                const term = state.env.global.terms[idName(id)];
+                const term = state.termForId(env, id);
                 if (!term) {
                     throw new Error(`No term ${idName(id)}`);
                 }

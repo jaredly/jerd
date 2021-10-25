@@ -1,6 +1,6 @@
 import { Pattern as RawPattern } from '../parsing/parser';
 import { isErrorPattern } from './auto-transform';
-import { idName, makeLocal } from './env';
+import { idName, makeLocal, typeForId } from './env';
 import { bool, float, int, string } from './preset';
 import {
     showLocation,
@@ -131,7 +131,7 @@ const typePattern = (
                 }
                 const id = ids[0];
 
-                const decl = env.global.types[idName(id)];
+                const decl = typeForId(env, id);
                 if (!decl) {
                     throw new Error(
                         `Type not found ${pattern.text} ${showLocation(
@@ -218,7 +218,7 @@ const typePattern = (
             //     const t = env.local.typeVbls[sym.unique];
             //     subTypeIds = [];
             //     t.subTypes.forEach((id) => {
-            //         const t = env.global.types[idName(id)] as RecordDef;
+            //         const t = typeForId(env, id) as RecordDef;
             //         subTypeIds.push(...getAllSubTypes(env.global, t));
             //     });
             //     base = {
@@ -258,7 +258,7 @@ const typePattern = (
                 }
             }
 
-            let t = env.global.types[idName(id)];
+            let t = typeForId(env, id);
             if (t.type !== 'Record') {
                 throw new Error(`Not a record ${idName(id)}`);
             }
@@ -290,7 +290,7 @@ const typePattern = (
 
             subTypeIds.forEach((id) => {
                 // STOPSHIP: need to substitute type variables
-                const t = env.global.types[idName(id)] as RecordDef;
+                const t = typeForId(env, id) as RecordDef;
                 subTypeTypes[idName(id)] = t;
                 // const rows = new Array(t.items.length);
                 // t.items.forEach((type, i) => {

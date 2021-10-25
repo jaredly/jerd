@@ -8,7 +8,7 @@ import {
     slider_id,
     title_id,
 } from '../printing/prelude-types';
-import { hashObject, idFromName, idName } from './env';
+import { hashObject, idFromName, idName, termForIdRaw } from './env';
 import { transform } from './transform';
 import { Decorator, Env, Id, Term } from './types';
 
@@ -78,7 +78,7 @@ export function findSliders(
                     if (!termDeps[hash].includes(otherHash)) {
                         termDeps[hash].push(otherHash);
                     }
-                    crawlTerm(env.global.terms[otherHash], t.ref.id);
+                    crawlTerm(termForIdRaw(env, otherHash), t.ref.id);
                 }
 
                 return null;

@@ -20,7 +20,14 @@ import {
     EffectVblDecl,
 } from './types';
 import { showLocation } from './typeExpr';
-import { idFromName, idName, resolveEffect, symPrefix } from './env';
+import {
+    idFromName,
+    idName,
+    resolveEffect,
+    symPrefix,
+    typeForId,
+    typeForIdRaw,
+} from './env';
 import { LocatedError } from './errors';
 import { args } from '../printing/printer';
 
@@ -125,7 +132,7 @@ const typeType = (
                         typeVbls,
                     };
                 }
-                if (!env.global.types[rawId]) {
+                if (!typeForIdRaw(env, rawId)) {
                     if (env.global.idRemap[rawId]) {
                         rawId = idName(env.global.idRemap[rawId]);
                     } else {
@@ -207,7 +214,7 @@ const typeType = (
                 const numTypeVbls = type.typeVbls ? type.typeVbls.length : 0;
                 let id: Id | null = null;
                 for (let i of ids) {
-                    const def = env.global.types[idName(i)];
+                    const def = typeForId(env, i);
                     if (def.typeVbls.length === numTypeVbls) {
                         id = i;
                         break;

@@ -66,7 +66,7 @@ const Pin_ = ({
             'Loading...';
         // </div>
     } else {
-        const t = env.global.terms[hash];
+        const t = termForIdRaw(env, hash);
         const plugin: RenderPluginT = plugins[pin.display.type];
         const err = getTypeError(
             env,
@@ -159,7 +159,7 @@ const Pin_ = ({
 export const Pin = React.memo(Pin_);
 
 const contentForId = (env: Env, id: Id): Content => {
-    const name = env.global.idNames[idName(id)];
+    const name = nameForId(env, idName(id));
     return {
         type: 'term',
         id,

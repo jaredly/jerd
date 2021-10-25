@@ -173,7 +173,7 @@ export default () => {
 
             const result = runTerm(
                 env,
-                env.global.terms[mains[0]],
+                termForIdRaw(env, mains[0)],
                 main,
                 evalEnv,
                 false,

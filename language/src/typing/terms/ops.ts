@@ -20,7 +20,14 @@ import typeExpr, {
     showLocation,
 } from '../typeExpr';
 import { getTypeError } from '../getTypeError';
-import { idFromName, idName, resolveIdentifier } from '../env';
+import {
+    allTermIdsRaw,
+    idFromName,
+    idName,
+    resolveIdentifier,
+    termForIdRaw,
+    typeForId,
+} from '../env';
 import { LocatedError, TypeMismatch } from '../errors';
 import { walkType } from '../typeType';
 import { float, int, numeric, string } from '../preset';
@@ -43,8 +50,8 @@ export const findUnaryOp = (
     type: Type,
     location: Location,
 ): Term | null => {
-    for (let k of Object.keys(env.global.terms)) {
-        const is = env.global.terms[k].is;
+    for (let k of allTermIdsRaw(env)) {
+        const is = termForIdRaw(env, k).is;
         if (
             is.type === 'ref' &&
             is.ref.type === 'user' &&
@@ -54,9 +61,9 @@ export const findUnaryOp = (
                 type: 'ref',
                 ref: { type: 'user', id: idFromName(k) },
                 location: location,
-                is: env.global.terms[k].is,
+                is: termForIdRaw(env, k).is,
             };
-            let t = env.global.types[idName(id)] as RecordDef;
+            let t = typeForId(env, id) as RecordDef;
             if (found.is.type === 'ref') {
                 t = applyTypeVariablesToRecord(
                     env,
@@ -104,8 +111,8 @@ const findOp = (
     rtype: Type,
     location: Location,
 ): Term | null => {
-    for (let k of Object.keys(env.global.terms)) {
-        const is = env.global.terms[k].is;
+    for (let k of allTermIdsRaw(env)) {
+        const is = termForIdRaw(env, k).is;
         if (
             is.type === 'ref' &&
             is.ref.type === 'user' &&
@@ -115,9 +122,9 @@ const findOp = (
                 type: 'ref',
                 ref: { type: 'user', id: idFromName(k) },
                 location: location,
-                is: env.global.terms[k].is,
+                is: termForIdRaw(env, k).is,
             };
-            let t = env.global.types[idName(id)] as RecordDef;
+            let t = typeForId(env, id) as RecordDef;
             if (found.is.type === 'ref') {
                 t = applyTypeVariablesToRecord(
                     env,
@@ -228,7 +235,7 @@ const typeNewOp = (
             attrHash = idName(env.global.idRemap[attrHash]);
         }
         const id = idFromName(attrHash);
-        let t = env.global.types[idName(id)] as RecordDef;
+        let t = typeForId(env, id) as RecordDef;
         if (target.is.typeVbls.length) {
             t = applyTypeVariablesToRecord(
                 env,

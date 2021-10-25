@@ -46,7 +46,7 @@ export const onChangeCell = (env: Env, state: State, cell: Cell): State => {
 export const updateEvalEnv = (env: Env, id: Id, evalEnv: EvalEnv): EvalEnv => {
     let results: any = {};
     try {
-        const term = env.global.terms[idName(id)];
+        const term = termForId(env, id);
         if (!term) {
             throw new Error(`No term ${idName(id)}`);
         }
@@ -90,9 +90,9 @@ function updateOtherCells(
     };
 
     const prevId = prevCell.content.id;
-    const prevTerm = env.global.terms[idName(prevId)];
+    const prevTerm = termForId(env, prevId);
     const newId = cell.content.id;
-    const newTerm = env.global.terms[idName(newId)];
+    const newTerm = termForId(env, newId);
     const areDifferent = getTypeError(
         env,
         newTerm.is,
@@ -175,7 +175,7 @@ function updateOtherCells(
 
         // const term = other.content.proposed
         //     ? other.content.proposed.term
-        const term = env.global.terms[idName(otherCell.content.id)];
+        const term = termForId(env, otherCell.content.id);
         if (!term) {
             console.error(
                 `No term ${idName(otherCell.content.id)} from cell ${

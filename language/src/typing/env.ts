@@ -58,6 +58,15 @@ import { getTypeError } from './getTypeError';
 import { env } from 'process';
 import { uniqueDecorator } from './typeFile';
 
+export const typeForId = (env: Env, id: Id) => env.global.types[idName(id)];
+export const typeForIdRaw = (env: Env, raw: string) => env.global.types[raw];
+export const termForId = (env: Env, id: Id) => env.global.terms[idName(id)];
+export const termForIdRaw = (env: Env, raw: string) => env.global.terms[raw];
+export const nameForId = (env: Env, raw: string) => env.global.idNames[raw];
+
+export const allTermIdsRaw = (env: Env) => Object.keys(env.global.terms);
+export const allTypeIdsRaw = (env: Env) => Object.keys(env.global.types);
+
 export const addToplevelToEnv = (
     env: Env,
     top: ToplevelT,
@@ -547,7 +556,7 @@ export const typeEnumInner = (env: Env, defn: EnumDef, ffi?: boolean) => {
         if (row.ref.type !== 'user') {
             throw new Error(`Cannot have a builtin as an enum item.`);
         }
-        const t = env.global.types[idName(row.ref.id)];
+        const t = typeForId(env, row.ref.id);
         if (t.type !== 'Record') {
             throw new Error(
                 `${idName(row.ref.id)} is an enum. use ...spread syntax.`,
@@ -590,7 +599,7 @@ export const addEnum = (
 ): { id: Id; env: Env } => {
     const hash = hashObject(d);
     const idid = { hash, pos: 0, size: 1 };
-    if (env.global.types[idName(idid)]) {
+    if (typeForId(env, idid)) {
         console.warn(`Redefining ${idName(idid)}`);
     }
     const glob = cloneGlobalEnv(env.global);
@@ -614,7 +623,7 @@ export const refName = (ref: Reference) =>
 export const resolveType = (env: Env, id: Identifier): Array<Id> => {
     if (id.hash != null) {
         let rawId = id.hash.slice(1);
-        if (!env.global.types[rawId]) {
+        if (!typeForIdRaw(env, rawId)) {
             if (env.global.idRemap[rawId]) {
                 rawId = idName(env.global.idRemap[rawId]);
             } else {
@@ -760,7 +769,7 @@ export const addRecord = (
 ): { id: Id; env: Env } => {
     const hash = hashObject(defn);
     const idid = { hash, pos: 0, size: 1 };
-    if (env.global.types[idName(idid)]) {
+    if (typeForId(env, idid)) {
         console.warn(`Redefining ${idName(idid)}`);
     }
     const glob = cloneGlobalEnv(env.global);
@@ -970,11 +979,11 @@ export const typeDefine = (
 
     const hash: string = hashObject(term);
     const id: Id = { hash: hash, size: 1, pos: 0 };
-    if (env.global.terms[hash]) {
+    if (termForIdRaw(env, hash)) {
         console.warn(
             `Redefining ${hash} at ${showLocation(
                 item.location,
-            )} (previous at ${showLocation(env.global.terms[hash].location)})`,
+            )} (previous at ${showLocation(termForIdRaw(env, hash).location)})`,
         );
     }
     const glob = cloneGlobalEnv(env.global);
@@ -1025,7 +1034,7 @@ export const addExpr = (
 ): { id: Id; env: Env } => {
     const hash = hashObject(term);
     const id: Id = { hash: hash, size: 1, pos: 0 };
-    if (env.global.terms[hash]) {
+    if (termForIdRaw(env, hash)) {
         console.warn(`Redefining ${hash}`);
     }
     return {
@@ -1262,13 +1271,13 @@ export const resolveIdentifier = (
             };
         }
 
-        if (!env.global.terms[first]) {
+        if (!termForIdRaw(env, first)) {
             if (env.global.idRemap[first]) {
                 first = idName(env.global.idRemap[first]);
             } else {
-                if (env.global.types[first]) {
+                if (typeForIdRaw(env, first)) {
                     const id = idFromName(first);
-                    const t = env.global.types[idName(id)];
+                    const t = typeForId(env, id);
                     if (
                         t.type === 'Record' &&
                         !hasRequiredItems(env.global, t)
@@ -1277,7 +1286,7 @@ export const resolveIdentifier = (
                     }
                 }
 
-                const starts = Object.keys(env.global.terms).filter((k) =>
+                const starts = allTermIdsRaw(env).filter((k) =>
                     k.startsWith(first),
                 );
                 if (starts.length) {
@@ -1290,7 +1299,7 @@ export const resolveIdentifier = (
             }
         }
         const id = idFromName(first);
-        const term = env.global.terms[first];
+        const term = termForIdRaw(env, first);
         return {
             type: 'ref',
             location,
@@ -1330,7 +1339,7 @@ export const resolveIdentifier = (
             candidates.push({
                 type: 'ref',
                 location,
-                is: env.global.terms[idName(id)].is,
+                is: termForId(env, id).is,
                 ref: { type: 'user', id },
             });
         });
@@ -1340,18 +1349,18 @@ export const resolveIdentifier = (
         //     return {
         //         type: 'Ambiguous',
         //         options: ids
-        //             .filter((id) => env.global.terms[idName(id)] != null)
+        //             .filter((id) => termForId(env, id) != null)
         //             .map((id) => ({
         //                 type: 'ref',
         //                 location,
-        //                 is: env.global.terms[idName(id)].is,
+        //                 is: termForId(env, id).is,
         //                 ref: { type: 'user', id },
         //             })),
         //         is: { type: 'Ambiguous', location },
         //         location,
         //     };
         // }
-        // const term = env.global.terms[idName(ids[0])];
+        // const term = termForIdRaw(env, idName(ids[0))];
         // return {
         //     type: 'ref',
         //     location,
@@ -1387,7 +1396,7 @@ export const resolveIdentifier = (
 
     if (env.global.typeNames[text]) {
         const id = env.global.typeNames[text][0];
-        const t = env.global.types[idName(id)];
+        const t = typeForId(env, id);
         if (t.type === 'Record') {
             // Ok, so we want to cehck the number of required items
         }
@@ -1509,7 +1518,7 @@ export const hasSubType = (env: Env, type: Type, id: Id) => {
             if (idsEqual(id, sid)) {
                 return true;
             }
-            const t = env.global.types[idName(sid)] as RecordDef;
+            const t = typeForId(env, sid) as RecordDef;
             const allSubTypes = getAllSubTypes(
                 env.global.types,
                 t.extends.map((t) => t.ref.id),
@@ -1525,7 +1534,7 @@ export const hasSubType = (env: Env, type: Type, id: Id) => {
     if (idsEqual(type.ref.id, id)) {
         return true;
     }
-    const t = env.global.types[idName(type.ref.id)] as RecordDef;
+    const t = typeForId(env, type.ref.id) as RecordDef;
     const allSubTypes = getAllSubTypes(
         env.global.types,
         t.extends.map((t) => t.ref.id),

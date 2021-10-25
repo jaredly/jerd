@@ -44,7 +44,7 @@ export function typeRecordPattern(
     //     const t = env.local.typeVbls[sym.unique];
     //     subTypeIds = [];
     //     t.subTypes.forEach((id) => {
-    //         const t = env.global.types[idName(id)] as RecordDef;
+    //         const t = typeForId(env, id) as RecordDef;
     //         subTypeIds.push(...getAllSubTypes(env.global, t));
     //     });
     //     base = {

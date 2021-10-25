@@ -4,7 +4,13 @@ import { loadInit } from '../printing/loadPrelude';
 import { atom, PP, printToString } from '../printing/printer';
 import * as pp from '../printing/printer';
 import { newWithGlobal } from '../typing/types';
-import { idName } from '../typing/env';
+import {
+    allTypeIdsRaw,
+    idName,
+    nameForId,
+    typeForId,
+    typeForIdRaw,
+} from '../typing/env';
 import { OutputOptions } from '../printing/glslPrinter';
 import { OutputOptions as IOutputOptions } from '../printing/ir/types';
 
@@ -28,8 +34,7 @@ export const typeAliasesToGo = (
     return ([] as Array<PP | null>).concat(
         ...Object.keys(env.global.typeNames).map((name) =>
             env.global.typeNames[name].map((id, i) =>
-                !ids.includes(idName(id)) ||
-                env.global.types[idName(id)].typeVbls.length
+                !ids.includes(idName(id)) || typeForId(env, id).typeVbls.length
                     ? null
                     : pp.items([
                           atom(`type ${name}${i > 0 ? '_' + i : ''}`),
@@ -45,8 +50,8 @@ export const typeAliasesToGo = (
 export const enumAliasesToGo = (env: Env, ids: Array<string>) => {
     const items: Array<PP> = [];
     ids.forEach((idRaw) => {
-        const name = env.global.idNames[idRaw] || `T${idRaw}`;
-        const defn = env.global.types[idRaw];
+        const name = nameForId(env, idRaw) || `T${idRaw}`;
+        const defn = typeForIdRaw(env, idRaw);
         // if (!defn) {
         //     throw new Error(`No enum ${idRaw}`)
         // }
@@ -54,8 +59,7 @@ export const enumAliasesToGo = (env: Env, ids: Array<string>) => {
         if (defn && defn.type === 'Enum') {
             defn.items.forEach((t, idx) => {
                 const subName =
-                    env.global.idNames[idName(t.ref.id)] ||
-                    `T${idName(t.ref.id)}`;
+                    nameForId(env, idName(t.ref.id)) || `T${idName(t.ref.id)}`;
                 items.push(
                     pp.items([
                         atom(`const `),
@@ -79,8 +83,8 @@ export function generateGoTypes(input: string, output: string) {
         typeDefs: {},
         usedImports: {},
     };
-    const items = typeDefsToGo(env, {}, {}, Object.keys(env.global.types));
-    items.push(...enumAliasesToGo(env, Object.keys(env.global.types)));
+    const items = typeDefsToGo(env, {}, {}, allTypeIdsRaw(env));
+    items.push(...enumAliasesToGo(env, allTypeIdsRaw(env)));
 
     const code = items
         .map((pp) => (pp ? printToString(pp, 100) : ''))

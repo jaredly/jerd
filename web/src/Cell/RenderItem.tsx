@@ -442,9 +442,9 @@ const getTopLevel = (
         return null;
     }
     const id = idFromName(idRaw);
-    const name = env.global.idNames[idRaw];
+    const name = nameForId(env, idRaw);
     if (!isType) {
-        const term = env.global.terms[idRaw];
+        const term = termForIdRaw(env, idRaw);
         if (!term) {
             return null;
         }
@@ -460,7 +460,7 @@ const getTopLevel = (
             ];
         }
     }
-    const defn = env.global.types[idRaw];
+    const defn = typeForId(env, idRaw);
     if (!defn) {
         return null;
     }
