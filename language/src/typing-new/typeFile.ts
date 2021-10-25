@@ -37,6 +37,7 @@ import { typeType } from './typeType';
 import { typeTypeVblDecl } from './typeArrow';
 import { addToplevel, Library } from './Library';
 import { parseIdTextOrString } from './typeRecord';
+import { showLocation } from '../typing/typeExpr';
 
 export const typeToplevel = (
     ctx: Context,
@@ -296,8 +297,10 @@ export const typeFile = (
                     return true;
                 });
                 if (left.length) {
-                    throw new Error(
-                        `Not handling non-builtin toplevel decorators at the moment.`,
+                    console.warn(
+                        `Not handling non-builtin toplevel decorators at the moment. ${showLocation(
+                            top.location,
+                        )}`,
                     );
                 }
             }
