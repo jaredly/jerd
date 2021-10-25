@@ -58,7 +58,7 @@ describe('typeApply', () => {
         );
         expect(termToString(ctx, a)).toEqual(`one#${idName(bid)}(b: 2)`);
         expect(a).toNotHaveErrors(ctx);
-        // expect(termToString(ctx, b)).toEqual(`one#${idName(bid)}(b: 2.1)`);
+        // expect(termToString(ctx, b)).toEqual(`one#${idName(aid)}(a: 2.1)`);
         // expect(b).toNotHaveErrors(ctx);
     });
 

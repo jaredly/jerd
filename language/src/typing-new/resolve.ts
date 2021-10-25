@@ -143,18 +143,16 @@ export const resolveValue = (
                 ref: { type: 'user', id: idOrSym.id },
             };
         }
-        if (idOrSym.type === 'id') {
-            const defn = ctx.library.types.defns[idName(idOrSym.id)];
-            if (defn && defn.defn.type === 'Record') {
-                const record = emptyRecord(
-                    ctx.library,
-                    idOrSym.id,
-                    defn.defn,
-                    location,
-                );
-                if (record) {
-                    return wrapExpected(record, expected);
-                }
+        const defn = ctx.library.types.defns[idName(idOrSym.id)];
+        if (defn && defn.defn.type === 'Record') {
+            const record = emptyRecord(
+                ctx.library,
+                idOrSym.id,
+                defn.defn,
+                location,
+            );
+            if (record) {
+                return wrapExpected(record, expected);
             }
         }
         return null;
