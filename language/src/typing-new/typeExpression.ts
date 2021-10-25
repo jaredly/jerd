@@ -137,6 +137,9 @@ export const typeExpression = (
             console.warn(`IGNORING TRACE, I DONT LIKE IT`);
             return typeExpression(ctx, term.args.items[0], expected);
         case 'TupleLiteral':
+            if (term.items.items.length === 1) {
+                return typeExpression(ctx, term.items.items[0], expected);
+            }
             const expectedTuple: null | UserTypeReference = expected.find(
                 (t) =>
                     t.type === 'ref' &&

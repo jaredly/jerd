@@ -175,7 +175,7 @@ export const parseMetaFloat = (
     if (arg.type !== 'DecExpr') {
         return null;
     }
-    if (arg.expr.type !== 'Float') {
+    if (arg.expr.type !== 'Float' && arg.expr.type !== 'Int') {
         return null;
     }
     return parseFloat(arg.expr.contents);
@@ -210,13 +210,13 @@ export const typeFile = (
             let unique: number | undefined;
             if (top.decorators) {
                 let left = top.decorators.filter((dec) => {
-                    if (dec.id.hash === '#builtin') {
+                    if (
+                        dec.id.hash === '#builtin' ||
+                        !lib.decorators.names[dec.id.text]
+                    ) {
                         switch (dec.id.text) {
                             case 'basedOn': {
-                                const id = parseMetaId(
-                                    ctx.library,
-                                    dec.args?.items,
-                                );
+                                const id = parseMetaId(lib, dec.args?.items);
                                 if (id) {
                                     meta.basedOn = id;
                                     return false;
@@ -224,10 +224,7 @@ export const typeFile = (
                                 return true;
                             }
                             case 'supercedes':
-                                const id = parseMetaId(
-                                    ctx.library,
-                                    dec.args?.items,
-                                );
+                                const id = parseMetaId(lib, dec.args?.items);
                                 if (id) {
                                     meta.supercedes = id;
                                     return false;

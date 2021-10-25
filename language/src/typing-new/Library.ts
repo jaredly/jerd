@@ -154,6 +154,8 @@ export const addToplevel = (lib: Library, top: ToplevelT, meta: MetaData) => {
             return addRecord(lib, top.def, top.name, top.attrNames, meta);
         case 'Effect':
             return addEffect(lib, top.effect, top.name, top.constrNames, meta);
+        case 'Decorator':
+            return addDecorator(lib, top.defn, top.name, meta);
         default:
             throw new Error('nope');
     }
@@ -181,7 +183,7 @@ export const addTerm = (
                 names: name
                     ? {
                           ...lib.terms.names,
-                          [name]: (lib.terms.names[name] || []).concat([id]),
+                          [name]: [id].concat(lib.terms.names[name] || []),
                       }
                     : lib.terms.names,
             },
@@ -202,7 +204,7 @@ export const addEffect = (
         ...lib.effects.constructors.names,
     };
     constrNames.forEach((name, i) => {
-        names[name] = (names[name] || []).concat({ id, idx: i });
+        names[name] = [{ id, idx: i }].concat(names[name] || []);
     });
     meta = meta || { created: Date.now() };
     return [
@@ -216,7 +218,7 @@ export const addEffect = (
                 },
                 names: {
                     ...lib.effects.names,
-                    [name]: (lib.effects.names[name] || []).concat([id]),
+                    [name]: [id].concat(lib.effects.names[name] || []),
                 },
                 constructors: {
                     idToNames: {
@@ -264,12 +266,13 @@ export const addDecorator = (
     lib: Library,
     dec: DecoratorDef,
     name: string,
+    meta?: MetaData,
 ): [Library, Id] => {
     const id = idFromName(hashObject(dec));
     if (lib.types.defns[idName(id)] != null) {
         console.warn(`Redefining record!`);
     }
-    const meta: MetaData = { created: Date.now() };
+    meta = meta || { created: Date.now() };
     return [
         {
             ...lib,

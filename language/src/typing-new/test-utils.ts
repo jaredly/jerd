@@ -449,10 +449,14 @@ export const patternToString = (ctx: Context, term: Pattern | null | void) =>
         ? '[null pattern]'
         : printToString(patternToPretty(ctxToEnv(ctx), term), 100);
 
-export const termToString = (ctx: Context, term: Term | null | void) =>
-    term == null
-        ? '[null term]'
-        : printToString(termToPretty(ctxToEnv(ctx), term), 100);
+export const termToString = (ctx: Context, term: Term | null | void) => {
+    if (term == null) {
+        return '[null term]';
+    }
+    const res = printToString(termToPretty(ctxToEnv(ctx), term), 100);
+    // Wrap toplevel terms with decorators in parens.
+    return term.decorators?.length ? `(${res})` : res;
+};
 
 export const warningsSerializer: jest.SnapshotSerializerPlugin = {
     test(value) {

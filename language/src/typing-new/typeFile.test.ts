@@ -44,6 +44,38 @@ describe('typeFile', () => {
         expect(exprs[0].ref).toEqual({ type: 'user', id: id });
     });
 
+    it(`supercedes`, () => {
+        const ctx = newContext();
+        let exprs, id1, id2;
+        [ctx.library, , [id1, id2]] = typeFile(
+            ctx,
+            parseTyped(
+                `@createdAt(500)
+				@deprecated(200) const x = 10;
+				@basedOn(x)
+				@supercedes#builtin(x) const x = 20`,
+            ),
+        );
+        expect(ctx.library.terms.names.x).toEqual([id2, id1]);
+        expect(ctx.library.terms.defns[idName(id2)].meta.supercedes).toEqual(
+            id1,
+        );
+        expect(ctx.library.terms.defns[idName(id1)].meta.deprecated).toEqual(
+            200,
+        );
+        expect(ctx.library.terms.defns[idName(id1)].meta.created).toEqual(500);
+        let id3;
+        [ctx.library, , [id3]] = typeFile(
+            ctx,
+            parseTyped(
+                `
+				@basedOn(what#${idName(id2)})
+				const what = 2000`,
+            ),
+        );
+        expect(ctx.library.terms.defns[idName(id3)].meta.basedOn).toEqual(id2);
+    });
+
     it(`enum`, () => {
         const ctx = newContext();
         let id;
@@ -58,7 +90,28 @@ describe('typeFile', () => {
 			`),
         );
         expect(ctx.library.effects.names.Stdio).toEqual([id]);
+        // TODO: support uniques for effects
         // expect(ctx.library.effects.defns[idName(id)].defn.unique).toEqual(100);
+    });
+
+    it(`decorator`, () => {
+        const ctx = newContext();
+        let id, expr;
+        [ctx.library, [expr], [id]] = typeFile(
+            ctx,
+            parseTyped(`
+			@unique#builtin(100)
+			decorator Slider(min: int, max: int) float;
+			(@Slider(10, 20) 45.0)
+		`),
+        );
+        expect(ctx.library.decorators.defns[idName(id)].defn.unique).toEqual(
+            100,
+        );
+        expect(termToString(ctx, expr)).toEqual(
+            `(@Slider#${idName(id)}(min: 10, max: 20) 45.0)`,
+        );
+        expect(expr.decorators![0].name.id).toEqual(id);
     });
 
     // it(``);
