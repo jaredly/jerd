@@ -13,10 +13,36 @@ Then I can be confident doing a `jd-to-json` en masse, in prepartion for syntax 
 - [x] recorddddddddddddddddddddddddd
   - huh maybe I don't want .. to flatten them?
     I just need a way to order the spreads .. 🤔
-- [ ] Switch! Patterns y'all
-- [ ] Handle? ugh ok
+- [x] Switch! Patterns y'all
+- [x] Handle? ugh ok
   could I just fake it as a variant of switch somehow?
   like why the special treatment.
+
+- TOPLEELS
+  - [ ] Record
+  - [ ] Enum
+  - [ ] Effect
+  - [ ] DecoratorDef
+
+then ... ok so the purpose of this was making a much more robust
+system of type checking. And to add a bunch of type inference.
+Which I think I can say I've accomplished?
+
+and then
+well
+ok, so the IR level will need a tonnnnn of rewriting to work with the new ctx type.
+which is annoying.
+BUT
+is there a way to do this
+that can pave the way for an sqlite-backed solution at some point?
+"getTypeDefn" that pulls it out of a database? (if it's not in memory cache)
+
+so, like basic things I need to do, are mostly:
+`typeForId`
+and
+`termForId`
+and
+`bindingForwhatsit` it's fine
 
 ```ts
 // current setup
