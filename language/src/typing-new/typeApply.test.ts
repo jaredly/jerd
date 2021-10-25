@@ -1,3 +1,4 @@
+import { parseTyped } from '../parsing/parser-new';
 import { idName } from '../typing/env';
 import * as preset from '../typing/preset';
 import {
@@ -11,6 +12,7 @@ import {
     termToString,
     warningsSerializer,
 } from './test-utils';
+import { typeFile } from './typeFile';
 
 expect.extend(customMatchers);
 expect.addSnapshotSerializer(rawSnapshotSerializer);
@@ -40,6 +42,24 @@ describe('typeApply', () => {
         expect(termToString(ctx, res)).toEqual(`hello#${idName(id)}()`);
         expect(res.is).toEqualType(preset.int, ctx);
         expect(res).toNotHaveErrors(ctx);
+    });
+
+    it('should pick the best one for the args', () => {
+        const ctx = newContext();
+        let a, b, aid, bid;
+        [ctx.library, [a, b], [aid, bid]] = typeFile(
+            ctx,
+            parseTyped(`
+        const one = (a: float) => 2;
+        const one = (b: int) => 2;
+        one(2)
+        // one(2.1)
+        `),
+        );
+        expect(termToString(ctx, a)).toEqual(`one#${idName(bid)}(b: 2)`);
+        expect(a).toNotHaveErrors(ctx);
+        // expect(termToString(ctx, b)).toEqual(`one#${idName(bid)}(b: 2.1)`);
+        // expect(b).toNotHaveErrors(ctx);
     });
 
     it('should preserve extra arguments', () => {

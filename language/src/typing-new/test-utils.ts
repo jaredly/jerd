@@ -24,7 +24,15 @@ import { GroupedOp, reGroupOps } from './ops';
 import { ctxToEnv } from './migrate';
 import { Context, NamedDefns } from './Context';
 import { typeExpression } from './typeExpression';
-import { addRecord, addTerm, addToplevel, Library } from './Library';
+import {
+    addRecord,
+    addTerm,
+    addToplevel,
+    ErrorTracker,
+    errorTracker,
+    errorVisitor,
+    Library,
+} from './Library';
 import { printToString } from '../printing/printer';
 import {
     patternToPretty,
@@ -262,18 +270,6 @@ export const customMatchers: jest.ExpectExtendMap = {
     },
 };
 
-type ErrorTracker = {
-    terms: Array<ErrorTerm>;
-    types: Array<ErrorType>;
-    patterns: Array<ErrorPattern>;
-};
-
-const errorTracker = (): ErrorTracker => ({
-    terms: [],
-    types: [],
-    patterns: [],
-});
-
 export const patternErrorToString = (ctx: Context, pattern: ErrorPattern) => {
     if (pattern.type === 'PTypeError') {
         return `Expected ${typeToString(ctx, pattern.is)}, found ${typeToString(
@@ -307,27 +303,6 @@ export const findPatternErrors = (pattern: Pattern): Array<ErrorPattern> => {
     );
     return errors;
 };
-
-export const errorVisitor = (tracker: ErrorTracker): Visitor<null> => ({
-    Term(node: Term) {
-        if (isErrorTerm(node)) {
-            tracker.terms.push(node);
-        }
-        return null;
-    },
-    Pattern(node: Pattern) {
-        if (isErrorPattern(node)) {
-            tracker.patterns.push(node);
-        }
-        return null;
-    },
-    Type(node: Type, _) {
-        if (isErrorType(node)) {
-            tracker.types.push(node);
-        }
-        return null;
-    },
-});
 
 export const typeErrorVisitor = (errors: Array<ErrorType>): Visitor<null> => ({
     Type(node: Type, _) {
@@ -365,7 +340,7 @@ export const newContext = (): Context => {
         idRemap: {},
         builtins: {
             terms: {},
-            types: { int: 0, float: 0, string: 0 },
+            types: { int: 0, float: 0, string: 0, void: 0 },
             decorators: {},
             ops: { unary: {}, binary: {} },
         },

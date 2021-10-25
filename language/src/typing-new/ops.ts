@@ -131,7 +131,7 @@ import {
 import { idFromName, idName } from '../typing/env';
 import { Type } from '../typing/types';
 import { pureFunction, var_, void_ } from '../typing/preset';
-import { subtTypeVars } from '../typing/typeExpr';
+import { showLocation, subtTypeVars } from '../typing/typeExpr';
 import { resolveTypeVbls } from '../typing/getTypeError';
 import { showType } from '../typing/unify';
 import { getAllSubTypes, hasSubType } from './utils';
@@ -575,7 +575,16 @@ export const typePair = (
     });
     if (!op2) {
         console.log(potentials, options, larg.is, rarg.is);
-        throw new Error(`pick the first one, and fill with TypeError`);
+        console.log(larg);
+        console.log(rarg);
+        options.forEach((option) => {
+            console.log(option.left, option.right);
+        });
+        throw new Error(
+            `pick the first one, and fill with TypeError ${showLocation(
+                larg.location,
+            )}`,
+        );
     }
 
     if (op2.term.is.type !== 'lambda') {

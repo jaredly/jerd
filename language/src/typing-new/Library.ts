@@ -1,4 +1,11 @@
 import { Location } from '../parsing/parser-new';
+import {
+    isErrorPattern,
+    isErrorTerm,
+    isErrorType,
+    transformToplevelT,
+    Visitor,
+} from '../typing/auto-transform';
 import { hashObject, idFromName, idName } from '../typing/env';
 import {
     Id,
@@ -11,6 +18,11 @@ import {
     Reference,
     UserTypeReference,
     TypeReference,
+    ErrorTerm,
+    ErrorType,
+    ErrorPattern,
+    Pattern,
+    Type,
 } from '../typing/types';
 import { NamedDefns, ConstructorNames, MetaData, Context } from './Context';
 import { applyTypeVariablesToEnum, matchingTypeVbls } from './typeEnum';
@@ -142,8 +154,60 @@ export type Library = {
     decorators: NamedDefns<DecoratorDef>;
 };
 
+export type ErrorTracker = {
+    terms: Array<ErrorTerm>;
+    types: Array<ErrorType>;
+    patterns: Array<ErrorPattern>;
+};
+
+export const errorTracker = (): ErrorTracker => ({
+    terms: [],
+    types: [],
+    patterns: [],
+});
+
+export const errorVisitor = (tracker: ErrorTracker): Visitor<null> => ({
+    Term(node: Term) {
+        if (isErrorTerm(node)) {
+            tracker.terms.push(node);
+        }
+        return null;
+    },
+    Pattern(node: Pattern) {
+        if (isErrorPattern(node)) {
+            tracker.patterns.push(node);
+        }
+        return null;
+    },
+    Type(node: Type) {
+        if (isErrorType(node)) {
+            tracker.types.push(node);
+        }
+        return null;
+    },
+});
+
+export const validateToplevel = (top: ToplevelT): ErrorTracker | null => {
+    const tracker = errorTracker();
+    transformToplevelT(top, errorVisitor(tracker), null);
+    if (
+        tracker.terms.length ||
+        tracker.patterns.length ||
+        tracker.types.length
+    ) {
+        return tracker;
+    }
+    return null;
+};
+
 // TODO: Add meta to toplevel definition
 export const addToplevel = (lib: Library, top: ToplevelT, meta: MetaData) => {
+    const errors = validateToplevel(top);
+    if (errors != null) {
+        console.log(errors);
+        throw new Error(`Cannot add invalid toplevel to library.`);
+    }
+
     switch (top.type) {
         case 'Define':
             return addTerm(lib, top.term, top.name, {
