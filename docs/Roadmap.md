@@ -1,4 +1,22 @@
 
+## WHAT do I want out of this folks?
+
+I want an editor that's really recoverable.
+and then I can actually send this out into the world?
+hmmm
+
+so one thing I want to do...
+...is make a documentation format
+so that i can just write blog posts
+in straight jerd? that would be cool.
+
+so, in order to do that, I'll need recursive type definitions.
+right?
+
+Sooo we'll finally need to deal with Ids not being just hashes.
+Annd self needs to have an index. Right?
+
+
 ## Syntax evolution
 
 Before I make any breaking printer changes, I need to capture & retain comments.
@@ -21,8 +39,8 @@ Then I can be confident doing a `jd-to-json` en masse, in prepartion for syntax 
 - TOPLEELS
   - [ ] Record
   - [ ] Enum
-  - [ ] Effect
-  - [ ] DecoratorDef
+  - [x] Effect
+  - [x] DecoratorDef
 
 then ... ok so the purpose of this was making a much more robust
 system of type checking. And to add a bunch of type inference.
@@ -43,6 +61,32 @@ and
 `termForId`
 and
 `bindingForwhatsit` it's fine
+
+`rg 'env\\.global\\.\\w+' -o -N -I | sort |uniq -c`
+
+  10 env.global.attributeNames
+  11 env.global.builtinTypes
+  30 env.global.builtins
+  10 env.global.decoratorNames
+   4 env.global.decorators
+   3 env.global.effectConstrNames
+   2 env.global.effectConstructors
+   3 env.global.effectNames
+  12 env.global.effects
+   6 env.global.exportedTerms
+  13 env.global.idNames
+  14 env.global.idRemap
+  11 env.global.metaData
+   5 env.global.names
+  27 env.global.recordGroups
+   1 env.global.rng
+   9 env.global.terms
+  21 env.global.typeNames
+  34 env.global.types
+
+
+
+## THinking about a simpler handle setup
 
 ```ts
 // current setup

@@ -1390,6 +1390,7 @@ export type TypeConstraint =
 export type EffectDef = {
     type: 'EffectDef';
     constrs: Array<{ args: Array<Type>; ret: Type }>;
+    // unique: number;
     location: Location;
     decorators?: Decorators;
 };

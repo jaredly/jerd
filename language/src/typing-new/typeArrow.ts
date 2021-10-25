@@ -1,4 +1,4 @@
-import { Lambda, Location } from '../parsing/parser-new';
+import { Lambda, Location, TypeVbl } from '../parsing/parser-new';
 import {
     Type,
     Lambda as TLambda,
@@ -19,6 +19,15 @@ import { resolveEffectId, resolveTypeId } from './resolve';
 import { typeExpression, wrapExpected } from './typeExpression';
 import { typeType } from './typeType';
 
+export const typeTypeVblDecl = (ctx: Context, decl: TypeVbl) => {
+    const sym = idToSym(ctx, decl.id);
+    const subTypes =
+        (decl.subTypes?.items
+            .map((id) => resolveTypeId(ctx, id))
+            .filter(Boolean) as Array<Id>) || [];
+    return { sym, location: decl.id.location, subTypes };
+};
+
 export const typeArrow = (
     ctx: Context,
     arrow: Lambda,
@@ -28,12 +37,7 @@ export const typeArrow = (
     if (arrow.typevbls?.items.length) {
         const types = ctx.bindings.types.slice();
         arrow.typevbls.items.forEach((ok) => {
-            const sym = idToSym(ctx, ok.id);
-            const subTypes =
-                (ok.subTypes?.items
-                    .map((id) => resolveTypeId(ctx, id))
-                    .filter(Boolean) as Array<Id>) || [];
-            types.push({ sym, location: ok.id.location, subTypes });
+            types.push(typeTypeVblDecl(ctx, ok));
         });
     }
     let values = ctx.bindings.values;

@@ -142,14 +142,18 @@ export type Library = {
     decorators: NamedDefns<DecoratorDef>;
 };
 
-export const addToplevel = (lib: Library, top: ToplevelT) => {
+// TODO: Add meta to toplevel definition
+export const addToplevel = (lib: Library, top: ToplevelT, meta: MetaData) => {
     switch (top.type) {
         case 'Define':
-            return addTerm(lib, top.term, top.name, top.tags);
+            return addTerm(lib, top.term, top.name, {
+                ...meta,
+                tags: top.tags,
+            });
         case 'RecordDef':
-            return addRecord(lib, top.def, top.name, top.attrNames);
+            return addRecord(lib, top.def, top.name, top.attrNames, meta);
         case 'Effect':
-            return addEffect(lib, top.effect, top.name, top.constrNames);
+            return addEffect(lib, top.effect, top.name, top.constrNames, meta);
         default:
             throw new Error('nope');
     }
@@ -159,10 +163,10 @@ export const addTerm = (
     lib: Library,
     term: Term,
     name?: string,
-    tags?: Array<string>,
+    meta?: MetaData,
 ): [Library, Id] => {
     const id = idFromName(hashObject(term));
-    const meta: MetaData = { created: Date.now(), tags };
+    meta = meta || { created: Date.now() };
     return [
         {
             ...lib,
@@ -191,6 +195,7 @@ export const addEffect = (
     effDef: EffectDef,
     name: string,
     constrNames: Array<string>,
+    meta?: MetaData,
 ): [Library, Id] => {
     const id = idFromName(hashObject(effDef));
     const names = {
@@ -199,7 +204,7 @@ export const addEffect = (
     constrNames.forEach((name, i) => {
         names[name] = (names[name] || []).concat({ id, idx: i });
     });
-    const meta: MetaData = { created: Date.now() };
+    meta = meta || { created: Date.now() };
     return [
         {
             ...lib,
@@ -289,6 +294,7 @@ export const addRecord = (
     record: RecordDef,
     name: string,
     attrNames: Array<string>,
+    meta?: MetaData,
 ): [Library, Id] => {
     const id = idFromName(hashObject(record));
     if (lib.types.defns[idName(id)] != null) {
@@ -307,7 +313,7 @@ export const addRecord = (
         ...lib.types.superTypes,
         [idName(id)]: [],
     };
-    const meta: MetaData = { created: Date.now() };
+    meta = meta || { created: Date.now() };
     const addSupers = (id: Id, extenders: Array<Id>) => {
         extenders.forEach((inner) => {
             const nid = idName(inner);

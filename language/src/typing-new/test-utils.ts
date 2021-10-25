@@ -105,7 +105,9 @@ export const parseToplevels = (
         const typed = typeToplevel({ ...ctx, library }, top);
         if (typed) {
             let id;
-            [library, id] = addToplevel(library, typed);
+            [library, id] = addToplevel(library, typed, {
+                created: Date.now(),
+            });
             ids.push(id);
         }
     });
