@@ -39,14 +39,18 @@ Then I can be confident doing a `jd-to-json` en masse, in prepartion for syntax 
   like why the special treatment.
 
 - TOPLEELS
-  - [ ] Record
-  - [ ] Enum
+  - [x] Record
+  - [x] Enum
   - [x] Effect
   - [x] DecoratorDef
+  - [x] Decorated (builtins at least)
 
 then ... ok so the purpose of this was making a much more robust
 system of type checking. And to add a bunch of type inference.
 Which I think I can say I've accomplished?
+
+- [ ] Get Examples working! This will surely tease out a bunch of unhandled stuff
+- [x] Record spreads can be generic now!!! yay!!!!
 
 and then
 well

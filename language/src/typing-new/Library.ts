@@ -233,11 +233,18 @@ export const addToplevel = (lib: Library, top: ToplevelT, meta: MetaData) => {
             errors.terms
                 .map(
                     (item) =>
+                        item.type +
+                        ': ' +
                         printToString(termToPretty(env, item), 100) +
                         '\n' +
                         printToString(typeToPretty(env, item.is), 100) +
                         '\n' +
-                        printToString(typeToPretty(env, item.inner.is), 100),
+                        (item.type === 'TypeError'
+                            ? printToString(
+                                  typeToPretty(env, item.inner.is),
+                                  100,
+                              )
+                            : ''),
                 )
                 .join('\n'),
         );

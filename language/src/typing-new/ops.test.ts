@@ -32,6 +32,7 @@ import {
     fakeOp,
     newContext,
     parseExpression,
+    parseToplevels,
     rawSnapshotSerializer,
     warningsSerializer,
 } from './test-utils';
@@ -182,6 +183,21 @@ describe('non-generic examples', () => {
             `2 /#a7b87324#d28f8708#0 3`,
         );
     });
+
+    // it(`unary`, () => {
+    //     const ctx = newContext();
+    //     [ctx.library] = parseToplevels(
+    //         ctx,
+    //         `
+    //     type Un<T> = {
+    //         "-": (T) => T
+    //     }
+    //     const M = Un<string>{"-": (m: string) => "-" + m};
+    //     `,
+    //     );
+    //     let res = parseExpression(ctx, `-"yes"`);
+    //     expect(res).toNotHaveErrors(ctx);
+    // });
 
     it('toplevel definition, two to choose from', () => {
         const ctx = newContext();

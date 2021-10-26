@@ -11,8 +11,13 @@ const same = (t: Type): { left: Type; right: Type; output: Type } => ({
 });
 const numeric = [same(int), same(float)];
 
+const cmp = (t: Type): { left: Type; right: Type; output: Type } => ({
+    left: t,
+    right: t,
+    output: bool,
+});
+
 export const defaultBuiltins = (): Builtins => {
-    const numerics = '>= <= > < - * / ^'.split(' ');
     const builtins: Builtins = {
         decorators: {},
         ops: {
@@ -23,7 +28,12 @@ export const defaultBuiltins = (): Builtins => {
                 '&&': [same(bool)],
                 '||': [same(bool)],
             },
-            unary: {},
+            unary: {
+                '-': [
+                    { input: int, output: int },
+                    { input: float, output: float },
+                ],
+            },
         },
         terms: {},
         types: {
@@ -37,7 +47,10 @@ export const defaultBuiltins = (): Builtins => {
             sampler2D: 0,
         },
     };
-    numerics.forEach((n) => (builtins.ops.binary[n] = numeric));
+    '- * / ^'.split(' ').forEach((n) => (builtins.ops.binary[n] = numeric));
+    '>= <= > <'
+        .split(' ')
+        .forEach((n) => (builtins.ops.binary[n] = [cmp(int), cmp(float)]));
     const terms = loadBuiltins();
     Object.keys(terms).forEach((k) => {
         const type = terms[k];

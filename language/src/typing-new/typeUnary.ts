@@ -33,6 +33,10 @@ export const typeUnary = (
         };
     }
 
+    // START HERE PLEASE:
+    // ok now re-use the stuff from the `typeApply`, which is generic over the
+    // number of arguments.
+
     const valid = expected.length
         ? options.filter((option) =>
               expected.some((ex) => typesEqual(ex, option.output)),

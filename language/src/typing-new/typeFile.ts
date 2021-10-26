@@ -296,11 +296,11 @@ export const typeFile = (
                     return true;
                 });
                 if (left.length) {
-                    console.warn(
-                        `Not handling non-builtin toplevel decorators at the moment. ${showLocation(
-                            top.location,
-                        )}`,
-                    );
+                    // console.warn(
+                    //     `Not handling non-builtin toplevel decorators at the moment. ${showLocation(
+                    //         top.location,
+                    //     )}`,
+                    // );
                 }
             }
             const ttop = typeToplevel(
