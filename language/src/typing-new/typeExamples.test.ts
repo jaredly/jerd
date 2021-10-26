@@ -15,6 +15,7 @@ import {
 } from './test-utils';
 import { defaultBuiltins } from './builtins';
 import { Context } from './Context';
+import { preludeRaw } from '../printing/loadPrelude';
 
 expect.extend(customMatchers);
 expect.addSnapshotSerializer(rawSnapshotSerializer);
@@ -34,41 +35,51 @@ describe('all the examples?', () => {
         const as = intToFloat;
         const as = floatToInt;
         const as = floatToString;
+
         `),
+            // ${preludeRaw}
         );
     });
     it(`why isnt as working`, () => {
         // const text = fs.readFileSync(path.join(base, name), 'utf8');
         const text = `
+type Eq<T> = {
+    "==": (T, T) => bool,
+}
 
-const one = (a: float) => a + 4.0;
-const one = (a: int) => a + 2;
-
-// one(2) as float + one(3.0) == 11.0
-// one(2.0);
-one(1);
-
-// const x: int = 1;
-// x as float
-        `;
+                const rec arrayEq: <T,>(Array<T>, Array<T>, Eq<T>) => bool
+                = <T,>(one: Array<T>, two: Array<T>, eq: Eq<T>): bool => {
+                    switch (one, two) {
+                        ([], []) => true,
+                        ([one, ...rone], [two, ...rtwo]) => if eq."=="(one, two) {
+                            arrayEq<T>(rone, rtwo, eq)
+                        } else {
+                            false
+                        },
+                        _ => false
+                    }
+                };
+                arrayEq
+            `;
         let exprs;
         [ctx.library, exprs] = typeFile(ctx, parseTyped(text));
         exprs.forEach((expr) => {
             expect(expr).toNotHaveErrors(ctx);
         });
     });
-    // const base = path.join(__dirname, '../../examples');
-    // fs.readdirSync(base).forEach((name) => {
-    //     if (skip.includes(name) || !name.endsWith('.jd')) {
-    //         return;
-    //     }
-    //     it(`examples/${name}`, () => {
-    //         const text = fs.readFileSync(path.join(base, name), 'utf8');
-    //         let exprs;
-    //         [ctx.library, exprs] = typeFile(ctx, parseTyped(text));
-    //         exprs.forEach((expr) => {
-    //             expect(expr).toNotHaveErrors(ctx);
-    //         });
-    //     });
-    // });
+
+    const base = path.join(__dirname, '../../examples');
+    fs.readdirSync(base).forEach((name) => {
+        if (skip.includes(name) || !name.endsWith('.jd')) {
+            return;
+        }
+        it.skip(`examples/${name}`, () => {
+            const text = fs.readFileSync(path.join(base, name), 'utf8');
+            let exprs;
+            [ctx.library, exprs] = typeFile(ctx, parseTyped(text));
+            exprs.forEach((expr) => {
+                expect(expr).toNotHaveErrors(ctx);
+            });
+        });
+    });
 });

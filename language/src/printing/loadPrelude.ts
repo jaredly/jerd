@@ -7,6 +7,7 @@ import { GlobalEnv, Type } from '../typing/types';
 import { loadBuiltins } from './loadBuiltins';
 // @ts-ignore
 import preludeRaw from './prelude.jd';
+export { preludeRaw };
 
 export const loadPrelude = (
     builtins: { [key: string]: Type },

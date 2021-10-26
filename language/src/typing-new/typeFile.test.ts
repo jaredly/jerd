@@ -45,6 +45,28 @@ describe('typeFile', () => {
         expect(expr.ref).toEqual({ type: 'user', id: id });
     });
 
+    it(`recursive defn`, () => {
+        const ctx = newContext();
+        ctx.builtins.ops.binary['<'] = [
+            { left: preset.int, right: preset.int, output: preset.bool },
+        ];
+        ctx.builtins.ops.binary['-'] = [
+            { left: preset.int, right: preset.int, output: preset.int },
+        ];
+        [ctx.library] = typeFile(
+            ctx,
+            parseTyped(`
+			const rec range: (int) => int = (v: int): int => if v < 0 { 10 } else { range(v - 1)}
+			`),
+        );
+        [ctx.library] = typeFile(
+            ctx,
+            parseTyped(`
+			const rec rangeT: <T>(int, T) => T = <T>(v: int, d: T): T => if v < 0 { d } else { rangeT<T>(v - 1, d)}
+			`),
+        );
+    });
+
     it(`supercedes`, () => {
         const ctx = newContext();
         let exprs, id1, id2;

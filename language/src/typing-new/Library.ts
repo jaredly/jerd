@@ -1,4 +1,6 @@
 import { Location } from '../parsing/parser-new';
+import { printToString } from '../printing/printer';
+import { termToPretty, typeToPretty } from '../printing/printTsLike';
 import {
     isErrorPattern,
     isErrorTerm,
@@ -8,6 +10,8 @@ import {
     Visitor,
 } from '../typing/auto-transform';
 import { hashObject, idFromName, idName } from '../typing/env';
+import { void_ } from '../typing/preset';
+import { showLocation } from '../typing/typeExpr';
 import {
     Id,
     EnumDef,
@@ -26,6 +30,8 @@ import {
     Type,
 } from '../typing/types';
 import { NamedDefns, ConstructorNames, MetaData, Context } from './Context';
+import { ctxToEnv } from './migrate';
+import { newContext } from './test-utils';
 import { applyTypeVariablesToEnum, matchingTypeVbls } from './typeEnum';
 
 /*
@@ -213,8 +219,36 @@ export const validateToplevel = (top: ToplevelT): ErrorTracker | null => {
 export const addToplevel = (lib: Library, top: ToplevelT, meta: MetaData) => {
     const errors = validateToplevel(top);
     if (errors != null) {
-        console.log(errors);
-        throw new Error(`Cannot add invalid toplevel to library.`);
+        console.log(errors.types);
+        let ctx = newContext();
+        let env = ctxToEnv({
+            ...ctx,
+            library: lib,
+            bindings: {
+                ...ctx.bindings,
+                self: { name: 'SELF', type: void_ },
+            },
+        });
+        console.log(
+            errors.terms
+                .map(
+                    (item) =>
+                        printToString(termToPretty(env, item), 100) +
+                        '\n' +
+                        printToString(typeToPretty(env, item.is), 100) +
+                        '\n' +
+                        printToString(typeToPretty(env, item.inner.is), 100),
+                )
+                .join('\n'),
+        );
+        console.log(errors.terms);
+        console.log(errors.patterns);
+        console.log(top);
+        throw new Error(
+            `Cannot add invalid toplevel to library ${showLocation(
+                top.location,
+            )}.`,
+        );
     }
 
     switch (top.type) {

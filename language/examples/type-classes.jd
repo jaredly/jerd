@@ -1,11 +1,12 @@
 
-type Monad<T> = {
-    return: <Item,>(Item) ={}> T<Item>, // so this one ... well I guess could be anything
-    // and these could also
-    bind: <Item, Changed>(T<Item>, (Item) ={}> T<Changed>) ={}> T<Changed>,
-    // as with this.
-    map:  <Item, Changed>(T<Item>, (Item) ={}> Changed) ={}> T<Changed>
-}
+// OK so I need a way to make this work
+// type Monad<T> = {
+//     return: <Item,>(Item) ={}> T<Item>, // so this one ... well I guess could be anything
+//     // and these could also
+//     bind: <Item, Changed>(T<Item>, (Item) ={}> T<Changed>) ={}> T<Changed>,
+//     // as with this.
+//     map:  <Item, Changed>(T<Item>, (Item) ={}> Changed) ={}> T<Changed>
+// }
 
 // type Some<T> = {0: T}
 // type Some<T> = (T)

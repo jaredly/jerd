@@ -52,7 +52,11 @@ export const getTypeError = (
         return new TypeMismatch(env, found, expected, location);
     } else if (found.type === 'var') {
         const e = expected as TypeVar;
-        if (!symbolsEqual(found.sym, e.sym)) {
+        const fu =
+            mapping.types[found.sym.unique] != null
+                ? mapping.types[found.sym.unique]
+                : found.sym.unique;
+        if (fu !== e.sym.unique) {
             if (env) {
                 console.log(env.local.tmpTypeVbls);
                 console.log(env.local.typeVbls);
@@ -105,113 +109,128 @@ export const getTypeError = (
         // }
         return null;
     } else if (found.type === 'lambda') {
-        const e = expected as LambdaType;
-        if (found.args.length !== e.args.length) {
-            return new LocatedError(
-                location,
-                `Different number of arguments: found ${found.args.length}, expected ${e.args.length}`,
-            ).wrapped(new TypeMismatch(env, found, expected, location));
-        }
-        if (found.typeVbls.length !== e.typeVbls.length) {
-            return new LocatedError(
-                location,
-                `Different number of type variables`,
-            );
-        }
-
-        if (found.typeVbls.length || found.effectVbls.length) {
-            // mapping = {
-            //     found: cloneMapping(mapping.found),
-            //     expected: cloneMapping(mapping.expected)
-            // }
-            mapping = cloneMapping(mapping);
-        }
-        for (let i = 0; i < found.typeVbls.length; i++) {
-            if (
-                found.typeVbls[i].subTypes.length !==
-                e.typeVbls[i].subTypes.length
-            ) {
-                return new LocatedError(
-                    location,
-                    `Type variable has different number of subtypes`,
-                );
-            }
-            for (let j = 0; j < found.typeVbls[i].subTypes.length; j++) {
-                if (
-                    !idsEqual(
-                        found.typeVbls[i].subTypes[j],
-                        e.typeVbls[i].subTypes[j],
-                    )
-                ) {
-                    return new LocatedError(
-                        location,
-                        `Subtype ${j} of type vbl ${i} not the same ${idName(
-                            found.typeVbls[i].subTypes[j],
-                        )} vs ${idName(e.typeVbls[i].subTypes[j])}`,
-                    );
-                }
-            }
-            mapping.types[found.typeVbls[i].sym.unique] =
-                e.typeVbls[i].sym.unique;
-        }
-        found.effectVbls.forEach((ev, i) => {
-            mapping.effects[ev.sym.unique] = e.effectVbls[i].sym.unique;
-        });
-
-        for (let i = 0; i < found.args.length; i++) {
-            const err = getTypeError(
-                env,
-                found.args[i],
-                e.args[i],
-                location,
-                mapping,
-                allowExpectedVariables,
-            );
-            if (err !== null) {
-                return err.wrapped(new MismatchedArgument(env, i, found, e));
-            }
-        }
-
-        if (
-            !effectsMatch(
-                found.effects.map((ef) =>
-                    ef.type === 'var' && mapping.effects[ef.sym.unique] != null
-                        ? {
-                              ...ef,
-                              sym: {
-                                  ...ef.sym,
-                                  unique: mapping.effects[ef.sym.unique],
-                              },
-                          }
-                        : ef,
-                ),
-                e.effects,
-                undefined,
-            )
-        ) {
-            // console.log(mapping.effects);
-            return new WrongEffects(
-                found.effects,
-                e.effects,
-                env,
-                location,
-                mapping.effects,
-            ).wrapped(new TypeMismatch(env, found, expected, location));
-        }
-        const res = getTypeError(
+        return getLambdaError(
             env,
-            found.res,
-            e.res,
+            found,
+            expected as LambdaType,
             location,
             mapping,
             allowExpectedVariables,
         );
-        if (res != null) {
-            return res.wrapped(new TypeMismatch(env, found, e, location));
-        }
-        return null;
     }
 
+    return null;
+};
+
+export const getLambdaError = (
+    env: Env | null,
+    found: LambdaType,
+    expected: LambdaType,
+    location: Location,
+    mapping: Mapping = nullMapping,
+    allowExpectedVariables?: boolean,
+) => {
+    if (found.args.length !== expected.args.length) {
+        return new LocatedError(
+            location,
+            `Different number of arguments: found ${found.args.length}, expected ${expected.args.length}`,
+        ).wrapped(new TypeMismatch(env, found, expected, location));
+    }
+    if (found.typeVbls.length !== expected.typeVbls.length) {
+        return new LocatedError(location, `Different number of type variables`);
+    }
+
+    if (found.typeVbls.length || found.effectVbls.length) {
+        // mapping = {
+        //     found: cloneMapping(mapping.found),
+        //     expected: cloneMapping(mapping.expected)
+        // }
+        mapping = cloneMapping(mapping);
+    }
+    for (let i = 0; i < found.typeVbls.length; i++) {
+        if (
+            found.typeVbls[i].subTypes.length !==
+            expected.typeVbls[i].subTypes.length
+        ) {
+            return new LocatedError(
+                location,
+                `Type variable has different number of subtypes`,
+            );
+        }
+        for (let j = 0; j < found.typeVbls[i].subTypes.length; j++) {
+            if (
+                !idsEqual(
+                    found.typeVbls[i].subTypes[j],
+                    expected.typeVbls[i].subTypes[j],
+                )
+            ) {
+                return new LocatedError(
+                    location,
+                    `Subtype ${j} of type vbl ${i} not the same ${idName(
+                        found.typeVbls[i].subTypes[j],
+                    )} vs ${idName(expected.typeVbls[i].subTypes[j])}`,
+                );
+            }
+        }
+        mapping.types[found.typeVbls[i].sym.unique] =
+            expected.typeVbls[i].sym.unique;
+    }
+    found.effectVbls.forEach((ev, i) => {
+        mapping.effects[ev.sym.unique] = expected.effectVbls[i].sym.unique;
+    });
+
+    for (let i = 0; i < found.args.length; i++) {
+        const err = getTypeError(
+            env,
+            found.args[i],
+            expected.args[i],
+            location,
+            mapping,
+            allowExpectedVariables,
+        );
+        if (err !== null) {
+            console.log(mapping);
+            return err.wrapped(new MismatchedArgument(env, i, found, expected));
+        }
+    }
+
+    if (
+        !effectsMatch(
+            found.effects.map((ef) =>
+                ef.type === 'var' && mapping.effects[ef.sym.unique] != null
+                    ? {
+                          ...ef,
+                          sym: {
+                              ...ef.sym,
+                              unique: mapping.effects[ef.sym.unique],
+                          },
+                      }
+                    : ef,
+            ),
+            expected.effects,
+            undefined,
+        )
+    ) {
+        // console.log(mapping.effects);
+        return new WrongEffects(
+            found.effects,
+            expected.effects,
+            env,
+            location,
+            mapping.effects,
+        ).wrapped(new TypeMismatch(env, found, expected, location));
+    }
+    const res = getTypeError(
+        env,
+        found.res,
+        expected.res,
+        location,
+        mapping,
+        allowExpectedVariables,
+    );
+    if (res != null) {
+        return res.wrapped(new TypeMismatch(env, found, expected, location));
+    }
     return null;
 };
 

@@ -21,10 +21,10 @@ const FloatToInt: ToInt<float> = ToInt<float>{int: floatToInt}
 // type As<From, To> = {
 //     as: (From) => To,
 // }
-const IntAsFloat = As<int, float>{as: intToFloat}
-const FloatAsInt = As<float, int>{as: floatToInt}
-const IntAsString = As<int, string>{as: intToString}
-const FloatAsString = As<float, string>{as: floatToString}
+// const IntAsFloat = As<int, float>{as: intToFloat}
+// const FloatAsInt = As<float, int>{as: floatToInt}
+// const IntAsString = As<int, string>{as: intToString}
+// const FloatAsString = As<float, string>{as: floatToString}
 
 // Equality and stuff
 type Eq<T> = {

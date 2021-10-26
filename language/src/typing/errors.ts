@@ -190,8 +190,8 @@ export class MismatchedArgument extends LocatedError {
     getMessage() {
         return `Mismatch at argument ${this.idx}:\n${showType(
             this.env,
-            this.found,
-        )}\nExpected\n${showType(this.env, this.expected)}`;
+            this.found.args[this.idx],
+        )}\nExpected\n${showType(this.env, this.expected.args[this.idx])}`;
     }
 }
 

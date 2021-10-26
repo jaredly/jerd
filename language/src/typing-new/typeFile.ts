@@ -1,43 +1,28 @@
 // Ok
 
 import {
-    BinOp,
-    BinOpRight,
-    binopWithHash,
-    File,
-    Toplevel,
-    WithUnary,
-    WithSuffix,
-    Apsub,
-    BinOp_inner,
-    Identifier,
-    DecoratorArg,
-    LabeledDecoratorArg,
-    RecordSpread,
-    RecordItem,
-    StructDef,
     DecoratorDef,
     EnumDef,
-    EnumSpread,
-    RecordDecl,
-    TypeVbls,
+    File,
+    LabeledDecoratorArg,
     Location,
+    RecordDecl,
+    RecordItem,
+    RecordSpread,
+    Toplevel,
+    TypeVbls,
 } from '../parsing/parser-new';
 import { hashObject, idFromName } from '../typing/env';
-import { getOpLevel, organizeDeep } from '../typing/terms/ops';
-import * as typed from '../typing/types';
-import * as preset from '../typing/preset';
-import { Term, Type } from '../typing/types';
-import { reGroupOps, typeGroup } from './ops';
-import { parseIdOrSym } from './hashes';
-import { resolveNamedValue, resolveTypeId, resolveValue } from './resolve';
-import { typeExpression } from './typeExpression';
-import { Context, MetaData } from './Context';
-import { typeType } from './typeType';
-import { typeTypeVblDecl } from './typeArrow';
-import { addToplevel, Library } from './Library';
-import { parseIdTextOrString } from './typeRecord';
 import { showLocation } from '../typing/typeExpr';
+import * as typed from '../typing/types';
+import { Term } from '../typing/types';
+import { Context, MetaData } from './Context';
+import { addToplevel, Library } from './Library';
+import { resolveTypeId } from './resolve';
+import { typeTypeVblDecl } from './typeArrow';
+import { typeExpression } from './typeExpression';
+import { parseIdTextOrString } from './typeRecord';
+import { typeType } from './typeType';
 
 export const typeToplevel = (
     ctx: Context,
@@ -56,10 +41,24 @@ export const typeToplevel = (
         }
         case 'Define': {
             const t = top.ann ? typeType(ctx, top.ann) : null;
-            const term = typeExpression(ctx, top.expr, t ? [t] : []);
             if (top.id.type !== 'Identifier') {
                 throw new Error('oops fancy pattern');
             }
+            const inner: Context = top.rec
+                ? {
+                      ...ctx,
+                      bindings: {
+                          ...ctx.bindings,
+                          self: {
+                              name: top.id.text,
+                              type: t
+                                  ? t
+                                  : { type: 'THole', location: top.location },
+                          },
+                      },
+                  }
+                : ctx;
+            const term = typeExpression(inner, top.expr, t ? [t] : []);
             return {
                 type: 'Define',
                 term,
@@ -373,6 +372,14 @@ function typeStructDef(
         (decl.items?.items.filter(
             (item) => item.type !== 'RecordSpread',
         ) as Array<RecordItem>) || [];
+    const typedVbls = typeVbls?.items.map((t) => typeTypeVblDecl(ctx, t)) || [];
+    const inner = {
+        ...ctx,
+        bindings: {
+            ...ctx.bindings,
+            types: typedVbls.concat(ctx.bindings.types),
+        },
+    };
     const defn: typed.RecordDef = {
         type: 'Record',
         effectVbls: [],
@@ -382,7 +389,7 @@ function typeStructDef(
             ) as Array<RecordSpread>) || []
         )
             .map((item) => {
-                const resolved = resolveTypeId(ctx, item.constr);
+                const resolved = resolveTypeId(inner, item.constr);
                 if (!resolved) {
                     return null;
                 }
@@ -395,9 +402,9 @@ function typeStructDef(
             })
             .filter(Boolean) as Array<typed.UserTypeReference>,
         ffi: null,
-        items: items.map((item): typed.Type => typeType(ctx, item.type)),
+        items: items.map((item): typed.Type => typeType(inner, item.type)),
         location: location,
-        typeVbls: typeVbls?.items.map((t) => typeTypeVblDecl(ctx, t)) || [],
+        typeVbls: typedVbls,
         unique: unique != null ? unique : ctx.rng(),
     };
     return {
