@@ -121,6 +121,7 @@ export const patternToExPattern = (
     pattern: Pattern,
 ): ExPattern => {
     if (isErrorPattern(pattern)) {
+        console.log(pattern);
         throw new Error(`error pattern`);
     }
     switch (pattern.type) {

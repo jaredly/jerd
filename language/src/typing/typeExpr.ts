@@ -101,6 +101,7 @@ export const subtTypeVars = (
         walkType(t, (t) => {
             if (t.type === 'var') {
                 if (vbls[t.sym.unique]) {
+                    // return subtTypeVars(vbls[t.sym.unique], vbls, selfHash);
                     return vbls[t.sym.unique];
                 }
                 return t;

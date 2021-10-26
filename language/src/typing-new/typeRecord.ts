@@ -25,9 +25,9 @@ import {
     typesEqual,
     idsEqual,
 } from '../typing/types';
-import { Context, TypeBinding } from './Context';
+import { Context, recordWithResolvedTypes, TypeBinding } from './Context';
 import { IdOrSym, parseAttrHash, parseIdOrSym, parseOpHash } from './hashes';
-import { Library } from './Library';
+import { Library, typeDef } from './Library';
 import { applyTypeVariablesToRecord } from './ops';
 import { termToString } from './test-utils';
 import { typeExpression, wrapExpected } from './typeExpression';
@@ -50,11 +50,26 @@ export const getAllSubTypes = (
     );
 };
 
+export const getAllResolvedSubTypes = (
+    ctx: Context,
+    extend: Array<UserTypeReference>,
+    // mapping: {[unique: number]: Type},
+): Array<{ id: Id; def: RecordDef }> => {
+    return ([] as Array<{ id: Id; def: RecordDef }>).concat(
+        ...extend.map((ref) => {
+            const def = recordWithResolvedTypes(ctx, ref);
+            return [{ id: ref.ref.id, def }].concat(
+                getAllResolvedSubTypes(ctx, def.extends),
+            );
+        }),
+    );
+};
+
 export const processSpreadFolks = (
     ctx: Context,
     row: RecordLiteralSpread,
     idx: number,
-    subTypeIds: Array<Id>,
+    subTypeIds: Array<{ id: Id; def: RecordDef }>,
     spreadOrder: Array<Id>,
     subTypes: SubTypes,
     subTypeTypes: { [id: string]: RecordDef },
@@ -62,7 +77,7 @@ export const processSpreadFolks = (
     // STOPSHIP: Put in possible spreads, each of the subtypes here
     const v = typeExpression(ctx, row.value, []);
     // ummm I kindof want to
-    for (let id of subTypeIds) {
+    for (let { id, def } of subTypeIds) {
         if (
             // ermmm we're gonna ignore type variables here
             v.is.type === 'ref' &&
@@ -137,7 +152,10 @@ export const typeVariableRecord = (
     const subTypeIds = subTypesForBinding(binding, ctx);
     const { subTypes, unusedAttributes, unusedSpreads } = calculateSubTypes(
         ctx,
-        subTypeIds,
+        subTypeIds.map((id) => ({
+            id,
+            def: typeDef(ctx.library, { type: 'user', id }) as RecordDef,
+        })),
         rows,
         record,
     );
@@ -205,19 +223,13 @@ export const typeConcreteRecord = (
         ctx,
         defn,
         goalType.typeVbls,
-        // [],
         record.location,
         '',
     );
     const baseRows: Array<Term | null> = defn.items.map((_) => null);
 
     // Also, we need to enumerate the possible subtypes
-    const subTypeIds = getAllSubTypes(
-        ctx.library,
-        (ctx.library.types.defns[idName(id)].defn as RecordDef).extends.map(
-            (t) => t.ref.id,
-        ),
-    );
+    const subTypeIds = getAllResolvedSubTypes(ctx, defn.extends);
 
     let rows =
         record.rows?.items.filter((row, i) => {
@@ -230,7 +242,7 @@ export const typeConcreteRecord = (
                 : null;
             if (hash) {
                 // This belongs to a subType, ignore
-                if (subTypeIds.find((id) => idsEqual(id, hash.type))) {
+                if (subTypeIds.find((id) => idsEqual(id.id, hash.type))) {
                     return true;
                 }
                 if (idsEqual(hash.type, id) && hash.attr < baseRows.length) {
@@ -430,7 +442,7 @@ export const parseString = (string: String) =>
 
 const calculateSubTypes = (
     ctx: Context,
-    subTypeIds: Id[],
+    subTypeIds: Array<{ id: Id; def: RecordDef }>,
     rows: RecordLiteralRow[],
     record: RecordLiteral,
     baseDefaults: { [key: string]: boolean } = {},
@@ -442,8 +454,7 @@ const calculateSubTypes = (
 
     const defaults: { [key: string]: boolean } = { ...baseDefaults };
 
-    subTypeIds.forEach((id) => {
-        const t = ctx.library.types.defns[idName(id)].defn as RecordDef;
+    subTypeIds.forEach(({ id, def: t }) => {
         subTypeTypes[idName(id)] = t;
         if (t.defaults) {
             Object.keys(t.defaults).forEach((k) => {

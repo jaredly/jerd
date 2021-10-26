@@ -95,6 +95,7 @@ export const typeApply = (
             errors: number;
         }> = [];
 
+        // console.log(options);
         for (let option of options) {
             if (option.type === 'unbound') {
                 // TODO: infer the type of the function, it's great.
@@ -139,6 +140,7 @@ export const applyToTarget = (
     const typeVbls =
         suffix.typevbls?.inner.items.map((item) => typeType(ctx, item)) || [];
 
+    // console.log(typeVbls);
     const effectVbls = suffix.effectVbls
         ? (suffix.effectVbls.inner?.items
               .map((vbl) => resolveEffectId(ctx, vbl))
@@ -193,6 +195,7 @@ export const applyToTarget = (
         allTypeVbls = typeVbls.slice(0, is.typeVbls.length);
 
         is = applyTypeVbls(typeVbls, is, effectVbls, ctx, allTypeVbls, suffix);
+        // console.log(is.args, is.res);
 
         let argTypes = is.args;
 

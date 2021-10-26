@@ -1,7 +1,10 @@
 import { Identifier, Location } from '../parsing/parser-new';
+import { idName } from '../typing/env';
 import * as typed from '../typing/types';
+import { RecordDef } from '../typing/types';
 import { parseSym } from './hashes';
-import { Library } from './Library';
+import { Library, typeDef } from './Library';
+import { applyTypeVariablesToRecord } from './ops';
 
 /*
 Ok, clean slate. How does this database work?
@@ -191,3 +194,17 @@ export type NamedDefns<Defn> = {
 // I dunno.
 // I guess it's fine to just check if the upgrades[] map has an entry for
 // the given thing.
+
+export const recordWithResolvedTypes = (
+    ctx: Context,
+    ref: typed.UserTypeReference,
+) => {
+    let defn = typeDef(ctx.library, ref.ref) as RecordDef;
+    return applyTypeVariablesToRecord(
+        ctx,
+        defn,
+        ref.typeVbls,
+        ref.location as Location,
+        idName(ref.ref.id),
+    );
+};

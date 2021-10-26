@@ -72,6 +72,46 @@ describe('typeAttribute', () => {
         );
     });
 
+    it(`vbl record`, () => {
+        const ctx = newContext();
+        ctx.builtins.ops.binary['+'] = [
+            { left: preset.int, right: preset.int, output: preset.int },
+        ];
+        [ctx.library] = parseToplevels(
+            ctx,
+            `
+		type What<T> {
+			hello: T,
+			up: (T) => int,
+		};
+		type Outer {
+			...What<int>,
+			yes: bool,
+		}
+		type Fancy<M> {
+			...What<M>,
+			ok: M,
+		}
+		`,
+        );
+
+        let res = parseExpression(
+            ctx,
+            `(m: What<int>): int => m.hello + m.up(10)`,
+        );
+        expect(res).toNotHaveErrors(ctx);
+        res = parseExpression(
+            ctx,
+            `Outer{hello: 10, up: (m: int) => 10, yes: true}`,
+        );
+        expect(res).toNotHaveErrors(ctx);
+        res = parseExpression(
+            ctx,
+            `Fancy<float>{hello: 10.1, up: (m: float) => 10, ok: 3.2}`,
+        );
+        expect(res).toNotHaveErrors(ctx);
+    });
+
     it(`some errors`, () => {
         const ctx = newContext();
 

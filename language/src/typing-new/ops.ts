@@ -702,6 +702,14 @@ export const applyTypeVariablesToRecord = (
         {};
     return {
         ...type,
+        extends: type.extends.map(
+            (t) =>
+                mapTypeAndEffectVariablesInType(
+                    mapping!,
+                    effMapping,
+                    t,
+                ) as t.UserTypeReference,
+        ),
         typeVbls: [],
         items: type.items.map((t) =>
             mapTypeAndEffectVariablesInType(mapping!, effMapping, t),

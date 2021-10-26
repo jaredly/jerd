@@ -67,6 +67,40 @@ describe('typeFile', () => {
         );
     });
 
+    it(`why isnt as working`, () => {
+        const ctx = newContext();
+        [ctx.library] = parseToplevels(
+            ctx,
+            `
+			type Eq<T#:4> = {
+					"==": (T, T) => bool,
+				}
+			`,
+        );
+        // const text = fs.readFileSync(path.join(base, name), 'utf8');
+        const text = `
+
+                const rec arrayEq: <T#:10,>(Array<T>, Array<T>, Eq<T>) => bool
+                = <T#:15,>(one: Array<T>, two: Array<T>, eq: Eq<T>): bool => {
+                    switch (one, two) {
+                        ([], []) => true,
+                        ([one, ...rone], [two, ...rtwo]) => if eq."=="(one, two) {
+							true
+                        } else {
+                            false
+                        },
+                        _ => false
+                    }
+                };
+                arrayEq
+            `;
+        let exprs;
+        [ctx.library, exprs] = typeFile(ctx, parseTyped(text));
+        exprs.forEach((expr) => {
+            expect(expr).toNotHaveErrors(ctx);
+        });
+    });
+
     it(`supercedes`, () => {
         const ctx = newContext();
         let exprs, id1, id2;

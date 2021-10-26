@@ -13,9 +13,9 @@ import {
     termToString,
     warningsSerializer,
 } from './test-utils';
-import { defaultBuiltins } from './builtins';
+// import { defaultBuiltins } from './builtins';
 import { Context } from './Context';
-import { preludeRaw } from '../printing/loadPrelude';
+// import { preludeRaw } from '../printing/loadPrelude';
 
 expect.extend(customMatchers);
 expect.addSnapshotSerializer(rawSnapshotSerializer);
@@ -27,14 +27,14 @@ describe('all the examples?', () => {
     let ctx: Context;
     beforeAll(() => {
         ctx = newContext();
-        ctx.builtins = defaultBuiltins();
+        // ctx.builtins = defaultBuiltins();
         [ctx.library] = typeFile(
             ctx,
             parseTyped(`
-        const as = intToString;
-        const as = intToFloat;
-        const as = floatToInt;
-        const as = floatToString;
+        // const as = intToString;
+        // const as = intToFloat;
+        // const as = floatToInt;
+        // const as = floatToString;
 
         `),
             // ${preludeRaw}

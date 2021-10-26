@@ -340,7 +340,7 @@ export const newContext = (): Context => {
         idRemap: {},
         builtins: {
             terms: {},
-            types: { int: 0, float: 0, string: 0, void: 0 },
+            types: { int: 0, float: 0, string: 0, void: 0, bool: 0, Array: 1 },
             decorators: {},
             ops: { unary: {}, binary: {} },
         },

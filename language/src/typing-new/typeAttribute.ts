@@ -1,11 +1,21 @@
 import { AttributeSuffix, BinOp, Expectation } from '../parsing/parser-new';
 import { idName } from '../typing/env';
 import { void_ } from '../typing/preset';
-import { Id, idsEqual, RecordDef, Term, Type } from '../typing/types';
-import { Context } from './Context';
+import {
+    Id,
+    idsEqual,
+    RecordDef,
+    Term,
+    Type,
+    UserTypeReference,
+} from '../typing/types';
+import { Context, recordWithResolvedTypes } from './Context';
 import { parseAttrHash } from './hashes';
+import { typeDef } from './Library';
+import { applyTypeVariablesToRecord } from './ops';
 import { typeExpression, wrapExpected } from './typeExpression';
 import {
+    getAllResolvedSubTypes,
     getAllSubTypes,
     parseIdTextOrString,
     subTypesForBinding,
@@ -69,12 +79,15 @@ export const typeAttribute = (
     // TODO: um
     // need to be able to not specify the variables here again.
     const typed = typeExpression(ctx, inner, []);
-    let ids: Array<Id> = [];
+    let ids: Array<{ id: Id; def: RecordDef }> = [];
     if (typed.is.type === 'var') {
         const s = typed.is.sym.unique;
         const binding = ctx.bindings.types.find((t) => t.sym.unique === s);
         if (binding) {
-            ids = subTypesForBinding(binding, ctx);
+            ids = subTypesForBinding(binding, ctx).map((id) => ({
+                id,
+                def: typeDef(ctx.library, { type: 'user', id }) as RecordDef,
+            }));
         } else {
             return {
                 type: 'InvalidAttribute',
@@ -96,34 +109,30 @@ export const typeAttribute = (
         };
     } else {
         let id = typed.is.ref.id;
-        ids = [id].concat(
-            getAllSubTypes(
-                ctx.library,
-                (ctx.library.types.defns[idName(id)]
-                    .defn as RecordDef).extends.map((t) => t.ref.id),
-            ),
+        let defn = recordWithResolvedTypes(ctx, typed.is as UserTypeReference);
+
+        ids = [{ id, def: defn }].concat(
+            getAllResolvedSubTypes(ctx, defn.extends),
         );
     }
 
-    // const tid = typed.is.ref.id;
-
     for (let option of options) {
-        if (ids.some((id) => idsEqual(option.id, id))) {
-            const defn = ctx.library.types.defns[idName(option.id)]
-                .defn as RecordDef;
-            return wrapExpected(
-                {
-                    type: 'Attribute',
-                    idLocation: attribute.id.location,
-                    idx: option.idx,
-                    inferred: false,
-                    is: defn.items[option.idx],
-                    location: attribute.location,
-                    ref: { type: 'user', id: option.id },
-                    target: typed,
-                },
-                expected,
-            );
+        for (let { id, def } of ids) {
+            if (idsEqual(id, option.id)) {
+                return wrapExpected(
+                    {
+                        type: 'Attribute',
+                        idLocation: attribute.id.location,
+                        idx: option.idx,
+                        inferred: false,
+                        is: def.items[option.idx],
+                        location: attribute.location,
+                        ref: { type: 'user', id: option.id },
+                        target: typed,
+                    },
+                    expected,
+                );
+            }
         }
     }
     return {

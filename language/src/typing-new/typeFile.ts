@@ -396,7 +396,10 @@ function typeStructDef(
                 return {
                     type: 'ref',
                     ref: { type: 'user', id: resolved },
-                    typeVbls: [],
+                    typeVbls:
+                        item.typeVbls?.inner.items.map((t) =>
+                            typeType(inner, t),
+                        ) || [],
                     location: item.location,
                 };
             })

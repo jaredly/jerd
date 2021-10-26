@@ -31,6 +31,11 @@ describe('typeApply', () => {
         expect(res).toNotHaveErrors(ctx);
     });
 
+    it(`should type recursive`, () => {
+        const ctx = newContext();
+        ctx.bindings.self;
+    });
+
     it('should work with a term', () => {
         const ctx = newContext();
         ctx.builtins.terms['hello'] = preset.pureFunction([], preset.int);

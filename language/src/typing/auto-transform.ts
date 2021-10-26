@@ -4309,33 +4309,8 @@ export const transformDecoratorDef = <Ctx>(node: DecoratorDef, visitor: Visitor<
         const updatedNode$restArg$current = node.restArg;
         if (updatedNode$restArg$current != null) {
             
-            let updatedNode$restArg$1$ = updatedNode$restArg$current;
-            {
-                let changed2 = false;
-                
-                const updatedNode$restArg$1$$argLocation = transformLocation(updatedNode$restArg$current.argLocation, visitor, ctx);
-                changed2 = changed2 || updatedNode$restArg$1$$argLocation !== updatedNode$restArg$current.argLocation;
-
-                
-                const updatedNode$restArg$1$$location = transformLocation(updatedNode$restArg$current.location, visitor, ctx);
-                changed2 = changed2 || updatedNode$restArg$1$$location !== updatedNode$restArg$current.location;
-
-                
-        let updatedNode$restArg$1$$type = null;
-        const updatedNode$restArg$1$$type$current = updatedNode$restArg$current.type;
-        if (updatedNode$restArg$1$$type$current != null) {
-            
-                const updatedNode$restArg$1$$type$2$ = transformType(updatedNode$restArg$1$$type$current, visitor, ctx);
-                changed2 = changed2 || updatedNode$restArg$1$$type$2$ !== updatedNode$restArg$1$$type$current;
-            updatedNode$restArg$1$$type = updatedNode$restArg$1$$type$2$;
-        }
-        
-                if (changed2) {
-                    updatedNode$restArg$1$ =  {...updatedNode$restArg$1$, argLocation: updatedNode$restArg$1$$argLocation, location: updatedNode$restArg$1$$location, type: updatedNode$restArg$1$$type};
-                    changed1 = true;
-                }
-            }
-            
+                const updatedNode$restArg$1$ = transformDecoratorDefArg(updatedNode$restArg$current, visitor, ctx);
+                changed1 = changed1 || updatedNode$restArg$1$ !== updatedNode$restArg$current;
             updatedNode$restArg = updatedNode$restArg$1$;
         }
         

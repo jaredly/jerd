@@ -99,7 +99,7 @@ RecordDecl = "{" _ items:RecordItemCommas? _ "}" {return {type: 'Record', items:
 // TODO: spreads much come first, then rows
 RecordItemCommas = first:RecordLine rest:(_ "," _ RecordLine)* ","? {return [first, ...rest.map((r: any) => r[3])]}
 RecordLine = RecordSpread / RecordItem
-RecordSpread = "..." constr:Identifier defaults:(
+RecordSpread = "..." constr:Identifier typeVbls:TypeVblsApply? defaults:(
     _ "{" _ SpreadDefaults? _ "}"
 )? {return {type: 'Spread', constr, defaults: defaults ? defaults[3] : null}}
 SpreadDefaults = first:SpreadDefault rest:(_ "," _ SpreadDefault)* _ ","? {

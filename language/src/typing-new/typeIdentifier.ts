@@ -30,6 +30,14 @@ export const typeIdentifierMany = (ctx: Context, parsedId: Identifier) => {
                     text: `Unknown builtin ${parsedId.text}`,
                 });
             }
+        } else if (parsedId.hash === '#self') {
+            if (ctx.bindings.self) {
+                options.push({
+                    type: 'self',
+                    is: ctx.bindings.self.type,
+                    location: parsedId.location,
+                });
+            }
         } else {
             const idOrSym = parseIdOrSym(parsedId.hash.slice(1));
             if (idOrSym?.type === 'id') {
@@ -86,7 +94,11 @@ export const typeIdentifierMany = (ctx: Context, parsedId: Identifier) => {
             }
         }
     }
-    if (ctx.bindings.self && ctx.bindings.self.name === parsedId.text) {
+    if (
+        parsedId.hash !== '#self' &&
+        ctx.bindings.self &&
+        ctx.bindings.self.name === parsedId.text
+    ) {
         options.push({
             type: 'self',
             is: ctx.bindings.self.type,

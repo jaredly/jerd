@@ -19,8 +19,8 @@ import { typeHandle } from './typeHandle';
 
 export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
     if (expected.length && !expected.some((t) => typesEqual(t, term.is))) {
-        console.log(term.is);
-        console.log(expected[0]);
+        // console.log(term.is);
+        // console.log(expected[0]);
         return {
             type: 'TypeError',
             inner: term,
