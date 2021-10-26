@@ -232,4 +232,19 @@ describe('typeFile', () => {
             )}#0: 1.1})`,
         );
     });
+
+    it(`enum with type variables`, () => {
+        const ctx = newContext();
+        [ctx.library] = typeFile(
+            ctx,
+            parseTyped(`
+		type One<T> {name: T, age: int};
+		type Two {};
+		enum Hello<Thing> {
+			One<Thing>,
+			Two,
+		}
+		`),
+        );
+    });
 });

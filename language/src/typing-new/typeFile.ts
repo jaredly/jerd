@@ -115,20 +115,29 @@ export const typeEnumDef = (
     top: EnumDef,
     unique?: number,
 ): typed.ToplevelEnum => {
+    const typeVbls =
+        top.typeVbls?.items.map((item) => typeTypeVblDecl(ctx, item)) || [];
+    const innerCtx: Context = {
+        ...ctx,
+        bindings: {
+            ...ctx.bindings,
+            types: typeVbls.concat(ctx.bindings.types),
+        },
+    };
     const inner: Array<typed.ToplevelRecord> = [];
     const extends_: Array<typed.UserTypeReference> = [];
     const items: Array<typed.UserTypeReference> = [];
     top.items.items.forEach((item) => {
         switch (item.type) {
             case 'EnumSpread': {
-                const t = typeType(ctx, item.ref);
+                const t = typeType(innerCtx, item.ref);
                 if (t.type === 'ref' && t.ref.type === 'user') {
                     extends_.push(t as typed.UserTypeReference);
                 }
                 return;
             }
             case 'EnumExternal': {
-                const t = typeType(ctx, item.ref);
+                const t = typeType(innerCtx, item.ref);
                 if (t.type === 'ref' && t.ref.type === 'user') {
                     items.push(t as typed.UserTypeReference);
                 }
@@ -136,7 +145,7 @@ export const typeEnumDef = (
             }
             case 'EnumInternal': {
                 const sdef = typeStructDef(
-                    ctx,
+                    innerCtx,
                     item.decl,
                     null,
                     item.id.text,
@@ -158,7 +167,7 @@ export const typeEnumDef = (
         extends: extends_,
         items,
         location: top.location,
-        typeVbls: top.typeVbls?.items.map((v) => typeTypeVblDecl(ctx, v)) || [],
+        typeVbls,
     };
     return {
         type: 'EnumDef',
