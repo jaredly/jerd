@@ -184,20 +184,27 @@ describe('non-generic examples', () => {
         );
     });
 
-    // it(`unary`, () => {
-    //     const ctx = newContext();
-    //     [ctx.library] = parseToplevels(
-    //         ctx,
-    //         `
-    //     type Un<T> = {
-    //         "-": (T) => T
-    //     }
-    //     const M = Un<string>{"-": (m: string) => "-" + m};
-    //     `,
-    //     );
-    //     let res = parseExpression(ctx, `-"yes"`);
-    //     expect(res).toNotHaveErrors(ctx);
-    // });
+    it(`unary`, () => {
+        const ctx = newContext();
+        ctx.builtins.ops.binary['+'] = [
+            {
+                left: preset.string,
+                right: preset.string,
+                output: preset.string,
+            },
+        ];
+        [ctx.library] = parseToplevels(
+            ctx,
+            `
+        type Un<T> = {
+            "-": (T) => T
+        }
+        const M = Un<string>{"-": (m: string) => "-" + m};
+        `,
+        );
+        let res = parseExpression(ctx, `-"yes"`);
+        expect(res).toNotHaveErrors(ctx);
+    });
 
     it('toplevel definition, two to choose from', () => {
         const ctx = newContext();

@@ -406,11 +406,12 @@ export const resolveAttribute = (
 };
 
 export type Option = {
-    left: t.Type;
-    right: t.Type;
+    args: Array<t.Type>;
+    // left: t.Type;
+    // right: t.Type;
     term: t.Term;
     // THIS is for the `apply` type arguments.
-    typeArgs: Array<t.Type>;
+    // typeArgs: Array<t.Type>;
 };
 
 export const typePair = (
@@ -438,15 +439,16 @@ export const typePair = (
                 ctx.builtins.ops.binary[op.op].forEach(
                     ({ left, right, output }) => {
                         options.push({
-                            left,
-                            right,
+                            args: [left, right],
+                            // left,
+                            // right,
                             term: {
                                 type: 'ref',
                                 ref: { type: 'builtin', name: op.op },
                                 location,
                                 is: pureFunction([left, right], output),
                             },
-                            typeArgs: [],
+                            // typeArgs: [],
                         });
                     },
                 );
@@ -464,10 +466,11 @@ export const typePair = (
                 target.is.args.length === 2
             ) {
                 options.push({
-                    left: target.is.args[0],
-                    right: target.is.args[1],
+                    args: target.is.args,
+                    // left: target.is.args[0],
+                    // right: target.is.args[1],
                     term: target,
-                    typeArgs: [],
+                    // typeArgs: [],
                 });
             }
         }
@@ -508,22 +511,28 @@ export const typePair = (
 
     if (potentials) {
         options.push(
-            ...findBinopImplementorsForRecordTypes(potentials, ctx, location),
+            ...findBinopImplementorsForRecordTypes(
+                potentials,
+                ctx,
+                location,
+                2,
+            ),
         );
     }
 
     if (!addedBuiltins && ctx.builtins.ops.binary[op.op]) {
         ctx.builtins.ops.binary[op.op].forEach(({ left, right, output }) => {
             options.push({
-                left,
-                right,
+                args: [left, right],
+                // left,
+                // right,
                 term: {
                     type: 'ref',
                     ref: { type: 'builtin', name: op.op },
                     location,
                     is: pureFunction([left, right], output),
                 },
-                typeArgs: [],
+                // typeArgs: [],
             });
         });
     }
@@ -543,14 +552,14 @@ export const typePair = (
     //     // It's predictable.
     // }
 
-    const lefts = options.map((opts) => opts.left);
+    const lefts = options.map((opts) => opts.args[0]);
 
     const larg = typeUnaryOrGroup(ctx, left, lefts);
     const rights: Array<Type> = [];
     options.forEach((opt) => {
         const mapping: { [unique: number]: Type } = {};
-        if (resolveTypeVbls(larg.is, opt.left, mapping)) {
-            rights.push(subtTypeVars(opt.right, mapping, undefined));
+        if (resolveTypeVbls(larg.is, opt.args[0], mapping)) {
+            rights.push(subtTypeVars(opt.args[1], mapping, undefined));
         } else {
             // console.log(mapping, opt.left);
         }
@@ -560,10 +569,10 @@ export const typePair = (
 
     const op2 = options.find((opt) => {
         const mapping: { [unique: number]: Type } = {};
-        if (!resolveTypeVbls(larg.is, opt.left, mapping)) {
+        if (!resolveTypeVbls(larg.is, opt.args[0], mapping)) {
             return false;
         }
-        let ris = opt.right;
+        let ris = opt.args[1];
         if (Object.keys(mapping).length !== 0) {
             ris = subtTypeVars(ris, mapping, undefined);
         }
@@ -578,7 +587,7 @@ export const typePair = (
         console.log(larg);
         console.log(rarg);
         options.forEach((option) => {
-            console.log(option.left, option.right);
+            console.log(option.args[0], option.args[1]);
         });
         throw new Error(
             `pick the first one, and fill with TypeError ${showLocation(
@@ -599,7 +608,7 @@ export const typePair = (
         target: op2.term,
         effectVbls: null,
         is: op2.term.is.res,
-        typeVbls: op2.typeArgs,
+        typeVbls: [], // op2.typeArgs,
     };
 };
 
@@ -776,10 +785,11 @@ function attributeHole(
     };
 }
 
-function findBinopImplementorsForRecordTypes(
+export function findBinopImplementorsForRecordTypes(
     potentials: { id: t.Id; idx: number }[],
     ctx: Context,
     location: Location,
+    numArgs: number,
 ): Array<Option> {
     const options: Array<Option> = [];
     potentials.forEach(({ idx, id }) => {
@@ -789,7 +799,7 @@ function findBinopImplementorsForRecordTypes(
         }
         const row = decl.items[idx];
         // TODO: allow rest args?
-        if (row.type !== 'lambda' || row.args.length !== 2) {
+        if (row.type !== 'lambda' || row.args.length !== numArgs) {
             return;
         }
         ctx.bindings.values.forEach(({ sym, type }) => {
@@ -817,8 +827,9 @@ function findBinopImplementorsForRecordTypes(
                 );
                 if (b && b.subTypes.find((s) => t.idsEqual(s, id))) {
                     options.push({
-                        left: row.args[0],
-                        right: row.args[1],
+                        // left: row.args[0],
+                        // right: row.args[1],
+                        args: row.args,
                         // term: var_(sym, type, op.location),
                         term: {
                             type: 'Attribute',
@@ -831,7 +842,7 @@ function findBinopImplementorsForRecordTypes(
                             refTypeVbls: [],
                             target: var_(sym, type, location),
                         },
-                        typeArgs: [],
+                        // typeArgs: [],
                     });
                 }
             }
@@ -894,8 +905,9 @@ const optionForValue = (
                 return;
             }
             return {
-                left: row.args[0],
-                right: row.args[1],
+                // left: row.args[0],
+                // right: row.args[1],
+                args: row.args,
                 term: {
                     type: 'Attribute',
                     idx,
@@ -907,7 +919,7 @@ const optionForValue = (
                     refTypeVbls: type.typeVbls,
                     target: target,
                 },
-                typeArgs: [],
+                // typeArgs: [],
             };
         } else {
             // Can't handle type variables
@@ -921,8 +933,9 @@ const optionForValue = (
         )
     ) {
         return {
-            left: row.args[0],
-            right: row.args[1],
+            // left: row.args[0],
+            // right: row.args[1],
+            args: row.args,
             term: {
                 type: 'Attribute',
                 idx,
@@ -934,7 +947,7 @@ const optionForValue = (
                 refTypeVbls: [],
                 target,
             },
-            typeArgs: [],
+            // typeArgs: [],
         };
     }
 };

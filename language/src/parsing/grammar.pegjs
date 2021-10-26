@@ -150,13 +150,15 @@ BinOp = first:WithUnary rest_drop:BinOpRight* {
 BinOpRight = __ op:binopWithHash __ right:WithUnary {
     return {op, right, location: myLocation()}
 }
-WithUnary = op_drop:UnaryOp? inner:Decorated {
+WithUnary = op_drop:UnaryOpWithHash? inner:Decorated {
     if (op_drop != null) {
         return {type: 'Unary', op: op_drop, inner, location: myLocation()}
     }
     return inner
 }
+UnaryOpWithHash = op:UnaryOp hash:(OpHash __)?
 UnaryOp = "-" / "!"
+
 // Apply / Attribute access
 Decorated = decorators_drop:(Decorator __)* wrapped:WithSuffix {
     if (decorators_drop.length) {
