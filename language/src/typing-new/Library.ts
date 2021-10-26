@@ -3,6 +3,7 @@ import {
     isErrorPattern,
     isErrorTerm,
     isErrorType,
+    transformTerm,
     transformToplevelT,
     Visitor,
 } from '../typing/auto-transform';
@@ -186,6 +187,14 @@ export const errorVisitor = (tracker: ErrorTracker): Visitor<null> => ({
         return null;
     },
 });
+
+export const countErrors = (term: Term): number => {
+    const tracker = errorTracker();
+    transformTerm(term, errorVisitor(tracker), null);
+    return (
+        tracker.types.length + tracker.terms.length + tracker.patterns.length
+    );
+};
 
 export const validateToplevel = (top: ToplevelT): ErrorTracker | null => {
     const tracker = errorTracker();

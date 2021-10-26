@@ -46,20 +46,33 @@ describe('typeApply', () => {
 
     it('should pick the best one for the args', () => {
         const ctx = newContext();
-        let a, b, aid, bid;
-        [ctx.library, [a, b], [aid, bid]] = typeFile(
+        ctx.builtins.ops.binary['=='] = [
+            { left: preset.float, right: preset.float, output: preset.float },
+        ];
+        ctx.builtins.ops.binary['+'] = [
+            { left: preset.float, right: preset.float, output: preset.float },
+        ];
+        ctx.builtins.terms.intToFloat = preset.pureFunction(
+            [preset.int],
+            preset.float,
+        );
+        let a, b, c, aid, bid;
+        [ctx.library, [a, b, c], [, aid, bid]] = typeFile(
             ctx,
             parseTyped(`
-        const one = (a: float) => 2;
+        const as = intToFloat;
+        const one = (a: float) => 2.0;
         const one = (b: int) => 2;
         one(2)
-        // one(2.1)
+        one(2.1)
+        one(2) as float + one(3.0) == 11.0
         `),
         );
         expect(termToString(ctx, a)).toEqual(`one#${idName(bid)}(b: 2)`);
         expect(a).toNotHaveErrors(ctx);
-        // expect(termToString(ctx, b)).toEqual(`one#${idName(aid)}(a: 2.1)`);
-        // expect(b).toNotHaveErrors(ctx);
+        expect(termToString(ctx, b)).toEqual(`one#${idName(aid)}(a: 2.1)`);
+        expect(b).toNotHaveErrors(ctx);
+        expect(c).toNotHaveErrors(ctx);
     });
 
     it('should preserve extra arguments', () => {
