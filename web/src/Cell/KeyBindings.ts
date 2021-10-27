@@ -679,15 +679,23 @@ export const extractToToplevel = (
                         : t;
                     found = {
                         type: 'lambda',
-                        idLocations: unbound
-                            .map((u) => bindings[u].loc)
-                            .concat(marked.map((m) => m.term.location)),
+                        // idLocations: unbound
+                        //     .map((u) => bindings[u].loc)
+                        //     .concat(marked.map((m) => m.term.location)),
                         args: unbound
                             .map((u) => ({
-                                unique: u,
-                                name: bindings[u].name,
+                                sym: {
+                                    unique: u,
+                                    name: bindings[u].name,
+                                },
+                                location: bindings[u].loc,
                             }))
-                            .concat(marked.map((m) => m.sym)),
+                            .concat(
+                                marked.map((m) => ({
+                                    sym: m.sym,
+                                    location: m.term.location,
+                                })),
+                            ),
                         body: replaced,
                         location: { ...t.location, idx: maxIdx++ },
                         is: {
@@ -789,7 +797,7 @@ export const reUnique = (
         let: (l) => {
             return {
                 ...l,
-                binding: addSym(l.binding.sym),
+                binding: { ...l.binding, sym: addSym(l.binding.sym) },
             };
         },
         term: (t) => {
@@ -802,7 +810,10 @@ export const reUnique = (
                 case 'lambda':
                     return {
                         ...t,
-                        args: t.args.map((arg) => getSym(arg.sym, t.location)),
+                        args: t.args.map((arg) => ({
+                            ...arg,
+                            sym: getSym(arg.sym, t.location),
+                        })),
                     };
             }
             // TODO: Handle; Switchhhhhh

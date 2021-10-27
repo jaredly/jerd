@@ -9,7 +9,11 @@ import {
 import * as ir from '@jerd/language/src/printing/ir/term';
 import { getSortedTermDependencies } from '@jerd/language/src/typing/analyze';
 import generate from '@babel/generator';
-import { idFromName, idName } from '@jerd/language/src/typing/env';
+import {
+    idFromName,
+    idName,
+    termForIdRaw,
+} from '@jerd/language/src/typing/env';
 import { Env, Id, Self, selfEnv, Term } from '@jerd/language/src/typing/types';
 import {
     maxUnique,
