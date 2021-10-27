@@ -201,11 +201,11 @@ export const recordWithResolvedTypes = (
 ) => {
     let defn = typeDef(ctx.library, ref.ref) as RecordDef;
     if (!defn || defn.type !== 'Record') {
-        console.log('NATES', ctx.library.types.names[idName(ref.ref.id)]);
-        console.log(ctx.library.terms.names);
-        console.log(ctx.library.types.names);
-        console.log(ctx.builtins.terms);
-        console.log(ctx.builtins.types);
+        // console.log('NATES', ctx.library.types.names[idName(ref.ref.id)]);
+        // console.log(ctx.library.terms.names);
+        // console.log(ctx.library.types.names);
+        // console.log(ctx.builtins.terms);
+        // console.log(ctx.builtins.types);
         throw new Error(`Not a record ${JSON.stringify(ref.ref)}`);
     }
     return applyTypeVariablesToRecord(
