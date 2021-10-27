@@ -10,6 +10,7 @@ import {
     RecordItem,
     RecordSpread,
     Toplevel,
+    Type,
     TypeVbls,
 } from '../parsing/parser-new';
 import { hashObject, idFromName } from '../typing/env';
@@ -58,14 +59,14 @@ export const typeToplevel = (
 
                     const effectVbls =
                         top.expr.effvbls?.inner?.items.map((t, i) =>
-                            typeEffVblDecl(ctx, t, i),
+                            typeEffVblDecl(inner, t, i),
                         ) || [];
                     inner.bindings.effects = effectVbls.concat(
                         inner.bindings.effects,
                     );
                     const typeVbls =
                         top.expr.typevbls?.items.map((t) =>
-                            typeTypeVblDecl(ctx, t),
+                            typeTypeVblDecl(inner, t),
                         ) || [];
                     inner.bindings.types = typeVbls.concat(
                         inner.bindings.types,
@@ -73,7 +74,7 @@ export const typeToplevel = (
 
                     const effects = top.expr.effects
                         ? (top.expr.effects.effects?.items
-                              .map((id) => resolveEffectId(ctx, id))
+                              .map((id) => resolveEffectId(inner, id))
                               .filter(Boolean) as Array<typed.EffectRef>) || []
                         : [];
 
@@ -89,7 +90,7 @@ export const typeToplevel = (
                         effects,
                         location: top.location,
                         res: top.expr.rettype
-                            ? typeType(ctx, top.expr.rettype)
+                            ? typeType(inner, top.expr.rettype)
                             : { type: 'THole', location: top.location },
                         rest: null,
                         typeVbls,
@@ -378,6 +379,24 @@ export const typeFile = (
     return [lib, expressions, ids];
 };
 
+export const typeMaybeConstantType = (ctx: Context, type: Type): typed.Type => {
+    if (
+        type.type === 'TypeRef' &&
+        (type.id.hash === '#builtin' || !type.id.hash) &&
+        type.id.text === 'Constant' &&
+        type.typeVbls &&
+        type.typeVbls.inner.items.length === 1
+    ) {
+        return {
+            type: 'ref',
+            ref: { type: 'builtin', name: 'Constant' },
+            typeVbls: [typeType(ctx, type.typeVbls.inner.items[0])],
+            location: type.location,
+        };
+    }
+    return typeType(ctx, type);
+};
+
 function typeDecoratorDef(
     ctx: Context,
     top: DecoratorDef,
@@ -400,11 +419,13 @@ function typeDecoratorDef(
                 argLocation: arg.id.location,
                 argName: arg.id.text,
                 location: arg.location,
-                type: typeType(inner, arg.type),
+                type: typeMaybeConstantType(inner, arg.type),
             })) || [],
         location: top.location,
         restArg: null,
-        targetType: top.targetType ? typeType(inner, top.targetType) : null,
+        targetType: top.targetType
+            ? typeMaybeConstantType(inner, top.targetType)
+            : null,
         typeArgs: [],
         typeVbls,
         unique: unique != null ? unique : ctx.rng(),

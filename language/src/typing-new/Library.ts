@@ -244,13 +244,14 @@ export const addToplevel = (lib: Library, top: ToplevelT, meta: MetaData) => {
                         printToString(typeToPretty(env, item.is), 100) +
                         '\n' +
                         (item.type === 'TypeError'
-                            ? printToString(
+                            ? 'found: ' +
+                              printToString(
                                   typeToPretty(env, item.inner.is),
                                   100,
                               )
                             : ''),
                 )
-                .join('\n'),
+                .join('\n\n'),
         );
         console.log(errors.terms);
         console.log(errors.patterns);
