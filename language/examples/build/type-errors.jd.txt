@@ -56,11 +56,11 @@ Multiple values provided for 1 undefined at 113:39-113:42
 
 Record missing attribute "what" at 115:1-115:29
 
-Invalid spread Dog#74d8e7f1
+Invalid spread Dog#ae6cb5fc
 
-Expected a subtype of 74d8e7f1
+Expected a subtype of ae6cb5fc
 
-Expected a subtype of 6b9d6f5e
+Expected a subtype of 1674b09e
 
 Expected 1 at 147:1-147:28, found 0
 
@@ -70,4 +70,4 @@ expected <T#:0>(T#:0) ={}> string#builtin, found <T#:0>() ={}> string#builtin
 
 expected <T#:0>(T#:0) ={}> T#:0, found <T#:0>(input: T#:0) ={}> string#builtin
 
-Expected a subtype of 01664794
+Expected a subtype of 76fcedbb

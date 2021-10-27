@@ -3,71 +3,71 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-@unique(0.5383562320075749) type Eq#3b6b23ae<T#:0> = {
+@unique(0.5383562320075749) type Eq#2f333afa<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_3b6b23ae<T> = {
-  type: "3b6b23ae";
-  h3b6b23ae_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_2f333afa<T> = {
+  type: "2f333afa";
+  h2f333afa_0: (arg_0: T, arg_1: T) => boolean;
 };
 
 /**
 ```
-const FloatEq#000a9fb6 = Eq#3b6b23ae<float#builtin>{"=="#3b6b23ae#0: floatEq#builtin}
-Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: floatEq}
+const FloatEq#143b5e82 = Eq#2f333afa<float#builtin>{"=="#2f333afa#0: floatEq#builtin}
+Eq#🧱👨‍🦰🏖️{TODO SPREADs}{h2f333afa_0: floatEq}
 ```
 */
-export const hash_000a9fb6: t_3b6b23ae<number> = ({
-  type: "3b6b23ae",
-  h3b6b23ae_0: floatEq
-} as t_3b6b23ae<number>);
+export const hash_143b5e82: t_2f333afa<number> = ({
+  type: "2f333afa",
+  h2f333afa_0: floatEq
+} as t_2f333afa<number>);
 
 /**
 ```
-const StringEq#0d81b26d = Eq#3b6b23ae<string#builtin>{"=="#3b6b23ae#0: stringEq#builtin}
-Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: stringEq}
+const StringEq#8a86d00e = Eq#2f333afa<string#builtin>{"=="#2f333afa#0: stringEq#builtin}
+Eq#🧱👨‍🦰🏖️{TODO SPREADs}{h2f333afa_0: stringEq}
 ```
 */
-export const hash_0d81b26d: t_3b6b23ae<string> = ({
-  type: "3b6b23ae",
-  h3b6b23ae_0: stringEq
-} as t_3b6b23ae<string>);
+export const hash_8a86d00e: t_2f333afa<string> = ({
+  type: "2f333afa",
+  h2f333afa_0: stringEq
+} as t_2f333afa<string>);
 
 /*
-Person#685f28e5{name#685f28e5#0: "hi", age#685f28e5#1: 2}.name#685f28e5#0 
-    ==#0d81b26d#3b6b23ae#0 "hi"
-assertCall(StringEq#🍇😽🧑‍🦳.#Eq#☂️🍰🔥#0, "hi", "hi")
+Person#2b31c3ee{name#2b31c3ee#0: "hi", age#2b31c3ee#1: 2}.name#2b31c3ee#0 
+    ==#8a86d00e#2f333afa#0 "hi"
+assertCall(StringEq#😍.#Eq#🧱👨‍🦰🏖️#0, "hi", "hi")
 */
-assertCall(hash_0d81b26d.h3b6b23ae_0, "hi", "hi");
+assertCall(hash_8a86d00e.h2f333afa_0, "hi", "hi");
 
 /*
-Box#041c13d2{x#c9939268#0: 1.0, y#c9939268#1: 1.0, w#041c13d2#0: 2.0, h#041c13d2#1: 2.0}.x#c9939268#0 
-    ==#000a9fb6#3b6b23ae#0 1.0
-assertCall(FloatEq#🔥🥗.#Eq#☂️🍰🔥#0, 1, 1)
+Box#448fa1f8{x#1498b92c#0: 1.0, y#1498b92c#1: 1.0, w#448fa1f8#0: 2.0, h#448fa1f8#1: 2.0}.x#1498b92c#0 
+    ==#143b5e82#2f333afa#0 1.0
+assertCall(FloatEq#🌽🍸🤵‍♀️.#Eq#🧱👨‍🦰🏖️#0, 1, 1)
 */
-assertCall(hash_000a9fb6.h3b6b23ae_0, 1, 1);
+assertCall(hash_143b5e82.h2f333afa_0, 1, 1);
 
 /*
-Box#041c13d2{
-        ...Pos#c9939268{x#c9939268#0: 10.0, y#c9939268#1: 5.0},
-        w#041c13d2#0: 1.0,
-        h#041c13d2#1: 2.0,
-    }.x#c9939268#0 
-    ==#000a9fb6#3b6b23ae#0 10.0
+Box#448fa1f8{
+        ...Pos#1498b92c{x#1498b92c#0: 10.0, y#1498b92c#1: 5.0},
+        w#448fa1f8#0: 1.0,
+        h#448fa1f8#1: 2.0,
+    }.x#1498b92c#0 
+    ==#143b5e82#2f333afa#0 10.0
 assertCall(
-    FloatEq#🔥🥗.#Eq#☂️🍰🔥#0,
-    Box#🥈🏨🙁{TODO SPREADs}{w: 1, h: 2, x: _#:0, y: _#:0}.#Pos#☘️#0,
+    FloatEq#🌽🍸🤵‍♀️.#Eq#🧱👨‍🦰🏖️#0,
+    Box#🐱⛸️😦😃{TODO SPREADs}{w: 1, h: 2, x: _#:0, y: _#:0}.#Pos#👨‍🚒🐥👩‍🍼#0,
     10,
 )
 */
-assertCall(hash_000a9fb6.h3b6b23ae_0, ({ ...({
+assertCall(hash_143b5e82.h2f333afa_0, ({ ...({
     type: "Pos",
     x: 10,
     y: 5
-  } as t_c9939268),
+  } as t_1498b92c),
   type: "Box",
   w: 1,
   h: 2
-} as t_041c13d2).x, 10);
+} as t_448fa1f8).x, 10);

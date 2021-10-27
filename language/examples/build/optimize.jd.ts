@@ -3,34 +3,34 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-@unique(0.5383562320075749) type Eq#3b6b23ae<T#:0> = {
+@unique(0.5383562320075749) type Eq#2f333afa<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_3b6b23ae<T> = {
-  type: "3b6b23ae";
-  h3b6b23ae_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_2f333afa<T> = {
+  type: "2f333afa";
+  h2f333afa_0: (arg_0: T, arg_1: T) => boolean;
 };
 
 /**
 ```
-const rec arrayEq#47c98b7c = <T#:0>(
+const rec arrayEq#3b667c60 = <T#:0>(
     one#:0: Array#builtin<T#:0>,
     two#:1: Array#builtin<T#:0>,
-    eq#:2: Eq#3b6b23ae<T#:0>,
+    eq#:2: Eq#2f333afa<T#:0>,
 ): bool#builtin ={}> {
     switch (one#:0, two#:1) {
         ([], []) => true,
-        ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if one#:3 ==#:2#3b6b23ae#0 two#:5 {
-            47c98b7c#self<T#:0>(rone#:4, rtwo#:6, eq#:2);
+        ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if one#:3 ==#:2#2f333afa#0 two#:5 {
+            3b667c60#self<T#:0>(rone#:4, rtwo#:6, eq#:2);
         } else {
             false;
         },
         _ => false,
     };
 }
-<T>(one#:0: Array<[var]T#:0>, two#:1: Array<[var]T#:0>, eq#:2: Eq#☂️🍰🔥<[var]T#:0>): bool => {
+<T>(one#:0: Array<[var]T#:0>, two#:1: Array<[var]T#:0>, eq#:2: Eq#🧱👨‍🦰🏖️<[var]T#:0>): bool => {
     const one_i#:11: int = 0;
     const two_i#:12: int = 0;
     loop(unbounded) {
@@ -38,7 +38,7 @@ const rec arrayEq#47c98b7c = <T#:0>(
             return true;
         };
         if len(two#:1) - two_i#:12 >= 1 && len(one#:0) - one_i#:11 >= 1 {
-            if eq#:2.#Eq#☂️🍰🔥#0(one#:0[0 + one_i#:11], two#:1[0 + two_i#:12]) {
+            if eq#:2.#Eq#🧱👨‍🦰🏖️#0(one#:0[0 + one_i#:11], two#:1[0 + two_i#:12]) {
                 one_i#:11 = one_i#:11 + 1;
                 two_i#:12 = two_i#:12 + 1;
                 continue;
@@ -51,7 +51,7 @@ const rec arrayEq#47c98b7c = <T#:0>(
 }
 ```
 */
-export const hash_47c98b7c: <T>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t_3b6b23ae<T_0>) => boolean = <T>(one: Array<T_0>, two: Array<T_0>, eq: t_3b6b23ae<T_0>) => {
+export const hash_3b667c60: <T>(arg_0: Array<T>, arg_1: Array<T>, arg_2: t_2f333afa<T>) => boolean = <T>(one: Array<T>, two: Array<T>, eq: t_2f333afa<T>) => {
   let one_i: number = 0;
   let two_i: number = 0;
 
@@ -61,7 +61,7 @@ export const hash_47c98b7c: <T>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t_3
     }
 
     if (two.length - two_i >= 1 && one.length - one_i >= 1) {
-      if (eq.h3b6b23ae_0(one[0 + one_i], two[0 + two_i])) {
+      if (eq.h2f333afa_0(one[0 + one_i], two[0 + two_i])) {
         one_i = one_i + 1;
         two_i = two_i + 1;
         continue;
@@ -76,14 +76,14 @@ export const hash_47c98b7c: <T>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t_3
 
 /**
 ```
-const IntEq#6d46a318 = Eq#3b6b23ae<int#builtin>{"=="#3b6b23ae#0: intEq#builtin}
-Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: intEq}
+const IntEq#24558044 = Eq#2f333afa<int#builtin>{"=="#2f333afa#0: intEq#builtin}
+Eq#🧱👨‍🦰🏖️{TODO SPREADs}{h2f333afa_0: intEq}
 ```
 */
-export const hash_6d46a318: t_3b6b23ae<number> = ({
-  type: "3b6b23ae",
-  h3b6b23ae_0: intEq
-} as t_3b6b23ae<number>);
+export const hash_24558044: t_2f333afa<number> = ({
+  type: "2f333afa",
+  h2f333afa_0: intEq
+} as t_2f333afa<number>);
 
 /**
 ```
@@ -113,27 +113,27 @@ export const hash_be476d3c: (arg_0: number) => number = (n: number) => {
 
 /**
 ```
-const ArrayEq#0656ab3a = <T#:0>(eq#:0: Eq#3b6b23ae<T#:0>): Eq#3b6b23ae<Array#builtin<T#:0>> ={}> Eq#3b6b23ae<
+const ArrayEq#ea2992fa = <T#:0>(eq#:0: Eq#2f333afa<T#:0>): Eq#2f333afa<Array#builtin<T#:0>> ={}> Eq#2f333afa<
     Array#builtin<T#:0>,
 >{
-    "=="#3b6b23ae#0: (one#:1: Array#builtin<T#:0>, two#:2: Array#builtin<T#:0>): bool#builtin ={}> len#builtin<
+    "=="#2f333afa#0: (one#:1: Array#builtin<T#:0>, two#:2: Array#builtin<T#:0>): bool#builtin ={}> len#builtin<
                 T#:0,
             >(one#:1) 
-            ==#6d46a318#3b6b23ae#0 len#builtin<T#:0>(two#:2) 
-        &&#builtin arrayEq#47c98b7c<T#:0>(one#:1, two#:2, eq#:0),
+            ==#24558044#2f333afa#0 len#builtin<T#:0>(two#:2) 
+        &&#builtin arrayEq#3b667c60<T#:0>(one#:1, two#:2, eq#:0),
 }
-<T>(eq#:0: Eq#☂️🍰🔥<[var]T#:0>): Eq#☂️🍰🔥<Array<[var]T#:0>> => Eq#☂️🍰🔥{TODO SPREADs}{
-    h3b6b23ae_0: (one#:1: Array<[var]T#:0>, two#:2: Array<[var]T#:0>): bool => IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0(
+<T>(eq#:0: Eq#🧱👨‍🦰🏖️<[var]T#:0>): Eq#🧱👨‍🦰🏖️<Array<[var]T#:0>> => Eq#🧱👨‍🦰🏖️{TODO SPREADs}{
+    h2f333afa_0: (one#:1: Array<[var]T#:0>, two#:2: Array<[var]T#:0>): bool => IntEq#😯🧜‍♂️🐟.#Eq#🧱👨‍🦰🏖️#0(
         len<[var]T#:0>(one#:1),
         len<[var]T#:0>(two#:2),
-    ) && arrayEq#🕔🌲💟😃<[var]T#:0>(one#:1, two#:2, eq#:0),
+    ) && arrayEq#🤡🏊🔥<[var]T#:0>(one#:1, two#:2, eq#:0),
 }
 ```
 */
-export const hash_0656ab3a: <T>(arg_0: t_3b6b23ae<T_0>) => t_3b6b23ae<Array<T_0>> = <T>(eq$0: t_3b6b23ae<T_0>) => ({
-  type: "3b6b23ae",
-  h3b6b23ae_0: (one$1: Array<T_0>, two$2: Array<T_0>) => hash_6d46a318.h3b6b23ae_0(len(one$1), len(two$2)) && hash_47c98b7c(one$1, two$2, eq$0)
-} as t_3b6b23ae<Array<T_0>>);
+export const hash_ea2992fa: <T>(arg_0: t_2f333afa<T>) => t_2f333afa<Array<T>> = <T>(eq$0: t_2f333afa<T>) => ({
+  type: "2f333afa",
+  h2f333afa_0: (one$1: Array<T>, two$2: Array<T>) => hash_24558044.h2f333afa_0(len(one$1), len(two$2)) && hash_3b667c60(one$1, two$2, eq$0)
+} as t_2f333afa<Array<T>>);
 
 /**
 ```
@@ -165,17 +165,17 @@ export const hash_13597ff1: number = (() => {
 
 /**
 ```
-const ArrayIntEq#0d2e6b26 = ArrayEq#0656ab3a<int#builtin>(eq: IntEq#6d46a318)
-ArrayEq#🚖🚴‍♀️👾<int>(IntEq#🌃🚴🍶😃)
+const ArrayIntEq#f5e5c604 = ArrayEq#ea2992fa<int#builtin>(eq: IntEq#24558044)
+ArrayEq#🧱<int>(IntEq#😯🧜‍♂️🐟)
 ```
 */
-export const hash_0d2e6b26: t_3b6b23ae<Array<number>> = hash_0656ab3a(hash_6d46a318);
+export const hash_f5e5c604: t_2f333afa<Array<number>> = hash_ea2992fa(hash_24558044);
 
 /*
-<int#builtin>[1, 2] ==#0d2e6b26#3b6b23ae#0 <int#builtin>[1, 2]
-assertCall(ArrayIntEq#🚃🪐👩.#Eq#☂️🍰🔥#0, [1, 2], [1, 2])
+<int#builtin>[1, 2] ==#f5e5c604#2f333afa#0 <int#builtin>[1, 2]
+assertCall(ArrayIntEq#🐮.#Eq#🧱👨‍🦰🏖️#0, [1, 2], [1, 2])
 */
-assertCall(hash_0d2e6b26.h3b6b23ae_0, [1, 2], [1, 2]);
+assertCall(hash_f5e5c604.h2f333afa_0, [1, 2], [1, 2]);
 
 /*
 {
@@ -183,8 +183,8 @@ assertCall(hash_0d2e6b26.h3b6b23ae_0, [1, 2], [1, 2]);
     switch a#:0 {
         [a#:1, ...b#:2] => switch b#:2 {
             [b#:3, ...c#:4] => switch c#:4 {
-                [c#:5] => a#:1 ==#6d46a318#3b6b23ae#0 1 &&#builtin b#:3 ==#6d46a318#3b6b23ae#0 2 
-                    &&#builtin c#:5 ==#6d46a318#3b6b23ae#0 3,
+                [c#:5] => a#:1 ==#24558044#2f333afa#0 1 &&#builtin b#:3 ==#24558044#2f333afa#0 2 
+                    &&#builtin c#:5 ==#24558044#2f333afa#0 3,
                 _ => false,
             },
             _ => false,
@@ -198,10 +198,10 @@ assert(
         if len(a#:0) >= 1 {
             if len(a#:0) - 1 >= 1 {
                 if len(a#:0) - 1 + 1 == 1 {
-                    return IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0(a#:0[0], 1) && IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0(
+                    return IntEq#😯🧜‍♂️🐟.#Eq#🧱👨‍🦰🏖️#0(a#:0[0], 1) && IntEq#😯🧜‍♂️🐟.#Eq#🧱👨‍🦰🏖️#0(
                         a#:0[0 + 1],
                         2,
-                    ) && IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0(a#:0[0 + 1 + 1], 3);
+                    ) && IntEq#😯🧜‍♂️🐟.#Eq#🧱👨‍🦰🏖️#0(a#:0[0 + 1 + 1], 3);
                 };
                 return false;
             };
@@ -217,7 +217,7 @@ assert((() => {
   if (a.length >= 1) {
     if (a.length - 1 >= 1) {
       if (a.length - (1 + 1) == 1) {
-        return hash_6d46a318.h3b6b23ae_0(a[0], 1) && hash_6d46a318.h3b6b23ae_0(a[0 + 1], 2) && hash_6d46a318.h3b6b23ae_0(a[0 + (1 + 1)], 3);
+        return hash_24558044.h2f333afa_0(a[0], 1) && hash_24558044.h2f333afa_0(a[0 + 1], 2) && hash_24558044.h2f333afa_0(a[0 + (1 + 1)], 3);
       }
 
       return false;

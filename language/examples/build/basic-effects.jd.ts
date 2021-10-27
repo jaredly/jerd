@@ -6,14 +6,14 @@ type handle6ddb76fe = [(arg_0: number, arg_1: string, arg_2: (arg_0: handle6ddb7
 
 /**
 ```
-@unique(0.5383562320075749) type Eq#3b6b23ae<T#:0> = {
+@unique(0.5383562320075749) type Eq#2f333afa<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_3b6b23ae<T> = {
-  type: "3b6b23ae";
-  h3b6b23ae_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_2f333afa<T> = {
+  type: "2f333afa";
+  h2f333afa_0: (arg_0: T, arg_1: T) => boolean;
 };
 
 /**
@@ -38,14 +38,14 @@ export const hash_307f5538:
 
 /**
 ```
-const StringEq#0d81b26d = Eq#3b6b23ae<string#builtin>{"=="#3b6b23ae#0: stringEq#builtin}
-Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: stringEq}
+const StringEq#8a86d00e = Eq#2f333afa<string#builtin>{"=="#2f333afa#0: stringEq#builtin}
+Eq#🧱👨‍🦰🏖️{TODO SPREADs}{h2f333afa_0: stringEq}
 ```
 */
-export const hash_0d81b26d: t_3b6b23ae<string> = ({
-  type: "3b6b23ae",
-  h3b6b23ae_0: stringEq
-} as t_3b6b23ae<string>);
+export const hash_8a86d00e: t_2f333afa<string> = ({
+  type: "2f333afa",
+  h2f333afa_0: stringEq
+} as t_2f333afa<string>);
 
 /**
 ```
@@ -166,32 +166,32 @@ export const hash_b713e798: (arg_0: string) =>
 /*from cps lambda*/
 <T>(arg_0:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T_0) => void) => void, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: T_0) => void) => void = (responseValue: string) => <T>(fn:
+(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T) => void) => void, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: T) => void) => void = (responseValue: string) => <T>(fn:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T_0) => void) => void, handlers: Handlers, done$6: (arg_0: Handlers, arg_1: T_0) => void) => {
+(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T) => void) => void, handlers: Handlers, done$6: (arg_0: Handlers, arg_1: T) => void) => {
   handleSimpleShallow2<any, any, any>("1da337a2", fn, [(handlers, _, k$3:
   /*from cps lambda*/
-  (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: T_0) => void) => void) => {
-    hash_b713e798(responseValue + ".")((handlers: Handlers, done$8: (arg_0: Handlers, arg_1: T_0) => void) => {
-      k$3(responseValue, handlers, (handlers: Handlers, returnValue$10: T_0) => done$8(handlers, returnValue$10));
-    }, handlers, (handlers: Handlers, returnValue$11: T_0) => done$6(handlers, returnValue$11));
+  (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: T) => void) => void) => {
+    hash_b713e798(responseValue + ".")((handlers: Handlers, done$8: (arg_0: Handlers, arg_1: T) => void) => {
+      k$3(responseValue, handlers, (handlers: Handlers, returnValue$10: T) => done$8(handlers, returnValue$10));
+    }, handlers, (handlers: Handlers, returnValue$11: T) => done$6(handlers, returnValue$11));
   }, (handlers, v$4: string, k$5:
   /*from cps lambda*/
-  (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T_0) => void) => void) => {
+  (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T) => void) => void) => {
     hash_307f5538(v$4, handlers, (handlers: Handlers) => {
-      hash_b713e798(responseValue + "-")((handlers: Handlers, done$13: (arg_0: Handlers, arg_1: T_0) => void) => {
-        k$5(handlers, (handlers: Handlers, returnValue$15: T_0) => done$13(handlers, returnValue$15));
-      }, handlers, (handlers: Handlers, returnValue$16: T_0) => done$6(handlers, returnValue$16));
+      hash_b713e798(responseValue + "-")((handlers: Handlers, done$13: (arg_0: Handlers, arg_1: T) => void) => {
+        k$5(handlers, (handlers: Handlers, returnValue$15: T) => done$13(handlers, returnValue$15));
+      }, handlers, (handlers: Handlers, returnValue$16: T) => done$6(handlers, returnValue$16));
     });
-  }], (handlers: Handlers, a$2: T_0) => {
+  }], (handlers: Handlers, a$2: T) => {
     done$6(handlers, a$2);
   }, handlers);
 };
 
 /**
 ```
-const raiseIf#e1ee4130 = (check#:0: string#builtin): string#builtin ={Stdio#1da337a2}> {
-    if raise!(Stdio#1da337a2.read()) ==#0d81b26d#3b6b23ae#0 check#:0 {
+const raiseIf#10d0e26a = (check#:0: string#builtin): string#builtin ={Stdio#1da337a2}> {
+    if raise!(Stdio#1da337a2.read()) ==#8a86d00e#2f333afa#0 check#:0 {
         raise!(Stdio#1da337a2.read());
     } else {
         "didn't raise";
@@ -206,11 +206,11 @@ const raiseIf#e1ee4130 = (check#:0: string#builtin): string#builtin ={Stdio#1da3
 }
 ```
 */
-export const hash_e1ee4130:
+export const hash_10d0e26a:
 /*from cps lambda*/
 (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: string) => void, arg_3: Handlers, arg_4: (arg_0: Handlers, arg_1: string) => void) => void = (check: string, handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
   raise(handlers, "1da337a2", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0: string) => {
-    if (hash_0d81b26d.h3b6b23ae_0(arg_lift_0, check)) {
+    if (hash_8a86d00e.h2f333afa_0(arg_lift_0, check)) {
       raise(handlers, "1da337a2", 0, null, (handlers, value) => done$3(handlers, value));
     } else {
       done$3(handlers, "didn't raise");
@@ -360,15 +360,15 @@ const test4#6d274ca2 = (): void#builtin ={Log#35f4b478}> {
 export const hash_6d274ca2:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done: (arg_0: Handlers) => void) => {
-  hash_b713e798("<read>")(hash_501bcf28, handlers, (handlers: Handlers, returnValue$3: T_0) => done(handlers));
+  hash_b713e798("<read>")(hash_501bcf28, handlers, (handlers: Handlers, returnValue$3: T) => done(handlers));
 };
 
 /**
 ```
-const test3#1f36169f = (): void#builtin ={Log#35f4b478}> {
+const test3#40574af3 = (): void#builtin ={Log#35f4b478}> {
     log#307f5538(
         k: respondWith#b713e798(responseValue: "<read>")<string#builtin>{Log#35f4b478}(
-            (): string#builtin ={Stdio#1da337a2, Log#35f4b478}> raiseIf#e1ee4130(check: "<read>"),
+            (): string#builtin ={Stdio#1da337a2, Log#35f4b478}> raiseIf#10d0e26a(check: "<read>"),
         ),
     );
 }
@@ -378,7 +378,7 @@ const test3#1f36169f = (): void#builtin ={Log#35f4b478}> {
             handlers#:15000: nope type: effect-handler,
             done#:5: (nope type: effect-handler, string) => void,
         ): void => {
-            raiseIf#👮‍♀️(
+            raiseIf#🍁😵🧑‍🍳(
                 "<read>",
                 handlers#:15000,
                 (handlers#:15000: nope type: effect-handler, returnValue#:7: string): void => done#:5(
@@ -399,12 +399,12 @@ const test3#1f36169f = (): void#builtin ={Log#35f4b478}> {
 }
 ```
 */
-export const hash_1f36169f:
+export const hash_40574af3:
 /*from cps lambda*/
 (arg_0: Handlers, arg_1: (arg_0: Handlers) => void, arg_2: Handlers, arg_3: (arg_0: Handlers) => void) => void = (handlers: Handlers, done$2: (arg_0: Handlers) => void) => {
   hash_b713e798("<read>")((handlers: Handlers, done$5: (arg_0: Handlers, arg_1: string) => void) => {
-    hash_e1ee4130("<read>", handlers, (handlers: Handlers, returnValue$7: string) => done$5(handlers, returnValue$7));
-  }, handlers, (handlers: Handlers, returnValue: T_0) => {
+    hash_10d0e26a("<read>", handlers, (handlers: Handlers, returnValue$7: string) => done$5(handlers, returnValue$7));
+  }, handlers, (handlers: Handlers, returnValue: T) => {
     hash_307f5538(returnValue, handlers, (handlers: Handlers) => done$2(handlers));
   });
 };
@@ -459,7 +459,7 @@ export const hash_cf38f784:
         hash_307f5538(returnValue$11 + returnValue$9, handlers, (handlers: Handlers) => done$6(handlers));
       });
     });
-  }, handlers, (handlers: Handlers, returnValue$12: T_0) => done$4(handlers));
+  }, handlers, (handlers: Handlers, returnValue$12: T) => done$4(handlers));
 };
 
 /**
@@ -491,7 +491,7 @@ export const hash_99109ce2:
 (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done: (arg_0: Handlers) => void) => {
   hash_b713e798("<read>")((handlers: Handlers, done$3: (arg_0: Handlers) => void) => {
     hash_015e7043("Yes", handlers, (handlers: Handlers) => done$3(handlers));
-  }, handlers, (handlers: Handlers, returnValue$5: T_0) => done(handlers));
+  }, handlers, (handlers: Handlers, returnValue$5: T) => done(handlers));
 };
 
 /**
@@ -586,47 +586,47 @@ hash_75fe06a4;
 
 /*
 collect#d6c08ba2{}(fn: test1#99109ce2) 
-    ==#0d81b26d#3b6b23ae#0 "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend"
+    ==#8a86d00e#2f333afa#0 "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend"
 assertCall(
-    StringEq#🍇😽🧑‍🦳.#Eq#☂️🍰🔥#0,
+    StringEq#😍.#Eq#🧱👨‍🦰🏖️#0,
     get effectful or direct TODO(test1#🙍‍♀️),
     "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend",
 )
 */
-assertCall(hash_0d81b26d.h3b6b23ae_0, hash_d6c08ba2.direct(hash_99109ce2), "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend");
+assertCall(hash_8a86d00e.h2f333afa_0, hash_d6c08ba2.direct(hash_99109ce2), "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend");
 
 /*
-collect#d6c08ba2{}(fn: test2#cf38f784) ==#0d81b26d#3b6b23ae#0 "<read>didn't raise\nend"
+collect#d6c08ba2{}(fn: test2#cf38f784) ==#8a86d00e#2f333afa#0 "<read>didn't raise\nend"
 assertCall(
-    StringEq#🍇😽🧑‍🦳.#Eq#☂️🍰🔥#0,
+    StringEq#😍.#Eq#🧱👨‍🦰🏖️#0,
     get effectful or direct TODO(test2#🕘),
     "<read>didn't raise\nend",
 )
 */
-assertCall(hash_0d81b26d.h3b6b23ae_0, hash_d6c08ba2.direct(hash_cf38f784), "<read>didn't raise\nend");
+assertCall(hash_8a86d00e.h2f333afa_0, hash_d6c08ba2.direct(hash_cf38f784), "<read>didn't raise\nend");
 
 /*
-collect#d6c08ba2{}(fn: test3#1f36169f) ==#0d81b26d#3b6b23ae#0 "<read>.\nend"
+collect#d6c08ba2{}(fn: test3#40574af3) ==#8a86d00e#2f333afa#0 "<read>.\nend"
 assertCall(
-    StringEq#🍇😽🧑‍🦳.#Eq#☂️🍰🔥#0,
-    get effectful or direct TODO(test3#🫔🏃‍♀️🐕‍🦺),
+    StringEq#😍.#Eq#🧱👨‍🦰🏖️#0,
+    get effectful or direct TODO(test3#🏖️👨‍👩‍👦‍👦😅😃),
     "<read>.\nend",
 )
 */
-assertCall(hash_0d81b26d.h3b6b23ae_0, hash_d6c08ba2.direct(hash_1f36169f), "<read>.\nend");
+assertCall(hash_8a86d00e.h2f333afa_0, hash_d6c08ba2.direct(hash_40574af3), "<read>.\nend");
 
 /*
-collect#d6c08ba2{}(fn: test4#6d274ca2) ==#0d81b26d#3b6b23ae#0 "<read>Hello\nend"
+collect#d6c08ba2{}(fn: test4#6d274ca2) ==#8a86d00e#2f333afa#0 "<read>Hello\nend"
 assertCall(
-    StringEq#🍇😽🧑‍🦳.#Eq#☂️🍰🔥#0,
+    StringEq#😍.#Eq#🧱👨‍🦰🏖️#0,
     get effectful or direct TODO(test4#👈👨‍👩‍👧‍👧☕😃),
     "<read>Hello\nend",
 )
 */
-assertCall(hash_0d81b26d.h3b6b23ae_0, hash_d6c08ba2.direct(hash_6d274ca2), "<read>Hello\nend");
+assertCall(hash_8a86d00e.h2f333afa_0, hash_d6c08ba2.direct(hash_6d274ca2), "<read>Hello\nend");
 
 /*
-full#20454ca2() ==#0d81b26d#3b6b23ae#0 "4:five:ok"
-assertCall(StringEq#🍇😽🧑‍🦳.#Eq#☂️🍰🔥#0, full#👈🦹🐮(), "4:five:ok")
+full#20454ca2() ==#8a86d00e#2f333afa#0 "4:five:ok"
+assertCall(StringEq#😍.#Eq#🧱👨‍🦰🏖️#0, full#👈🦹🐮(), "4:five:ok")
 */
-assertCall(hash_0d81b26d.h3b6b23ae_0, hash_20454ca2(), "4:five:ok");
+assertCall(hash_8a86d00e.h2f333afa_0, hash_20454ca2(), "4:five:ok");

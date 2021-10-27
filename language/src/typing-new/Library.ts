@@ -429,7 +429,6 @@ export const addRecord = (
     meta?: MetaData,
 ): [Library, Id] => {
     const id = idFromName(hashObject(record));
-    console.log('NEW', id, name);
     if (lib.types.defns[idName(id)] != null) {
         console.warn(`Redefining record!`);
     }

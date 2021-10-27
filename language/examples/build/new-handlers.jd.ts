@@ -6,14 +6,14 @@ type handle1da337a2 = [(arg_0: (arg_0: handle1da337a2, arg_1: string) => void) =
 
 /**
 ```
-@unique(0.5383562320075749) type Eq#3b6b23ae<T#:0> = {
+@unique(0.5383562320075749) type Eq#2f333afa<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_3b6b23ae<T> = {
-  type: "3b6b23ae";
-  h3b6b23ae_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_2f333afa<T> = {
+  type: "2f333afa";
+  h2f333afa_0: (arg_0: T, arg_1: T) => boolean;
 };
 
 /**
@@ -169,24 +169,24 @@ export const hash_b713e798: (arg_0: string) =>
 /*from cps lambda*/
 <T>(arg_0:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T_0) => void) => void, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: T_0) => void) => void = (responseValue: string) => <T>(fn:
+(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T) => void) => void, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: T) => void) => void = (responseValue: string) => <T>(fn:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T_0) => void) => void, handlers: Handlers, done$6: (arg_0: Handlers, arg_1: T_0) => void) => {
+(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T) => void) => void, handlers: Handlers, done$6: (arg_0: Handlers, arg_1: T) => void) => {
   handleSimpleShallow2<any, any, any>("1da337a2", fn, [(handlers, _, k$3:
   /*from cps lambda*/
-  (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: T_0) => void) => void) => {
-    hash_b713e798(responseValue + ".")((handlers: Handlers, done$8: (arg_0: Handlers, arg_1: T_0) => void) => {
-      k$3(responseValue, handlers, (handlers: Handlers, returnValue$10: T_0) => done$8(handlers, returnValue$10));
-    }, handlers, (handlers: Handlers, returnValue$11: T_0) => done$6(handlers, returnValue$11));
+  (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: T) => void) => void) => {
+    hash_b713e798(responseValue + ".")((handlers: Handlers, done$8: (arg_0: Handlers, arg_1: T) => void) => {
+      k$3(responseValue, handlers, (handlers: Handlers, returnValue$10: T) => done$8(handlers, returnValue$10));
+    }, handlers, (handlers: Handlers, returnValue$11: T) => done$6(handlers, returnValue$11));
   }, (handlers, v$4: string, k$5:
   /*from cps lambda*/
-  (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T_0) => void) => void) => {
+  (arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T) => void) => void) => {
     hash_307f5538(v$4, handlers, (handlers: Handlers) => {
-      hash_b713e798(responseValue + "-")((handlers: Handlers, done$13: (arg_0: Handlers, arg_1: T_0) => void) => {
-        k$5(handlers, (handlers: Handlers, returnValue$15: T_0) => done$13(handlers, returnValue$15));
-      }, handlers, (handlers: Handlers, returnValue$16: T_0) => done$6(handlers, returnValue$16));
+      hash_b713e798(responseValue + "-")((handlers: Handlers, done$13: (arg_0: Handlers, arg_1: T) => void) => {
+        k$5(handlers, (handlers: Handlers, returnValue$15: T) => done$13(handlers, returnValue$15));
+      }, handlers, (handlers: Handlers, returnValue$16: T) => done$6(handlers, returnValue$16));
     });
-  }], (handlers: Handlers, a$2: T_0) => {
+  }], (handlers: Handlers, a$2: T) => {
     done$6(handlers, a$2);
   }, handlers);
 };
@@ -220,7 +220,7 @@ export const hash_99109ce2:
 (arg_0: Handlers, arg_1: (arg_0: Handlers) => void) => void = (handlers: Handlers, done: (arg_0: Handlers) => void) => {
   hash_b713e798("<read>")((handlers: Handlers, done$3: (arg_0: Handlers) => void) => {
     hash_015e7043("Yes", handlers, (handlers: Handlers) => done$3(handlers));
-  }, handlers, (handlers: Handlers, returnValue$5: T_0) => done(handlers));
+  }, handlers, (handlers: Handlers, returnValue$5: T) => done(handlers));
 };
 
 /**
@@ -330,17 +330,17 @@ const rec provide#1e2a9f14 = <T#:0>(v#:0: string#builtin, fn#:1: () ={Read#22024
 */
 export const hash_1e2a9f14: <T>(arg_0: string, arg_1:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T_0) => void) => void) => T_0 = <T>(v: string, fn:
+(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T) => void) => void) => T = <T>(v: string, fn:
 /*from cps lambda*/
-(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T_0) => void) => void) => {
-  let result$4: T_0 = (null as any);
+(arg_0: Handlers, arg_1: (arg_0: Handlers, arg_1: T) => void) => void) => {
+  let result$4: T = (null as any);
   handleSimpleShallow2<any, any, any>("22024b72", fn, [(handlers, _, k$3:
   /*from cps lambda*/
-  (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: T_0) => void) => void) => {
-    result$4 = hash_1e2a9f14("<" + v + ">", (handlers: Handlers, done$5: (arg_0: Handlers, arg_1: T_0) => void) => {
-      k$3(v, handlers, (handlers: Handlers, returnValue$7: T_0) => done$5(handlers, returnValue$7));
+  (arg_0: string, arg_1: Handlers, arg_2: (arg_0: Handlers, arg_1: T) => void) => void) => {
+    result$4 = hash_1e2a9f14("<" + v + ">", (handlers: Handlers, done$5: (arg_0: Handlers, arg_1: T) => void) => {
+      k$3(v, handlers, (handlers: Handlers, returnValue$7: T) => done$5(handlers, returnValue$7));
     });
-  }], (handlers: Handlers, a$2: T_0) => {
+  }], (handlers: Handlers, a$2: T) => {
     result$4 = a$2;
   });
   return result$4;
@@ -383,14 +383,14 @@ export const hash_75fe06a4: (arg_0:
 
 /**
 ```
-const StringEq#0d81b26d = Eq#3b6b23ae<string#builtin>{"=="#3b6b23ae#0: stringEq#builtin}
-Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: stringEq}
+const StringEq#8a86d00e = Eq#2f333afa<string#builtin>{"=="#2f333afa#0: stringEq#builtin}
+Eq#🧱👨‍🦰🏖️{TODO SPREADs}{h2f333afa_0: stringEq}
 ```
 */
-export const hash_0d81b26d: t_3b6b23ae<string> = ({
-  type: "3b6b23ae",
-  h3b6b23ae_0: stringEq
-} as t_3b6b23ae<string>);
+export const hash_8a86d00e: t_2f333afa<string> = ({
+  type: "2f333afa",
+  h2f333afa_0: stringEq
+} as t_2f333afa<string>);
 
 /*
 collectNew#75fe06a4(
@@ -399,9 +399,9 @@ collectNew#75fe06a4(
             raise!(Log#35f4b478.log("Folks"));
         },
     ) 
-    ==#0d81b26d#3b6b23ae#0 "Hello\nFolks\nend"
+    ==#8a86d00e#2f333afa#0 "Hello\nFolks\nend"
 assertCall(
-    StringEq#🍇😽🧑‍🦳.#Eq#☂️🍰🔥#0,
+    StringEq#😍.#Eq#🧱👨‍🦰🏖️#0,
     collectNew#🥘🕢🛬😃(
         (handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler) => void): void => {
             TODO raise;
@@ -410,7 +410,7 @@ assertCall(
     "Hello\nFolks\nend",
 )
 */
-assertCall(hash_0d81b26d.h3b6b23ae_0, hash_75fe06a4((handlers: Handlers, done: (arg_0: Handlers) => void) => {
+assertCall(hash_8a86d00e.h2f333afa_0, hash_75fe06a4((handlers: Handlers, done: (arg_0: Handlers) => void) => {
   raise(handlers, "35f4b478", 0, "Hello", (handlers, value) => ((handlers: Handlers) => {
     raise(handlers, "35f4b478", 0, "Folks", (handlers, value) => done(handlers, value));
   })(handlers, value));
@@ -421,9 +421,9 @@ provide#1e2a9f14<string#builtin>(
         v: "Hello",
         fn: (): string#builtin ={Read#22024b72}> raise!(Read#22024b72.read()),
     ) 
-    ==#0d81b26d#3b6b23ae#0 "Hello"
+    ==#8a86d00e#2f333afa#0 "Hello"
 assertCall(
-    StringEq#🍇😽🧑‍🦳.#Eq#☂️🍰🔥#0,
+    StringEq#😍.#Eq#🧱👨‍🦰🏖️#0,
     provide#🕋🥗👨‍👧‍👧<string>(
         "Hello",
         (
@@ -436,7 +436,7 @@ assertCall(
     "Hello",
 )
 */
-assertCall(hash_0d81b26d.h3b6b23ae_0, hash_1e2a9f14("Hello", (handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
+assertCall(hash_8a86d00e.h2f333afa_0, hash_1e2a9f14("Hello", (handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
   raise(handlers, "22024b72", 0, null, (handlers, value) => done(handlers, value));
 }), "Hello");
 
@@ -446,9 +446,9 @@ provide#1e2a9f14<string#builtin>(
         fn: (): string#builtin ={Read#22024b72}> raise!(Read#22024b72.read()) 
             +#builtin raise!(Read#22024b72.read()),
     ) 
-    ==#0d81b26d#3b6b23ae#0 "Hello<Hello>"
+    ==#8a86d00e#2f333afa#0 "Hello<Hello>"
 assertCall(
-    StringEq#🍇😽🧑‍🦳.#Eq#☂️🍰🔥#0,
+    StringEq#😍.#Eq#🧱👨‍🦰🏖️#0,
     provide#🕋🥗👨‍👧‍👧<string>(
         "Hello",
         (
@@ -461,7 +461,7 @@ assertCall(
     "Hello<Hello>",
 )
 */
-assertCall(hash_0d81b26d.h3b6b23ae_0, hash_1e2a9f14("Hello", (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
+assertCall(hash_8a86d00e.h2f333afa_0, hash_1e2a9f14("Hello", (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
   raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_0$1: string) => {
     raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1$2: string) => {
       done$3(handlers, arg_lift_0$1 + arg_lift_1$2);
@@ -477,9 +477,9 @@ appendLog#7e2e6d04(
             "Final value";
         },
     ) 
-    ==#0d81b26d#3b6b23ae#0 "Hello\nFolks\nFinal value"
+    ==#8a86d00e#2f333afa#0 "Hello\nFolks\nFinal value"
 assertCall(
-    StringEq#🍇😽🧑‍🦳.#Eq#☂️🍰🔥#0,
+    StringEq#😍.#Eq#🧱👨‍🦰🏖️#0,
     appendLog#🧑‍🏫⭐🏓😃(
         (
             handlers#:15000: nope type: effect-handler,
@@ -491,7 +491,7 @@ assertCall(
     "Hello\nFolks\nFinal value",
 )
 */
-assertCall(hash_0d81b26d.h3b6b23ae_0, hash_7e2e6d04((handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
+assertCall(hash_8a86d00e.h2f333afa_0, hash_7e2e6d04((handlers: Handlers, done: (arg_0: Handlers, arg_1: string) => void) => {
   raise(handlers, "35f4b478", 0, "Hello", (handlers, value) => ((handlers: Handlers) => {
     raise(handlers, "35f4b478", 0, "Folks", (handlers, value) => ((handlers: Handlers) => {
       done(handlers, "Final value");
@@ -501,9 +501,9 @@ assertCall(hash_0d81b26d.h3b6b23ae_0, hash_7e2e6d04((handlers: Handlers, done: (
 
 /*
 collect#d6c08ba2{}(fn: (): void#builtin ={Log#35f4b478}> raise!(Log#35f4b478.log("Good news"))) 
-    ==#0d81b26d#3b6b23ae#0 "Good news\nend"
+    ==#8a86d00e#2f333afa#0 "Good news\nend"
 assertCall(
-    StringEq#🍇😽🧑‍🦳.#Eq#☂️🍰🔥#0,
+    StringEq#😍.#Eq#🧱👨‍🦰🏖️#0,
     get effectful or direct TODO(
         (handlers#:15000: nope type: effect-handler, done#:1: (nope type: effect-handler) => void): void => {
             TODO raise;
@@ -512,7 +512,7 @@ assertCall(
     "Good news\nend",
 )
 */
-assertCall(hash_0d81b26d.h3b6b23ae_0, hash_d6c08ba2.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
+assertCall(hash_8a86d00e.h2f333afa_0, hash_d6c08ba2.direct((handlers: Handlers, done: (arg_0: Handlers) => void) => {
   raise(handlers, "35f4b478", 0, "Good news", (handlers, value) => done(handlers, value));
 }), "Good news\nend");
 
@@ -525,9 +525,9 @@ provide#1e2a9f14<string#builtin>(
             ),
         ),
     ) 
-    ==#0d81b26d#3b6b23ae#0 "Good news Folks\nend"
+    ==#8a86d00e#2f333afa#0 "Good news Folks\nend"
 assertCall(
-    StringEq#🍇😽🧑‍🦳.#Eq#☂️🍰🔥#0,
+    StringEq#😍.#Eq#🧱👨‍🦰🏖️#0,
     provide#🕋🥗👨‍👧‍👧<string>(
         "Folks",
         (
@@ -552,7 +552,7 @@ assertCall(
     "Good news Folks\nend",
 )
 */
-assertCall(hash_0d81b26d.h3b6b23ae_0, hash_1e2a9f14("Folks", (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
+assertCall(hash_8a86d00e.h2f333afa_0, hash_1e2a9f14("Folks", (handlers: Handlers, done$3: (arg_0: Handlers, arg_1: string) => void) => {
   hash_d6c08ba2.effectful((handlers: Handlers, done$5: (arg_0: Handlers) => void) => {
     raise(handlers, "22024b72", 0, null, (handlers, value) => ((handlers: Handlers, arg_lift_1$2: string) => {
       raise(handlers, "35f4b478", 0, "Good news " + arg_lift_1$2, (handlers, value) => done$5(handlers, value));
@@ -562,11 +562,11 @@ assertCall(hash_0d81b26d.h3b6b23ae_0, hash_1e2a9f14("Folks", (handlers: Handlers
 
 /*
 collect#d6c08ba2{}(fn: test1#99109ce2) 
-    ==#0d81b26d#3b6b23ae#0 "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend"
+    ==#8a86d00e#2f333afa#0 "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend"
 assertCall(
-    StringEq#🍇😽🧑‍🦳.#Eq#☂️🍰🔥#0,
+    StringEq#😍.#Eq#🧱👨‍🦰🏖️#0,
     get effectful or direct TODO(test1#🙍‍♀️),
     "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend",
 )
 */
-assertCall(hash_0d81b26d.h3b6b23ae_0, hash_d6c08ba2.direct(hash_99109ce2), "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend");
+assertCall(hash_8a86d00e.h2f333afa_0, hash_d6c08ba2.direct(hash_99109ce2), "yes please Folks\n<read> from farther\ngetting\nYes\n<read>. and <read>..\nAnd then <read>...\nDones\nend");

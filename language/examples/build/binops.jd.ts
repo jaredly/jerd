@@ -3,46 +3,46 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-@unique(0.4035738849882096) type Addable#e5de2440<T#:0> = {
+@unique(0.4035738849882096) type Addable#30d0c542<T#:0> = {
     "+": (T#:0, T#:0) ={}> T#:0,
 }
 ```
 */
-type t_e5de2440<T> = {
-  type: "e5de2440";
-  he5de2440_0: (arg_0: T_0, arg_1: T_0) => T_0;
+type t_30d0c542<T> = {
+  type: "30d0c542";
+  h30d0c542_0: (arg_0: T, arg_1: T) => T;
 };
 
 /**
 ```
-@unique(0.5383562320075749) type Eq#3b6b23ae<T#:0> = {
+@unique(0.5383562320075749) type Eq#2f333afa<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_3b6b23ae<T> = {
-  type: "3b6b23ae";
-  h3b6b23ae_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_2f333afa<T> = {
+  type: "2f333afa";
+  h2f333afa_0: (arg_0: T, arg_1: T) => boolean;
 };
 
 /**
 ```
-const rec arrayEq#47c98b7c = <T#:0>(
+const rec arrayEq#3b667c60 = <T#:0>(
     one#:0: Array#builtin<T#:0>,
     two#:1: Array#builtin<T#:0>,
-    eq#:2: Eq#3b6b23ae<T#:0>,
+    eq#:2: Eq#2f333afa<T#:0>,
 ): bool#builtin ={}> {
     switch (one#:0, two#:1) {
         ([], []) => true,
-        ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if one#:3 ==#:2#3b6b23ae#0 two#:5 {
-            47c98b7c#self<T#:0>(rone#:4, rtwo#:6, eq#:2);
+        ([one#:3, ...rone#:4], [two#:5, ...rtwo#:6]) => if one#:3 ==#:2#2f333afa#0 two#:5 {
+            3b667c60#self<T#:0>(rone#:4, rtwo#:6, eq#:2);
         } else {
             false;
         },
         _ => false,
     };
 }
-<T>(one#:0: Array<[var]T#:0>, two#:1: Array<[var]T#:0>, eq#:2: Eq#☂️🍰🔥<[var]T#:0>): bool => {
+<T>(one#:0: Array<[var]T#:0>, two#:1: Array<[var]T#:0>, eq#:2: Eq#🧱👨‍🦰🏖️<[var]T#:0>): bool => {
     const one_i#:11: int = 0;
     const two_i#:12: int = 0;
     loop(unbounded) {
@@ -50,7 +50,7 @@ const rec arrayEq#47c98b7c = <T#:0>(
             return true;
         };
         if len(two#:1) - two_i#:12 >= 1 && len(one#:0) - one_i#:11 >= 1 {
-            if eq#:2.#Eq#☂️🍰🔥#0(one#:0[0 + one_i#:11], two#:1[0 + two_i#:12]) {
+            if eq#:2.#Eq#🧱👨‍🦰🏖️#0(one#:0[0 + one_i#:11], two#:1[0 + two_i#:12]) {
                 one_i#:11 = one_i#:11 + 1;
                 two_i#:12 = two_i#:12 + 1;
                 continue;
@@ -63,7 +63,7 @@ const rec arrayEq#47c98b7c = <T#:0>(
 }
 ```
 */
-export const hash_47c98b7c: <T>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t_3b6b23ae<T_0>) => boolean = <T>(one: Array<T_0>, two: Array<T_0>, eq: t_3b6b23ae<T_0>) => {
+export const hash_3b667c60: <T>(arg_0: Array<T>, arg_1: Array<T>, arg_2: t_2f333afa<T>) => boolean = <T>(one: Array<T>, two: Array<T>, eq: t_2f333afa<T>) => {
   let one_i: number = 0;
   let two_i: number = 0;
 
@@ -73,7 +73,7 @@ export const hash_47c98b7c: <T>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t_3
     }
 
     if (two.length - two_i >= 1 && one.length - one_i >= 1) {
-      if (eq.h3b6b23ae_0(one[0 + one_i], two[0 + two_i])) {
+      if (eq.h2f333afa_0(one[0 + one_i], two[0 + two_i])) {
         one_i = one_i + 1;
         two_i = two_i + 1;
         continue;
@@ -88,38 +88,38 @@ export const hash_47c98b7c: <T>(arg_0: Array<T_0>, arg_1: Array<T_0>, arg_2: t_3
 
 /**
 ```
-const IntEq#6d46a318 = Eq#3b6b23ae<int#builtin>{"=="#3b6b23ae#0: intEq#builtin}
-Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: intEq}
+const IntEq#24558044 = Eq#2f333afa<int#builtin>{"=="#2f333afa#0: intEq#builtin}
+Eq#🧱👨‍🦰🏖️{TODO SPREADs}{h2f333afa_0: intEq}
 ```
 */
-export const hash_6d46a318: t_3b6b23ae<number> = ({
-  type: "3b6b23ae",
-  h3b6b23ae_0: intEq
-} as t_3b6b23ae<number>);
+export const hash_24558044: t_2f333afa<number> = ({
+  type: "2f333afa",
+  h2f333afa_0: intEq
+} as t_2f333afa<number>);
 
 /**
 ```
-const ArrayEq#0656ab3a = <T#:0>(eq#:0: Eq#3b6b23ae<T#:0>): Eq#3b6b23ae<Array#builtin<T#:0>> ={}> Eq#3b6b23ae<
+const ArrayEq#ea2992fa = <T#:0>(eq#:0: Eq#2f333afa<T#:0>): Eq#2f333afa<Array#builtin<T#:0>> ={}> Eq#2f333afa<
     Array#builtin<T#:0>,
 >{
-    "=="#3b6b23ae#0: (one#:1: Array#builtin<T#:0>, two#:2: Array#builtin<T#:0>): bool#builtin ={}> len#builtin<
+    "=="#2f333afa#0: (one#:1: Array#builtin<T#:0>, two#:2: Array#builtin<T#:0>): bool#builtin ={}> len#builtin<
                 T#:0,
             >(one#:1) 
-            ==#6d46a318#3b6b23ae#0 len#builtin<T#:0>(two#:2) 
-        &&#builtin arrayEq#47c98b7c<T#:0>(one#:1, two#:2, eq#:0),
+            ==#24558044#2f333afa#0 len#builtin<T#:0>(two#:2) 
+        &&#builtin arrayEq#3b667c60<T#:0>(one#:1, two#:2, eq#:0),
 }
-<T>(eq#:0: Eq#☂️🍰🔥<[var]T#:0>): Eq#☂️🍰🔥<Array<[var]T#:0>> => Eq#☂️🍰🔥{TODO SPREADs}{
-    h3b6b23ae_0: (one#:1: Array<[var]T#:0>, two#:2: Array<[var]T#:0>): bool => IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0(
+<T>(eq#:0: Eq#🧱👨‍🦰🏖️<[var]T#:0>): Eq#🧱👨‍🦰🏖️<Array<[var]T#:0>> => Eq#🧱👨‍🦰🏖️{TODO SPREADs}{
+    h2f333afa_0: (one#:1: Array<[var]T#:0>, two#:2: Array<[var]T#:0>): bool => IntEq#😯🧜‍♂️🐟.#Eq#🧱👨‍🦰🏖️#0(
         len<[var]T#:0>(one#:1),
         len<[var]T#:0>(two#:2),
-    ) && arrayEq#🕔🌲💟😃<[var]T#:0>(one#:1, two#:2, eq#:0),
+    ) && arrayEq#🤡🏊🔥<[var]T#:0>(one#:1, two#:2, eq#:0),
 }
 ```
 */
-export const hash_0656ab3a: <T>(arg_0: t_3b6b23ae<T_0>) => t_3b6b23ae<Array<T_0>> = <T>(eq$0: t_3b6b23ae<T_0>) => ({
-  type: "3b6b23ae",
-  h3b6b23ae_0: (one$1: Array<T_0>, two$2: Array<T_0>) => hash_6d46a318.h3b6b23ae_0(len(one$1), len(two$2)) && hash_47c98b7c(one$1, two$2, eq$0)
-} as t_3b6b23ae<Array<T_0>>);
+export const hash_ea2992fa: <T>(arg_0: t_2f333afa<T>) => t_2f333afa<Array<T>> = <T>(eq$0: t_2f333afa<T>) => ({
+  type: "2f333afa",
+  h2f333afa_0: (one$1: Array<T>, two$2: Array<T>) => hash_24558044.h2f333afa_0(len(one$1), len(two$2)) && hash_3b667c60(one$1, two$2, eq$0)
+} as t_2f333afa<Array<T>>);
 
 /**
 ```
@@ -148,22 +148,22 @@ export const hash_70ad3796: number = 1 * (2 - 3 * 5);
 
 /**
 ```
-const FloatEq#000a9fb6 = Eq#3b6b23ae<float#builtin>{"=="#3b6b23ae#0: floatEq#builtin}
-Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: floatEq}
+const FloatEq#143b5e82 = Eq#2f333afa<float#builtin>{"=="#2f333afa#0: floatEq#builtin}
+Eq#🧱👨‍🦰🏖️{TODO SPREADs}{h2f333afa_0: floatEq}
 ```
 */
-export const hash_000a9fb6: t_3b6b23ae<number> = ({
-  type: "3b6b23ae",
-  h3b6b23ae_0: floatEq
-} as t_3b6b23ae<number>);
+export const hash_143b5e82: t_2f333afa<number> = ({
+  type: "2f333afa",
+  h2f333afa_0: floatEq
+} as t_2f333afa<number>);
 
 /**
 ```
-const ArrayIntEq#0d2e6b26 = ArrayEq#0656ab3a<int#builtin>(eq: IntEq#6d46a318)
-ArrayEq#🚖🚴‍♀️👾<int>(IntEq#🌃🚴🍶😃)
+const ArrayIntEq#f5e5c604 = ArrayEq#ea2992fa<int#builtin>(eq: IntEq#24558044)
+ArrayEq#🧱<int>(IntEq#😯🧜‍♂️🐟)
 ```
 */
-export const hash_0d2e6b26: t_3b6b23ae<Array<number>> = hash_0656ab3a(hash_6d46a318);
+export const hash_f5e5c604: t_2f333afa<Array<number>> = hash_ea2992fa(hash_24558044);
 
 /**
 ```
@@ -175,77 +175,77 @@ export const hash_19cbd74a: (arg_0: [number, number]) => number = (t: [number, n
 
 /**
 ```
-const IntArrayAddable#a30027a4 = Addable#e5de2440<Array#builtin<int#builtin>>{
-    "+"#e5de2440#0: (a#:0: Array#builtin<int#builtin>, b#:1: Array#builtin<int#builtin>): Array#builtin<
+const IntArrayAddable#05f1dc64 = Addable#30d0c542<Array#builtin<int#builtin>>{
+    "+"#30d0c542#0: (a#:0: Array#builtin<int#builtin>, b#:1: Array#builtin<int#builtin>): Array#builtin<
         int#builtin,
     > ={}> concat#builtin<int#builtin>(a#:0, b#:1),
 }
-Addable#😟{TODO SPREADs}{
-    he5de2440_0: (a#:0: Array<int>, b#:1: Array<int>): Array<int> => concat<int>(a#:0, b#:1),
+Addable#🤵‍♂️🤕🗼{TODO SPREADs}{
+    h30d0c542_0: (a#:0: Array<int>, b#:1: Array<int>): Array<int> => concat<int>(a#:0, b#:1),
 }
 ```
 */
-export const hash_a30027a4: t_e5de2440<Array<number>> = ({
-  type: "e5de2440",
-  he5de2440_0: (a: Array<number>, b: Array<number>) => concat(a, b)
-} as t_e5de2440<Array<number>>);
+export const hash_05f1dc64: t_30d0c542<Array<number>> = ({
+  type: "30d0c542",
+  h30d0c542_0: (a: Array<number>, b: Array<number>) => concat(a, b)
+} as t_30d0c542<Array<number>>);
 
 /*
-<int#builtin>[1] +#a30027a4#e5de2440#0 <int#builtin>[2, 3]
-IntArrayAddable#🌦️.#Addable#😟#0([1], [2, 3])
+<int#builtin>[1] +#05f1dc64#30d0c542#0 <int#builtin>[2, 3]
+IntArrayAddable#👽💖💩.#Addable#🤵‍♂️🤕🗼#0([1], [2, 3])
 */
-hash_a30027a4.he5de2440_0([1], [2, 3]);
+hash_05f1dc64.h30d0c542_0([1], [2, 3]);
 
 /*
-goToTown#19cbd74a(t: (2, 3)) ==#6d46a318#3b6b23ae#0 2
-assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, goToTown#🚏🏝️🚣((2, 3)), 2)
+goToTown#19cbd74a(t: (2, 3)) ==#24558044#2f333afa#0 2
+assertCall(IntEq#😯🧜‍♂️🐟.#Eq#🧱👨‍🦰🏖️#0, goToTown#🚏🏝️🚣((2, 3)), 2)
 */
-assertCall(hash_6d46a318.h3b6b23ae_0, hash_19cbd74a([2, 3]), 2);
+assertCall(hash_24558044.h2f333afa_0, hash_19cbd74a([2, 3]), 2);
 
 /*
-ArrayEq#0656ab3a<int#builtin>(eq: IntEq#6d46a318)."=="#3b6b23ae#0(
+ArrayEq#ea2992fa<int#builtin>(eq: IntEq#24558044)."=="#2f333afa#0(
     <int#builtin>[1, 2],
     <int#builtin>[1, 2],
 )
-assertCall(ArrayEq#🚖🚴‍♀️👾<int>(IntEq#🌃🚴🍶😃).#Eq#☂️🍰🔥#0, [1, 2], [1, 2])
+assertCall(ArrayEq#🧱<int>(IntEq#😯🧜‍♂️🐟).#Eq#🧱👨‍🦰🏖️#0, [1, 2], [1, 2])
 */
-assertCall(hash_0656ab3a(hash_6d46a318).h3b6b23ae_0, [1, 2], [1, 2]);
+assertCall(hash_ea2992fa(hash_24558044).h2f333afa_0, [1, 2], [1, 2]);
 
 /*
-ArrayEq#0656ab3a<int#builtin>(eq: IntEq#6d46a318)."=="#3b6b23ae#0(
+ArrayEq#ea2992fa<int#builtin>(eq: IntEq#24558044)."=="#2f333afa#0(
     <int#builtin>[1, 2, 3],
     <int#builtin>[1, 2, 3],
 )
-assertCall(ArrayEq#🚖🚴‍♀️👾<int>(IntEq#🌃🚴🍶😃).#Eq#☂️🍰🔥#0, [1, 2, 3], [1, 2, 3])
+assertCall(ArrayEq#🧱<int>(IntEq#😯🧜‍♂️🐟).#Eq#🧱👨‍🦰🏖️#0, [1, 2, 3], [1, 2, 3])
 */
-assertCall(hash_0656ab3a(hash_6d46a318).h3b6b23ae_0, [1, 2, 3], [1, 2, 3]);
+assertCall(hash_ea2992fa(hash_24558044).h2f333afa_0, [1, 2, 3], [1, 2, 3]);
 
 /*
-<int#builtin>[1, 2] ==#0d2e6b26#3b6b23ae#0 <int#builtin>[1, 2]
-assertCall(ArrayIntEq#🚃🪐👩.#Eq#☂️🍰🔥#0, [1, 2], [1, 2])
+<int#builtin>[1, 2] ==#f5e5c604#2f333afa#0 <int#builtin>[1, 2]
+assertCall(ArrayIntEq#🐮.#Eq#🧱👨‍🦰🏖️#0, [1, 2], [1, 2])
 */
-assertCall(hash_0d2e6b26.h3b6b23ae_0, [1, 2], [1, 2]);
+assertCall(hash_f5e5c604.h2f333afa_0, [1, 2], [1, 2]);
 
 /*
-1 +#builtin 2 *#builtin 3 ==#6d46a318#3b6b23ae#0 7
-assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, 1 + 2 * 3, 7)
+1 +#builtin 2 *#builtin 3 ==#24558044#2f333afa#0 7
+assertCall(IntEq#😯🧜‍♂️🐟.#Eq#🧱👨‍🦰🏖️#0, 1 + 2 * 3, 7)
 */
-assertCall(hash_6d46a318.h3b6b23ae_0, 1 + 2 * 3, 7);
+assertCall(hash_24558044.h2f333afa_0, 1 + 2 * 3, 7);
 
 /*
-den#70ad3796 ==#000a9fb6#3b6b23ae#0 -13.0
-assertCall(FloatEq#🔥🥗.#Eq#☂️🍰🔥#0, den#🌡️🛢️🏯😃, -13)
+den#70ad3796 ==#143b5e82#2f333afa#0 -13.0
+assertCall(FloatEq#🌽🍸🤵‍♀️.#Eq#🧱👨‍🦰🏖️#0, den#🌡️🛢️🏯😃, -13)
 */
-assertCall(hash_000a9fb6.h3b6b23ae_0, hash_70ad3796, -13);
+assertCall(hash_143b5e82.h2f333afa_0, hash_70ad3796, -13);
 
 /*
-deep#dcfc5c32 ==#000a9fb6#3b6b23ae#0 -70.0
-assertCall(FloatEq#🔥🥗.#Eq#☂️🍰🔥#0, deep#🤢, -70)
+deep#dcfc5c32 ==#143b5e82#2f333afa#0 -70.0
+assertCall(FloatEq#🌽🍸🤵‍♀️.#Eq#🧱👨‍🦰🏖️#0, deep#🤢, -70)
 */
-assertCall(hash_000a9fb6.h3b6b23ae_0, hash_dcfc5c32, -70);
+assertCall(hash_143b5e82.h2f333afa_0, hash_dcfc5c32, -70);
 
 /*
-thing#5bafb634 ==#6d46a318#3b6b23ae#0 0
-assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, thing#🦢🛷🤹😃, 0)
+thing#5bafb634 ==#24558044#2f333afa#0 0
+assertCall(IntEq#😯🧜‍♂️🐟.#Eq#🧱👨‍🦰🏖️#0, thing#🦢🛷🤹😃, 0)
 */
-assertCall(hash_6d46a318.h3b6b23ae_0, hash_5bafb634, 0);
+assertCall(hash_24558044.h2f333afa_0, hash_5bafb634, 0);

@@ -3,14 +3,14 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-@unique(0.5383562320075749) type Eq#3b6b23ae<T#:0> = {
+@unique(0.5383562320075749) type Eq#2f333afa<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_3b6b23ae<T> = {
-  type: "3b6b23ae";
-  h3b6b23ae_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_2f333afa<T> = {
+  type: "2f333afa";
+  h2f333afa_0: (arg_0: T, arg_1: T) => boolean;
 };
 
 /**
@@ -27,7 +27,7 @@ const callme#05a72192 = <T#:0>(x#:0: (T#:0) ={}> T#:0, arg#:1: T#:0): T#:0 ={}> 
 <T>(x#:0: ([var]T#:0) => [var]T#:0, arg#:1: [var]T#:0): [var]T#:0 => x#:0(arg#:1)
 ```
 */
-export const hash_05a72192: <T>(arg_0: (arg_0: T_0) => T_0, arg_1: T_0) => T_0 = <T>(x: (arg_0: T_0) => T_0, arg: T_0) => x(arg);
+export const hash_05a72192: <T>(arg_0: (arg_0: T) => T, arg_1: T) => T = <T>(x: (arg_0: T) => T, arg: T) => x(arg);
 
 /**
 ```
@@ -57,23 +57,23 @@ export const hash_62aa9914: number = hash_4be86ab4(4)(6);
 
 /**
 ```
-const IntEq#6d46a318 = Eq#3b6b23ae<int#builtin>{"=="#3b6b23ae#0: intEq#builtin}
-Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: intEq}
+const IntEq#24558044 = Eq#2f333afa<int#builtin>{"=="#2f333afa#0: intEq#builtin}
+Eq#🧱👨‍🦰🏖️{TODO SPREADs}{h2f333afa_0: intEq}
 ```
 */
-export const hash_6d46a318: t_3b6b23ae<number> = ({
-  type: "3b6b23ae",
-  h3b6b23ae_0: intEq
-} as t_3b6b23ae<number>);
+export const hash_24558044: t_2f333afa<number> = ({
+  type: "2f333afa",
+  h2f333afa_0: intEq
+} as t_2f333afa<number>);
 
 /*
-ten#62aa9914 ==#6d46a318#3b6b23ae#0 10
-assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, ten#👨‍🏭🥣🐔😃, 10)
+ten#62aa9914 ==#24558044#2f333afa#0 10
+assertCall(IntEq#😯🧜‍♂️🐟.#Eq#🧱👨‍🦰🏖️#0, ten#👨‍🏭🥣🐔😃, 10)
 */
-assertCall(hash_6d46a318.h3b6b23ae_0, hash_62aa9914, 10);
+assertCall(hash_24558044.h2f333afa_0, hash_62aa9914, 10);
 
 /*
-callIt#6a4caca2 ==#6d46a318#3b6b23ae#0 7
-assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, callIt#👈🚈🥘😃, 7)
+callIt#6a4caca2 ==#24558044#2f333afa#0 7
+assertCall(IntEq#😯🧜‍♂️🐟.#Eq#🧱👨‍🦰🏖️#0, callIt#👈🚈🥘😃, 7)
 */
-assertCall(hash_6d46a318.h3b6b23ae_0, hash_6a4caca2, 7);
+assertCall(hash_24558044.h2f333afa_0, hash_6a4caca2, 7);

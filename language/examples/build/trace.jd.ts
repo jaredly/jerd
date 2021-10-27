@@ -3,14 +3,14 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-@unique(0.5383562320075749) type Eq#3b6b23ae<T#:0> = {
+@unique(0.5383562320075749) type Eq#2f333afa<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_3b6b23ae<T> = {
-  type: "3b6b23ae";
-  h3b6b23ae_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_2f333afa<T> = {
+  type: "2f333afa";
+  h2f333afa_0: (arg_0: T, arg_1: T) => boolean;
 };
 
 /**
@@ -32,17 +32,17 @@ export const hash_055080e0: (arg_0: number) => number = (m: number) => m + hash_
 
 /**
 ```
-const IntEq#6d46a318 = Eq#3b6b23ae<int#builtin>{"=="#3b6b23ae#0: intEq#builtin}
-Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: intEq}
+const IntEq#24558044 = Eq#2f333afa<int#builtin>{"=="#2f333afa#0: intEq#builtin}
+Eq#🧱👨‍🦰🏖️{TODO SPREADs}{h2f333afa_0: intEq}
 ```
 */
-export const hash_6d46a318: t_3b6b23ae<number> = ({
-  type: "3b6b23ae",
-  h3b6b23ae_0: intEq
-} as t_3b6b23ae<number>);
+export const hash_24558044: t_2f333afa<number> = ({
+  type: "2f333afa",
+  h2f333afa_0: intEq
+} as t_2f333afa<number>);
 
 /*
-oneTerm#055080e0(m: 4) +#builtin oneTerm#055080e0(m: 1) ==#6d46a318#3b6b23ae#0 11
-assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, oneTerm#🙍🤐😫(4) + oneTerm#🙍🤐😫(1), 11)
+oneTerm#055080e0(m: 4) +#builtin oneTerm#055080e0(m: 1) ==#24558044#2f333afa#0 11
+assertCall(IntEq#😯🧜‍♂️🐟.#Eq#🧱👨‍🦰🏖️#0, oneTerm#🙍🤐😫(4) + oneTerm#🙍🤐😫(1), 11)
 */
-assertCall(hash_6d46a318.h3b6b23ae_0, hash_055080e0(4) + hash_055080e0(1), 11);
+assertCall(hash_24558044.h2f333afa_0, hash_055080e0(4) + hash_055080e0(1), 11);

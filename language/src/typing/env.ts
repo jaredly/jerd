@@ -53,10 +53,20 @@ import {
 } from './types';
 import typeType, { newEnvWithTypeAndEffectVbls } from './typeType';
 
-export const typeForId = (env: Env, id: Id) => env.global.types[idName(id)];
-export const typeForIdRaw = (env: Env, raw: string) => env.global.types[raw];
-export const termForId = (env: Env, id: Id) => env.global.terms[idName(id)];
-export const termForIdRaw = (env: Env, raw: string) => env.global.terms[raw];
+export const typeForId = (env: Env, id: Id) => typeForIdRaw(env, idName(id));
+export const typeForIdRaw = (env: Env, raw: string) => {
+    if (env.global.idRemap[raw]) {
+        raw = idName(env.global.idRemap[raw]);
+    }
+    return env.global.types[raw];
+};
+export const termForId = (env: Env, id: Id) => termForIdRaw(env, idName(id));
+export const termForIdRaw = (env: Env, raw: string) => {
+    if (env.global.idRemap[raw]) {
+        raw = idName(env.global.idRemap[raw]);
+    }
+    return env.global.terms[raw];
+};
 export const nameForId = (env: Env, raw: string) => env.global.idNames[raw];
 
 export const allTermIdsRaw = (env: Env) => Object.keys(env.global.terms);
@@ -1295,6 +1305,9 @@ export const resolveIdentifier = (
         }
         const id = idFromName(first);
         const term = termForIdRaw(env, first);
+        if (!term) {
+            console.log(id);
+        }
         return {
             type: 'ref',
             location,

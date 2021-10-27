@@ -29,14 +29,14 @@ const world#179e7b7a = (n#:0: int#builtin, m#:1: int#builtin): int#builtin ={}> 
 export const hash_179e7b7a: (arg_0: number, arg_1: number) => number = (n: number, m: number) => hash_353b9e6c(m) - n;
 
 /*
-Hello#2d892b6c{age#2d892b6c#0: world#179e7b7a(n: 20, m: 17), name#2d892b6c#1: "whatsit"}
-Hello#⏳🐚🍹{TODO SPREADs}{age: world#🕓🌌🧎‍♀️(20, 17), name: "whatsit"}
+Hello#021b0b9e{age#021b0b9e#0: world#179e7b7a(n: 20, m: 17), name#021b0b9e#1: "whatsit"}
+Hello#🌌🍦🤨{TODO SPREADs}{age: world#🕓🌌🧎‍♀️(20, 17), name: "whatsit"}
 */
 ({
   type: "Hello",
   age: hash_179e7b7a(20, 17),
   name: "whatsit"
-} as t_2d892b6c);
+} as t_021b0b9e);
 
 /*
 (2, 3)

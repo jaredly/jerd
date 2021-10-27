@@ -3,14 +3,14 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-@unique(0.5383562320075749) type Eq#3b6b23ae<T#:0> = {
+@unique(0.5383562320075749) type Eq#2f333afa<T#:0> = {
     "==": (T#:0, T#:0) ={}> bool#builtin,
 }
 ```
 */
-type t_3b6b23ae<T> = {
-  type: "3b6b23ae";
-  h3b6b23ae_0: (arg_0: T_0, arg_1: T_0) => boolean;
+type t_2f333afa<T> = {
+  type: "2f333afa";
+  h2f333afa_0: (arg_0: T, arg_1: T) => boolean;
 };
 
 /**
@@ -53,32 +53,36 @@ export const hash_6fbf49c0: (arg_0: (arg_0: number) => number, arg_1: number) =>
 
 /**
 ```
-const IntEq#6d46a318 = Eq#3b6b23ae<int#builtin>{"=="#3b6b23ae#0: intEq#builtin}
-Eq#☂️🍰🔥{TODO SPREADs}{h3b6b23ae_0: intEq}
+const IntEq#24558044 = Eq#2f333afa<int#builtin>{"=="#2f333afa#0: intEq#builtin}
+Eq#🧱👨‍🦰🏖️{TODO SPREADs}{h2f333afa_0: intEq}
 ```
 */
-export const hash_6d46a318: t_3b6b23ae<number> = ({
-  type: "3b6b23ae",
-  h3b6b23ae_0: intEq
-} as t_3b6b23ae<number>);
+export const hash_24558044: t_2f333afa<number> = ({
+  type: "2f333afa",
+  h2f333afa_0: intEq
+} as t_2f333afa<number>);
 
 /*
 y#6fbf49c0(doit: z#353b9e6c, v: 30) 
-    ==#6d46a318#3b6b23ae#0 60 +#builtin 2 +#builtin 5 +#builtin 2
-assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, y#🛀🥈🏘️😃(z#🍃🌍🚧, 30), 60 + 2 + 5 + 2)
+    ==#24558044#2f333afa#0 60 +#builtin 2 +#builtin 5 +#builtin 2
+assertCall(IntEq#😯🧜‍♂️🐟.#Eq#🧱👨‍🦰🏖️#0, y#🛀🥈🏘️😃(z#🍃🌍🚧, 30), 60 + 2 + 5 + 2)
 */
-assertCall(hash_6d46a318.h3b6b23ae_0, hash_6fbf49c0(hash_353b9e6c, 30), 60 + 2 + 5 + 2);
+assertCall(hash_24558044.h2f333afa_0, hash_6fbf49c0(hash_353b9e6c, 30), 60 + 2 + 5 + 2);
 
 /*
 y#6fbf49c0(doit: h#d902711c, v: 30) 
-    ==#6d46a318#3b6b23ae#0 60 -#builtin 2 +#builtin 5 -#builtin 2
-assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, y#🛀🥈🏘️😃(h#🧑‍💻, 30), 60 - 2 + 5 - 2)
+    ==#24558044#2f333afa#0 60 -#builtin 2 +#builtin 5 -#builtin 2
+assertCall(IntEq#😯🧜‍♂️🐟.#Eq#🧱👨‍🦰🏖️#0, y#🛀🥈🏘️😃(h#🧑‍💻, 30), 60 - 2 + 5 - 2)
 */
-assertCall(hash_6d46a318.h3b6b23ae_0, hash_6fbf49c0(hash_d902711c, 30), 60 - 2 + 5 - 2);
+assertCall(hash_24558044.h2f333afa_0, hash_6fbf49c0(hash_d902711c, 30), 60 - 2 + 5 - 2);
 
 /*
 y#6fbf49c0(doit: (n#:0: int#builtin): int#builtin ={}> n#:0 +#builtin 3, v: 30) 
-    ==#6d46a318#3b6b23ae#0 60 +#builtin 5 +#builtin 6
-assertCall(IntEq#🌃🚴🍶😃.#Eq#☂️🍰🔥#0, y#🛀🥈🏘️😃((n#:0: int): int => n#:0 + 3, 30), 60 + 5 + 6)
+    ==#24558044#2f333afa#0 60 +#builtin 5 +#builtin 6
+assertCall(
+    IntEq#😯🧜‍♂️🐟.#Eq#🧱👨‍🦰🏖️#0,
+    y#🛀🥈🏘️😃((n#:0: int): int => n#:0 + 3, 30),
+    60 + 5 + 6,
+)
 */
-assertCall(hash_6d46a318.h3b6b23ae_0, hash_6fbf49c0((n: number) => n + 3, 30), 60 + 5 + 6);
+assertCall(hash_24558044.h2f333afa_0, hash_6fbf49c0((n: number) => n + 3, 30), 60 + 5 + 6);
