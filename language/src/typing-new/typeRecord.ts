@@ -126,6 +126,10 @@ export const findSpread = (
         if (row.type !== 'RecordLiteralSpread') {
             continue;
         }
+        // STOPSHIP: OK so, we should have the list of all possible
+        // subTypes as expected here, so we don't get weird
+        // shadowing behavior.
+
         // NOTE: this can have a little weirdness ifff
         // um the goalType um is an unresolved ... binding?
         const typed = typeExpression(ctx, row.value, [goalType]);
@@ -162,6 +166,7 @@ export const typeVariableRecord = (
         })),
         rows,
         record,
+        true,
     );
 
     return wrapUnused(
@@ -280,6 +285,7 @@ export const typeConcreteRecord = (
         subTypeIds,
         rows,
         record,
+        spread.type !== 'Hole',
         baseDefaults,
     );
 
@@ -449,6 +455,7 @@ const calculateSubTypes = (
     subTypeIds: Array<{ id: Id; def: RecordDef }>,
     rows: RecordLiteralRow[],
     record: RecordLiteral,
+    fullSpread: boolean,
     baseDefaults: { [key: string]: boolean } = {},
 ) => {
     const names: { [key: string]: { i: number; id: Id } } = {};
@@ -475,7 +482,7 @@ const calculateSubTypes = (
             rows[i] = { type, value: null };
         });
         subTypes[idName(id)] = {
-            covered: false,
+            covered: fullSpread,
             spread: null,
             rows,
         };
