@@ -10,7 +10,6 @@ import {
     EnumExternal,
     EnumInternal,
     EnumSpread,
-    Expression,
     Identifier,
     Location,
     RecordRow,
@@ -18,45 +17,41 @@ import {
     StructDef,
     Toplevel,
     Type as ParseType,
-    TypeDecl,
 } from '../parsing/parser';
+import { LocatedError, TypeError } from './errors';
+import { getTypeError } from './getTypeError';
+import { void_ } from './preset';
 import typeExpr, { showLocation } from './typeExpr';
-import typeType, { newEnvWithTypeAndEffectVbls, newTypeVbl } from './typeType';
+import { uniqueDecorator } from './typeFile';
 import {
+    cloneGlobalEnv,
+    DecoratorDef as TypedDecoratorDef,
+    DecoratorDefArg,
+    EffectDef,
     EffectRef,
+    EnumDef as TypeEnumDef,
     Env,
     getAllSubTypes,
-    DecoratorDef as TypedDecoratorDef,
     getEffects,
     GlobalEnv,
     Id,
     idsEqual,
-    RecordDef,
-    Term,
-    Type,
-    TypeConstraint,
-    EnumDef as TypeEnumDef,
-    TypeReference,
-    Reference,
-    Symbol,
-    cloneGlobalEnv,
-    EffectDef,
-    Self,
-    selfEnv,
     newLocal,
-    UserTypeReference,
     newWithGlobal,
     nullLocation,
-    DecoratorDefArg,
-    UserReference,
-    ToplevelT,
+    RecordDef,
+    Reference,
+    Self,
+    selfEnv,
+    Symbol,
+    Term,
     ToplevelRecord,
+    ToplevelT,
+    Type,
+    TypeConstraint,
+    UserTypeReference,
 } from './types';
-import { void_ } from './preset';
-import { LocatedError, TypeError } from './errors';
-import { getTypeError } from './getTypeError';
-import { env } from 'process';
-import { uniqueDecorator } from './typeFile';
+import typeType, { newEnvWithTypeAndEffectVbls } from './typeType';
 
 export const typeForId = (env: Env, id: Id) => env.global.types[idName(id)];
 export const typeForIdRaw = (env: Env, raw: string) => env.global.types[raw];
@@ -757,7 +752,7 @@ export const typeRecordDefn = (
         ffi,
         extends: extenders,
         items: items,
-        defaults: Object.keys(defaults).length ? defaults : undefined,
+        defaults,
     };
 };
 

@@ -1,6 +1,6 @@
 import { parse } from '../parsing/grammar';
 import { getSortedTermDependencies, getUserDependencies } from './analyze';
-import { hashObject, idFromName, idName } from './env';
+import { hashObject, idFromName, idName, withoutLocations } from './env';
 import { presetEnv } from './preset';
 import { typeFile } from './typeFile';
 import { newWithGlobal } from './types';
@@ -20,6 +20,47 @@ const testDependencies = (text: string, deps: Array<string>) => {
         deps.map((d) => idName(env.global.names[d][0])).concat([hash]),
     );
 };
+
+it(`hash should be right TRUCK`, () => {
+    const initialEnv = newWithGlobal(init.global);
+    const { env, expressions } = typeFile(
+        parse(
+            `
+        @ffi
+        type Vec2 = {
+            x: float,
+            y: float
+        }
+
+        @ffi
+        type Vec3 = {
+            ...Vec2,
+            z: float
+        }
+
+        @ffi
+        type Vec4 = {
+            ...Vec3,
+            w: float,
+        }
+    `,
+        ),
+        initialEnv,
+        'test',
+    );
+
+    expect(env.global.typeNames['Vec4']).toEqual([idFromName('38dc9122')]);
+    // writeFileSync(
+    //     '/Users/jared/tmp/old.json',
+    //     JSON.stringify(
+    //         withoutLocations(
+    //             env.global.types[idName(env.global.typeNames['Vec2'][0])],
+    //         ),
+    //     ),
+    // );
+    // console.log(env.global.types[idName(env.global.typeNames['Vec2'][0])]);
+    // fail;
+});
 
 describe('getUserDependencies', () => {
     it('should work', () => {

@@ -896,7 +896,7 @@ export const decoratorExports = (env: Env) => {
                     (id, i): Array<t.Statement> => {
                         const decl = env.global.decorators[idName(id)];
                         const args = decl.typeVbls.length
-                            ? decl.typeVbls.map((_, i) => 'T' + i)
+                            ? decl.typeVbls.map((vbl, i) => vbl.sym.name)
                             : null;
                         const suffixed = name + (i === 0 ? '' : '$' + i);
                         return [
@@ -952,7 +952,7 @@ export const typeExports = (env: Env) => {
                     (id, i): Array<t.Statement> => {
                         const decl = typeForId(env, id);
                         const args = decl.typeVbls.length
-                            ? decl.typeVbls.map((_, i) => 'T' + i)
+                            ? decl.typeVbls.map((vbl, i) => vbl.sym.name)
                             : null;
                         const suffixed = name + (i === 0 ? '' : '$' + i);
                         return [

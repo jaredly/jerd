@@ -136,7 +136,7 @@ export const typeToAst = (
                 );
             }
         case 'var':
-            return t.tsTypeReference(t.identifier(`T_${type.sym.unique}`));
+            return t.tsTypeReference(t.identifier(type.sym.name));
         case 'cps-lambda':
             return typeToAst(env, opts, cpsLambdaToLambda(env, opts, type));
         case 'done-lambda':

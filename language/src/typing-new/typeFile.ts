@@ -529,6 +529,7 @@ function typeStructDef(
         location: location,
         typeVbls: typedVbls,
         unique: ffi ? 0 : unique != null ? unique : ctx.rng(),
+        defaults: {},
     };
     return {
         type: 'RecordDef',

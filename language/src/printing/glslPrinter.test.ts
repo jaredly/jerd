@@ -145,7 +145,7 @@ describe('glslPrinter', () => {
         // NOTE: If this is failing, you probably need to run
         // `yarn prelude-types`
         expect(processOne(`vec2(2.0, 2.0)`)).toMatchInlineSnapshot(
-            `/*vec2(2, 2)*/const vec2 toplevel_d1db03ce = vec2(2.0, 2.0);`,
+            `/*vec2(2, 2)*/const Vec2_78566d10 toplevel_19c9d924 = vec2(2.0, 2.0);`,
         );
     });
 
@@ -153,7 +153,7 @@ describe('glslPrinter', () => {
         expect(
             processOne(`vec2(2.0, 2.0) + vec2(3.0, 1.0)`),
         ).toMatchInlineSnapshot(
-            `/*vec2(2, 2) + vec2(3, 1)*/const vec2 toplevel_486959fe = (vec2(2.0, 2.0) + vec2(3.0, 1.0));`,
+            `/*vec2(2, 2) + vec2(3, 1)*/const Vec2_78566d10 toplevel_e2e08506 = (vec2(2.0, 2.0) + vec2(3.0, 1.0));`,
         );
     });
 
@@ -170,8 +170,11 @@ describe('glslPrinter', () => {
                 float thing_5461dc4c(int n_0) {
                     return float((n_0 * 2));
                 }
-                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => vec4(vec3(pos#:1, thing#😥💖👰‍♀️😃(23)), 1) */
-                vec4 toplevel_7da04efa(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                /* (env#:0: GLSLEnv#🎪🌇👪😃, pos#:1: Vec2#🧑‍🔧🏄‍♀️🕤😃): Vec4#🧑‍🎨🎪🌔 => vec4(vec3(pos#:1, thing#😥💖👰‍♀️😃(23)), 1) */
+                Vec4_38dc9122 toplevel_57e338d5(
+                    GLSLEnv_5cec7724 env_0,
+                    Vec2_78566d10 pos_1
+                ) {
                     return vec4(vec3(pos_1, thing_5461dc4c(23)), 1.0);
                 }
             `);
@@ -192,8 +195,8 @@ describe('glslPrinter', () => {
                 float basic_specialization_ed5118a0() {
                     return (toplevel_lambda_401795b0(2) + 2.30);
                 }
-                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => vec4(basic_specialization#🤘()) */
-                vec4 toplevel_428e330a(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                /* (env#:0: GLSLEnv#🎪🌇👪😃, pos#:1: Vec2#🧑‍🔧🏄‍♀️🕤😃): Vec4#🧑‍🎨🎪🌔 => vec4(basic_specialization#🤘()) */
+                Vec4_38dc9122 toplevel_3b6eb578(GLSLEnv_5cec7724 env_0, Vec2_78566d10 pos_1) {
                     return vec4(basic_specialization_ed5118a0());
                 }
             `);
@@ -223,26 +226,26 @@ describe('glslPrinter', () => {
                         return 1;
                     } else {
                         if (n#:0 modInt 2) == (0) {
-                            return awesome#🍃(n#:0 / 2) + 1;
+                            return awesome#👨‍💼🚜🌤️😃(n#:0 / 2) + 1;
                         } else {
-                            return awesome#🍃(n#:0 * 3 + 1) + 1;
+                            return awesome#👨‍💼🚜🌤️😃(n#:0 * 3 + 1) + 1;
                         };
                     };
                 } */
-                int awesome_92580e6c(int n_0) {
+                int awesome_7a2d0117(int n_0) {
                     if ((n_0 <= 1)) {
                         return 1;
                     } else {
                         if (((n_0 % 2) == 0)) {
-                            return (awesome_92580e6c((n_0 / 2)) + 1);
+                            return (awesome_7a2d0117((n_0 / 2)) + 1);
                         } else {
-                            return (awesome_92580e6c(((n_0 * 3) + 1)) + 1);
+                            return (awesome_7a2d0117(((n_0 * 3) + 1)) + 1);
                         };
                     };
                 }
-                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => vec4(float(awesome#🍃(3))) */
-                vec4 toplevel_350d2344(GLSLEnv_a25a17de env_0, vec2 pos_1) {
-                    return vec4(float(awesome_92580e6c(3)));
+                /* (env#:0: GLSLEnv#🎪🌇👪😃, pos#:1: Vec2#🧑‍🔧🏄‍♀️🕤😃): Vec4#🧑‍🎨🎪🌔 => vec4(float(awesome#👨‍💼🚜🌤️😃(3))) */
+                Vec4_38dc9122 toplevel_2c33c982(GLSLEnv_5cec7724 env_0, Vec2_78566d10 pos_1) {
+                    return vec4(float(awesome_7a2d0117(3)));
                 }
             `);
         });
@@ -454,7 +457,7 @@ describe('glslPrinter', () => {
                 - Invalid GLSL at 14:75-14:82: Array length not inferrable
                 - Invalid GLSL at 16:71-16:74: Array length not inferrable
 
-                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => {
+                /* (env#:0: GLSLEnv#🎪🌇👪😃, pos#:1: Vec2#🧑‍🔧🏄‍♀️🕤😃): Vec4#🧑‍🎨🎪🌔 => {
                     const values#:10: Array<int; 10> = range_specialization#🤾‍♂️();
                     const collect#:12: Array<float; 0> = [];
                     const result#:15: Array<float>;
@@ -467,7 +470,7 @@ describe('glslPrinter', () => {
                         if len(values#:10) - values_i#:13 >= 1 {
                             const i#:17: [var]T#:0 = values#:10[values_i#:13];
                             values_i#:13 = values_i#:13 + 1;
-                            collect#:12 = [...collect#:12, length(pos#:1 - env#:0.#GLSLEnv#🏏#1 / 10 * float(i#:17)) - float(i#:17) * 10];
+                            collect#:12 = [...collect#:12, length(pos#:1 - env#:0.#GLSLEnv#🎪🌇👪😃#1 / 10 * float(i#:17)) - float(i#:17) * 10];
                             continue;
                         };
                         match_fail!();
@@ -478,7 +481,7 @@ describe('glslPrinter', () => {
                         return vec4(0);
                     };
                 } */
-                vec4 toplevel_c73fd942(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                Vec4_38dc9122 toplevel_2d1bf342(GLSLEnv_5cec7724 env_0, Vec2_78566d10 pos_1) {
                     int[10] values = range_specialization_db2201b8();
                     float[0] collect = float[]();
                     float[NULL] result;
@@ -651,13 +654,13 @@ describe('glslPrinter', () => {
                 int[10] range_specialization_db2201b8() {
                     return rangeInner_specialization_42f846d8();
                 }
-                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => {
+                /* (env#:0: GLSLEnv#🎪🌇👪😃, pos#:1: Vec2#🧑‍🔧🏄‍♀️🕤😃): Vec4#🧑‍🎨🎪🌔 => {
                     const items#:6: Array<int; 10> = range_specialization#🤾‍♂️();
                     const init#:7: float = 1000;
                     const items_i#:9: int = 0;
                     for (; items_i#:9 <= 10; items_i#:9 = items_i#:9 + 1) {
                         const i#:14: int = items#:6[items_i#:9];
-                        init#:7 = min(init#:7, length(pos#:1 - env#:0.#GLSLEnv#🏏#1 / 10 * float(i#:14)) - float(i#:14) * 10);
+                        init#:7 = min(init#:7, length(pos#:1 - env#:0.#GLSLEnv#🎪🌇👪😃#1 / 10 * float(i#:14)) - float(i#:14) * 10);
                         continue;
                     };
                     if init#:7 < 0 {
@@ -666,7 +669,7 @@ describe('glslPrinter', () => {
                         return vec4(0);
                     };
                 } */
-                vec4 toplevel_432e01aa(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                Vec4_38dc9122 toplevel_02a1711f(GLSLEnv_5cec7724 env_0, Vec2_78566d10 pos_1) {
                     int[10] items = range_specialization_db2201b8();
                     float init = 1000.0;
                     int items_i = 0;
@@ -731,7 +734,7 @@ describe('glslPrinter', () => {
                 int[10] range_specialization_db2201b8() {
                     return rangeInner_specialization_42f846d8();
                 }
-                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => {
+                /* (env#:0: GLSLEnv#🎪🌇👪😃, pos#:1: Vec2#🧑‍🔧🏄‍♀️🕤😃): Vec4#🧑‍🎨🎪🌔 => {
                     const first#:4: int;
                     const continueBlock#:6: bool = true;
                     if 10 >= 1 {
@@ -744,7 +747,7 @@ describe('glslPrinter', () => {
                     };
                     return vec4(float(10) + float(first#:4));
                 } */
-                vec4 toplevel_5fdf92f4(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                Vec4_38dc9122 toplevel_3bfd6608(GLSLEnv_5cec7724 env_0, Vec2_78566d10 pos_1) {
                     int first;
                     bool continueBlock = true;
                     if ((10 >= 1)) {
@@ -877,7 +880,7 @@ describe('glslPrinter', () => {
                 int[10] range_specialization_3358031c() {
                     return rangeInner_specialization_5138eb98();
                 }
-                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => {
+                /* (env#:0: GLSLEnv#🎪🌇👪😃, pos#:1: Vec2#🧑‍🔧🏄‍♀️🕤😃): Vec4#🧑‍🎨🎪🌔 => {
                     const first#:4: int;
                     const continueBlock#:6: bool = true;
                     if 10 >= 1 {
@@ -890,7 +893,7 @@ describe('glslPrinter', () => {
                     };
                     return vec4(float(10) + float(first#:4));
                 } */
-                vec4 toplevel_73e88e7c(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                Vec4_38dc9122 toplevel_df47a1bc(GLSLEnv_5cec7724 env_0, Vec2_78566d10 pos_1) {
                     int first;
                     bool continueBlock = true;
                     if ((10 >= 1)) {
@@ -919,7 +922,7 @@ describe('glslPrinter', () => {
 				}
 			`),
             ).toMatchInlineSnapshot(`
-                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => {
+                /* (env#:0: GLSLEnv#🎪🌇👪😃, pos#:1: Vec2#🧑‍🔧🏄‍♀️🕤😃): Vec4#🧑‍🎨🎪🌔 => {
                     const items#:2: Array<int; 3> = [1, 2, 3];
                     const result#:6: float;
                     const continueBlock#:7: bool = true;
@@ -939,7 +942,7 @@ describe('glslPrinter', () => {
                     };
                     return vec4(result#:6);
                 } */
-                vec4 toplevel_adb93658(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                Vec4_38dc9122 toplevel_65248942(GLSLEnv_5cec7724 env_0, Vec2_78566d10 pos_1) {
                     int[3] items = int[](1, 2, 3);
                     float result;
                     bool continueBlock = true;
@@ -1001,13 +1004,13 @@ describe('glslPrinter', () => {
 				`,
                 ),
             ).toMatchInlineSnapshot(`
-                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => {
+                /* (env#:0: GLSLEnv#🎪🌇👪😃, pos#:1: Vec2#🧑‍🔧🏄‍♀️🕤😃): Vec4#🧑‍🎨🎪🌔 => {
                     const start#:4: int = 0;
                     const init#:6: float = 1000;
                     const result#:8: float;
                     const continueBlock#:9: bool = true;
                     for (; start#:4 < 5; start#:4 = start#:4 + 1) {
-                        init#:6 = min(init#:6, length(pos#:1 - vec2(float(start#:4) * 30 + sin(env#:0.#GLSLEnv#🏏#0), float(start#:4) * 30)) - 10);
+                        init#:6 = min(init#:6, length(pos#:1 - vec2(float(start#:4) * 30 + sin(env#:0.#GLSLEnv#🎪🌇👪😃#0), float(start#:4) * 30)) - 10);
                         continue;
                     };
                     if continueBlock#:9 {
@@ -1016,7 +1019,7 @@ describe('glslPrinter', () => {
                     };
                     return vec4(result#:8);
                 } */
-                vec4 toplevel_5a451e7c(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                Vec4_38dc9122 toplevel_1a298bc2(GLSLEnv_5cec7724 env_0, Vec2_78566d10 pos_1) {
                     int start = 0;
                     float init = 1000.0;
                     float result;
@@ -1046,11 +1049,11 @@ describe('glslPrinter', () => {
 				`,
                 ),
             ).toMatchInlineSnapshot(`
-                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => {
+                /* (env#:0: GLSLEnv#🎪🌇👪😃, pos#:1: Vec2#🧑‍🔧🏄‍♀️🕤😃): Vec4#🧑‍🎨🎪🌔 => {
                     const m#:2: unnamed#🚐🌘👩‍🏫 = RECORDNOTFOUND;
                     return vec4(float(m#:2.#unnamed#🚐🌘👩‍🏫#0), float(m#:2.#unnamed#🚐🌘👩‍🏫#1), float(m#:2.#unnamed#🚐🌘👩‍🏫#0), 2.3);
                 } */
-                vec4 toplevel_77150cfa(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                Vec4_38dc9122 toplevel_04d4a6e8(GLSLEnv_5cec7724 env_0, Vec2_78566d10 pos_1) {
                     T106e4734 m = T106e4734(10, 2);
                     return vec4(float(m.h106e4734_0), float(m.h106e4734_1), float(m.h106e4734_0), 2.30);
                 }
@@ -1068,11 +1071,11 @@ describe('glslPrinter', () => {
 				`,
                 ),
             ).toMatchInlineSnapshot(`
-                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => {
+                /* (env#:0: GLSLEnv#🎪🌇👪😃, pos#:1: Vec2#🧑‍🔧🏄‍♀️🕤😃): Vec4#🧑‍🎨🎪🌔 => {
                     const m#:2: unnamed#🌕 = RECORDNOTFOUND;
                     return vec4(float(m#:2.#unnamed#🌕#0) + float(m#:2.#unnamed#🌕#0));
                 } */
-                vec4 toplevel_7ec2fa1b(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                Vec4_38dc9122 toplevel_7c23c756(GLSLEnv_5cec7724 env_0, Vec2_78566d10 pos_1) {
                     T8dbd478e m = T8dbd478e(3, 2.0);
                     return vec4((float(m.h8dbd478e_0) + float(m.h8dbd478e_0)));
                 }
@@ -1095,11 +1098,11 @@ describe('glslPrinter', () => {
                 T8dbd478e makeIt_092ba55c(int n_0, T8dbd478e m_1) {
                     return T8dbd478e((n_0 + int(m_1.h8dbd478e_1)), float((n_0 + m_1.h8dbd478e_0)));
                 }
-                /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => {
+                /* (env#:0: GLSLEnv#🎪🌇👪😃, pos#:1: Vec2#🧑‍🔧🏄‍♀️🕤😃): Vec4#🧑‍🎨🎪🌔 => {
                     const m#:2: unnamed#🌕 = makeIt#🧛🌏🗨️(2, RECORDNOTFOUND);
                     return vec4(float(m#:2.#unnamed#🌕#0) + m#:2.#unnamed#🌕#1);
                 } */
-                vec4 toplevel_2c109762(GLSLEnv_a25a17de env_0, vec2 pos_1) {
+                Vec4_38dc9122 toplevel_0ed2dd0a(GLSLEnv_5cec7724 env_0, Vec2_78566d10 pos_1) {
                     T8dbd478e m = makeIt_092ba55c(2, T8dbd478e(1, 4.0));
                     return vec4((float(m.h8dbd478e_0) + m.h8dbd478e_1));
                 }
@@ -1128,34 +1131,60 @@ describe('glslPrinter', () => {
             uniform int u_mousebutton;
             uniform vec3 u_camera;
             uniform vec2 u_resolution;
-            /* struct GLSLEnv#🏏 {
-                time: float;
-                resolution: Vec2#🍱🐶💣;
-                camera: Vec3#😦;
-                mouse: Vec2#🍱🐶💣;
+            /* struct Vec2#🧑‍🔧🏄‍♀️🕤😃 {
+                x: float;
+                y: float;
             } */
-            struct GLSLEnv_a25a17de{
+            struct Vec2_78566d10{
+                float x;
+                float y;
+            };
+            /* struct Vec3#🗻🌻🤽‍♂️ {
+                ...Vec2#🧑‍🔧🏄‍♀️🕤😃;
+                z: float;
+            } */
+            struct Vec3_1b597af1{
+                float z;
+                float x;
+                float y;
+            };
+            /* struct GLSLEnv#🎪🌇👪😃 {
+                time: float;
+                resolution: Vec2#🧑‍🔧🏄‍♀️🕤😃;
+                camera: Vec3#🗻🌻🤽‍♂️;
+                mouse: Vec2#🧑‍🔧🏄‍♀️🕤😃;
+            } */
+            struct GLSLEnv_5cec7724{
                 float time;
-                vec2 resolution;
-                vec3 camera;
-                vec2 mouse;
+                Vec2_78566d10 resolution;
+                Vec3_1b597af1 camera;
+                Vec2_78566d10 mouse;
+            };
+            /* struct Vec4#🧑‍🎨🎪🌔 {
+                ...Vec3#🗻🌻🤽‍♂️;
+                w: float;
+            } */
+            struct Vec4_38dc9122{
+                float w;
+                float z;
+                float x;
+                float y;
             };
             /**
             \`\`\`
-            const res#a38570e0 = (env#:0: GLSLEnv#a25a17de, pos#:1: Vec2#08f7c2ac): Vec4#b1f05ae8 ={}> vec4#ba091e3e(
+            const res#763f8490 = (env#:0: GLSLEnv#5cec7724, pos#:1: Vec2#78566d10): Vec4#38dc9122 ={}> vec4#16a20410(
                 x: 1.0,
             )
             \`\`\`
             */
-            /* (env#:0: GLSLEnv#🏏, pos#:1: Vec2#🍱🐶💣): Vec4#🌎 => vec4(1) */
-            vec4 res_a38570e0(
-                GLSLEnv_a25a17de env_0,
-                vec2 pos_1
-            ) {
+            /* (env#:0: GLSLEnv#🎪🌇👪😃, pos#:1: Vec2#🧑‍🔧🏄‍♀️🕤😃): Vec4#🧑‍🎨🎪🌔 => vec4(
+                1,
+            ) */
+            Vec4_38dc9122 res_763f8490(GLSLEnv_5cec7724 env_0, Vec2_78566d10 pos_1) {
                 return vec4(1.0);
             }
             void main() {
-                fragColor = res_a38570e0(GLSLEnv_a25a17de(u_time, u_resolution, u_camera, u_mouse), gl_FragCoord.xy);
+                fragColor = res_763f8490(GLSLEnv_5cec7724(u_state, u_time, u_resolution, u_camera, u_mouse, u_mousebutton), gl_FragCoord.xy);
             }
         `);
         // yes

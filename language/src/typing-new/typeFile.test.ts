@@ -1,16 +1,13 @@
 import { parseTyped } from '../parsing/parser-new';
-import { idName } from '../typing/env';
+import { idFromName, idName } from '../typing/env';
 import * as preset from '../typing/preset';
-import { nullLocation, RecordDef } from '../typing/types';
-import { addRecord, addTerm } from './Library';
+import { RecordDef } from '../typing/types';
 import {
     customMatchers,
     errorSerilaizer,
     newContext,
-    parseExpression,
     parseToplevels,
     rawSnapshotSerializer,
-    showTermErrors,
     termToString,
     warningsSerializer,
 } from './test-utils';
@@ -71,7 +68,7 @@ describe('typeFile', () => {
         const ctx = newContext(`
 		type A {}
 		@ffi
-		type Vec2 { x: float, y: float }
+		type Vec2 = { x: float, y: float }
 		`);
         const { defn, meta } = ctx.library.types.defns[
             idName(ctx.library.types.names['Vec2'][0])
@@ -81,6 +78,31 @@ describe('typeFile', () => {
         }
         expect(defn.ffi).toBeTruthy();
         expect(defn.unique).toEqual(0);
+    });
+
+    it(`hash should be right for Vec4 TRUCK`, () => {
+        const ctx = newContext(`
+			@ffi
+			type Vec2 = {
+				x: float,
+				y: float
+			}
+
+			@ffi
+			type Vec3 = {
+				...Vec2,
+				z: float
+			}
+
+			@ffi
+			type Vec4 = {
+				...Vec3,
+				w: float,
+			}
+		`);
+        expect(ctx.library.types.names['Vec4']).toEqual([
+            idFromName('38dc9122'),
+        ]);
     });
 
     it(`why isnt as working`, () => {

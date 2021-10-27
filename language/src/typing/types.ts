@@ -1111,7 +1111,7 @@ export type RecordDef = {
     items: Array<Type>;
     ffi: { tag: string; names: Array<string> } | null;
     decorators?: Decorators;
-    defaults?: {
+    defaults: {
         // For the toplevel record, it's just idx.toString()
         // For subTypes, it's `${idName(id)}#${idx}`
         [idAndNumber: string]: {
