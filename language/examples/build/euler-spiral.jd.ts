@@ -679,7 +679,7 @@ export const hash_64f64f6c: (arg_0: number, arg_1: number, arg_2: number, arg_3:
 };
 
 /*
-@display#332375b6(id: "drawable") {
+@display#d9afd40a(id: "drawable") {
     const C#:0 = @slider#4e421b50(min: 1, max: 100, step: 1) @title#1b6d573e(
         title: "C: number of superspiral",
     ) 65;

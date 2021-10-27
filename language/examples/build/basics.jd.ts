@@ -16,16 +16,16 @@ type t_2f333afa<T> = {
 
 /**
 ```
-@unique(0.7650832933732973) type Person#3f762676 = {
+@unique(0.5661807692527293) type Person#f13f8074 = {
     name: string#builtin,
     age: int#builtin,
 }
 ```
 */
-type t_3f762676 = {
-  type: "3f762676";
-  h3f762676_0: string;
-  h3f762676_1: number;
+type t_f13f8074 = {
+  type: "f13f8074";
+  hf13f8074_0: string;
+  hf13f8074_1: number;
 };
 
 /**
@@ -98,36 +98,36 @@ export const hash_38ab4eac: () => string = () => "yes";
 
 /**
 ```
-const me#4c328b06 = Person#3f762676{name#3f762676#0: "Jerd", age#3f762676#1: 13}
-Person#🍏👯🎰{TODO SPREADs}{h3f762676_0: "Jerd", h3f762676_1: 13}
+const me#9304e5fe = Person#f13f8074{name#f13f8074#0: "Jerd", age#f13f8074#1: 13}
+Person#💌{TODO SPREADs}{hf13f8074_0: "Jerd", hf13f8074_1: 13}
 ```
 */
-export const hash_4c328b06: t_3f762676 = ({
-  type: "3f762676",
-  h3f762676_0: "Jerd",
-  h3f762676_1: 13
-} as t_3f762676);
+export const hash_9304e5fe: t_f13f8074 = ({
+  type: "f13f8074",
+  hf13f8074_0: "Jerd",
+  hf13f8074_1: 13
+} as t_f13f8074);
 
 /**
 ```
-const personAsString#1085170c = As#As<Person#3f762676, string#builtin>{
-    as#As#0: (person#:0: Person#3f762676): string#builtin ={}> "${person#:0.name#3f762676#0} (age $#1175499e{person#:0.age#3f762676#1})",
+const personAsString#6b1fc5e2 = As#As<Person#f13f8074, string#builtin>{
+    as#As#0: (person#:0: Person#f13f8074): string#builtin ={}> "${person#:0.name#f13f8074#0} (age $#1175499e{person#:0.age#f13f8074#1})",
 }
 As#😉{TODO SPREADs}{
-    hAs_0: (person#:0: Person#🍏👯🎰): string => stringConcat(
+    hAs_0: (person#:0: Person#💌): string => stringConcat(
         stringConcat(
-            person#:0.#Person#🍏👯🎰#0,
-            stringConcat(" (age ", IntAsString#🚣‍♀️🦸‍♀️👨‍💼.#As#😉#0(person#:0.#Person#🍏👯🎰#1)),
+            person#:0.#Person#💌#0,
+            stringConcat(" (age ", IntAsString#🚣‍♀️🦸‍♀️👨‍💼.#As#😉#0(person#:0.#Person#💌#1)),
         ),
         ")",
     ),
 }
 ```
 */
-export const hash_1085170c: t_As<t_3f762676, string> = ({
+export const hash_6b1fc5e2: t_As<t_f13f8074, string> = ({
   type: "As",
-  hAs_0: (person: t_3f762676) => person.h3f762676_0 + (" (age " + hash_1175499e.hAs_0(person.h3f762676_1)) + ")"
-} as t_As<t_3f762676, string>);
+  hAs_0: (person: t_f13f8074) => person.hf13f8074_0 + (" (age " + hash_1175499e.hAs_0(person.hf13f8074_1)) + ")"
+} as t_As<t_f13f8074, string>);
 
 /**
 ```
@@ -478,11 +478,11 @@ assertCall(
 assertCall(hash_8a86d00e.h2f333afa_0, "Hello " + hash_1175499e.hAs_0(10 + 2) + " folks", "Hello 12 folks");
 
 /*
-"Who's there? $#1085170c{me#4c328b06}" ==#8a86d00e#2f333afa#0 "Who's there? Jerd (age 13)"
+"Who's there? $#6b1fc5e2{me#9304e5fe}" ==#8a86d00e#2f333afa#0 "Who's there? Jerd (age 13)"
 assertCall(
     StringEq#😍.#Eq#🧱👨‍🦰🏖️#0,
-    stringConcat("Who's there? ", personAsString#💒👰‍♂️👨‍⚖️.#As#😉#0(me#🏪👈👁️😃)),
+    stringConcat("Who's there? ", personAsString#👨‍👧‍👧🪁🍜😃.#As#😉#0(me#🐆)),
     "Who's there? Jerd (age 13)",
 )
 */
-assertCall(hash_8a86d00e.h2f333afa_0, "Who's there? " + hash_1085170c.hAs_0(hash_4c328b06), "Who's there? Jerd (age 13)");
+assertCall(hash_8a86d00e.h2f333afa_0, "Who's there? " + hash_6b1fc5e2.hAs_0(hash_9304e5fe), "Who's there? Jerd (age 13)");

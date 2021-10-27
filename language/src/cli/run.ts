@@ -65,7 +65,7 @@ export const main = (fnames: Array<string>, flags: Flags, init: Init) => {
                 if (
                     processFile(
                         fname,
-                        newWithGlobal(initialEnv),
+                        newWithGlobal(initialEnv, true),
                         builtinNames,
                         flags.assert,
                         flags.run,

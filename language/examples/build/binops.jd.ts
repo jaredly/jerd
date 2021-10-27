@@ -3,14 +3,14 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-@unique(0.4035738849882096) type Addable#30d0c542<T#:0> = {
+@unique(0.5661807692527293) type Addable#d2395568<T#:0> = {
     "+": (T#:0, T#:0) ={}> T#:0,
 }
 ```
 */
-type t_30d0c542<T> = {
-  type: "30d0c542";
-  h30d0c542_0: (arg_0: T, arg_1: T) => T;
+type t_d2395568<T> = {
+  type: "d2395568";
+  hd2395568_0: (arg_0: T, arg_1: T) => T;
 };
 
 /**
@@ -175,26 +175,26 @@ export const hash_19cbd74a: (arg_0: [number, number]) => number = (t: [number, n
 
 /**
 ```
-const IntArrayAddable#05f1dc64 = Addable#30d0c542<Array#builtin<int#builtin>>{
-    "+"#30d0c542#0: (a#:0: Array#builtin<int#builtin>, b#:1: Array#builtin<int#builtin>): Array#builtin<
+const IntArrayAddable#5ec36516 = Addable#d2395568<Array#builtin<int#builtin>>{
+    "+"#d2395568#0: (a#:0: Array#builtin<int#builtin>, b#:1: Array#builtin<int#builtin>): Array#builtin<
         int#builtin,
     > ={}> concat#builtin<int#builtin>(a#:0, b#:1),
 }
-Addable#🤵‍♂️🤕🗼{TODO SPREADs}{
-    h30d0c542_0: (a#:0: Array<int>, b#:1: Array<int>): Array<int> => concat<int>(a#:0, b#:1),
+Addable#🧟{TODO SPREADs}{
+    hd2395568_0: (a#:0: Array<int>, b#:1: Array<int>): Array<int> => concat<int>(a#:0, b#:1),
 }
 ```
 */
-export const hash_05f1dc64: t_30d0c542<Array<number>> = ({
-  type: "30d0c542",
-  h30d0c542_0: (a: Array<number>, b: Array<number>) => concat(a, b)
-} as t_30d0c542<Array<number>>);
+export const hash_5ec36516: t_d2395568<Array<number>> = ({
+  type: "d2395568",
+  hd2395568_0: (a: Array<number>, b: Array<number>) => concat(a, b)
+} as t_d2395568<Array<number>>);
 
 /*
-<int#builtin>[1] +#05f1dc64#30d0c542#0 <int#builtin>[2, 3]
-IntArrayAddable#👽💖💩.#Addable#🤵‍♂️🤕🗼#0([1], [2, 3])
+<int#builtin>[1] +#5ec36516#d2395568#0 <int#builtin>[2, 3]
+IntArrayAddable#🧑‍💼👩‍🦲🐵😃.#Addable#🧟#0([1], [2, 3])
 */
-hash_05f1dc64.h30d0c542_0([1], [2, 3]);
+hash_5ec36516.hd2395568_0([1], [2, 3]);
 
 /*
 goToTown#19cbd74a(t: (2, 3)) ==#24558044#2f333afa#0 2

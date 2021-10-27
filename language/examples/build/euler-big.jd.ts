@@ -679,7 +679,7 @@ export const hash_2f797cda: (arg_0: number, arg_1: number, arg_2: number, arg_3:
 };
 
 /*
-@display#35d54832(id: "drawable") {
+@display#d9afd40a(id: "drawable") {
     const s0p1#:0 = @slider#4e421b50(min: 1, max: 20, step: 1) @title#1b6d573e(
         title: "s0p1: segments per spiral",
     ) 5;

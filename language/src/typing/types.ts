@@ -312,16 +312,16 @@ export const newLocal = (): LocalEnv => ({
     tmpTypeVbls: {},
 });
 
-export const newWithGlobal = (env: GlobalEnv): Env => ({
+export const newWithGlobal = (env: GlobalEnv, resetRng = false): Env => ({
     depth: 0,
-    global: cloneGlobalEnv(env),
+    global: cloneGlobalEnv(env, resetRng),
     local: newLocal(),
     term: { nextTraceId: 0, localNames: {} },
 });
 
-export const cloneGlobalEnv = (env: GlobalEnv): GlobalEnv => {
+export const cloneGlobalEnv = (env: GlobalEnv, resetRng = false): GlobalEnv => {
     return {
-        rng: env.rng,
+        rng: resetRng ? defaultRng() : env.rng,
         idRemap: { ...env.idRemap },
         attributeNames: { ...env.attributeNames },
         recordGroups: { ...env.recordGroups },
