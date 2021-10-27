@@ -5,7 +5,12 @@ import { jsx, css } from '@emotion/react';
 import * as React from 'react';
 import { Env } from '@jerd/language/src/typing/types';
 import { Content, RenderPlugins } from './State';
-import { idFromName, idName } from '@jerd/language/src/typing/env';
+import {
+    idFromName,
+    idName,
+    typeForId,
+    typeForIdRaw,
+} from '@jerd/language/src/typing/env';
 import { renderAttributedText } from './Cell/Render';
 import {
     atom,
@@ -53,7 +58,7 @@ const styles = {
 };
 
 const typeContent = (env: Env, idRaw: string): Content => {
-    return typeForId(env, idRaw).type === 'Enum'
+    return typeForIdRaw(env, idRaw).type === 'Enum'
         ? {
               type: 'enum',
               id: idFromName(idRaw),
@@ -101,7 +106,8 @@ const Library = ({
                                     css={styles.item}
                                     style={{
                                         color:
-                                            typeForId(env, hash).type === 'Enum'
+                                            typeForIdRaw(env, hash).type ===
+                                            'Enum'
                                                 ? '#afa'
                                                 : 'white',
                                     }}

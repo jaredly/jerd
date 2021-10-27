@@ -115,7 +115,7 @@ export type RecordRow = {
 };
 
 export type Loc = { offset: number; line: number; column: number };
-export type Location = { start: Loc; end: Loc };
+export type Location = { start: Loc; end: Loc; idx: number };
 // export const nullLocation = {
 //     start: { offset: 0, line: 0, column: 0 },
 //     end: { offset: 0, line: 0, column: 0 },
@@ -389,7 +389,7 @@ export type WithSuffix = {
     type: 'WithSuffix';
     target: Expression;
     suffixes: Array<ApplySuffix | AttributeSuffix | IndexSuffix | AsSuffix>;
-    location: { start: Loc; end: Loc };
+    location: Location;
 };
 export type ApplySuffix = {
     type: 'Apply';

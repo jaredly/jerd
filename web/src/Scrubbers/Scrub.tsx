@@ -1,6 +1,13 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/react';
-import { hashObject, idFromName, idName } from '@jerd/language/src/typing/env';
+import {
+    hashObject,
+    idFromName,
+    idName,
+    termForIdRaw,
+    typeForId,
+    typeForIdRaw,
+} from '@jerd/language/src/typing/env';
 import {
     Env,
     Term,
@@ -119,7 +126,7 @@ export const onClick = (
         );
         return true;
     } else if (kind === 'type') {
-        if (typeForId(env, id).type === 'Record') {
+        if (typeForIdRaw(env, id).type === 'Record') {
             addCell(recordContent(env, id), position);
             return true;
         } else {

@@ -19,14 +19,14 @@ export const locToEnd = (loc: Location): Location => ({
     start: loc.end,
 });
 
-export const encompassingLoc = (left: Location, right: Location) => {
+export const encompassingLoc = (left: Location, right: Location): Location => {
     if (left.start === nullLoc) {
         return right;
     }
     if (right.end === nullLoc) {
         return left;
     }
-    return { start: left.start, end: right.end };
+    return { start: left.start, end: right.end, idx: left.idx };
 };
 
 export const nullLocation: Location = {

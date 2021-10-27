@@ -10,6 +10,9 @@ import {
     addEnum,
     idName,
     addEffect,
+    nameForId,
+    typeForId,
+    termForId,
 } from '@jerd/language/src/typing/env';
 import {
     EnumDef,
@@ -46,7 +49,7 @@ export const getToplevel = (env: Env, content: TopContent): ToplevelT => {
     }
     if (content.type === 'record') {
         const name = nameForId(env, idName(content.id));
-        const defn = typeForId(env, idName(content.id));
+        const defn = typeForId(env, content.id);
         if (!defn) {
             throw new Error(`No type info!`);
         }
@@ -80,7 +83,7 @@ export const getToplevel = (env: Env, content: TopContent): ToplevelT => {
     if (content.type === 'enum') {
         return {
             type: 'EnumDef',
-            def: typeForId(env, idName(content.id)) as EnumDef,
+            def: typeForId(env, content.id) as EnumDef,
             name: nameForId(env, idName(content.id)),
             location: nullLocation,
             id: content.id,

@@ -11,7 +11,11 @@ import { OutputOptions } from '@jerd/language/src/printing/typeScriptPrinterSimp
 import { fileToGlsl } from '@jerd/language/src/printing/glslPrinter';
 import { setup } from './setupGLSL';
 import { runTerm } from './eval';
-import { idFromName, idName } from '@jerd/language/src/typing/env';
+import {
+    idFromName,
+    idName,
+    termForIdRaw,
+} from '@jerd/language/src/typing/env';
 import * as builtins from '@jerd/language/src/printing/builtins';
 
 const key = 'glsl-jerd';
@@ -173,7 +177,7 @@ export default () => {
 
             const result = runTerm(
                 env,
-                termForIdRaw(env, mains[0)],
+                termForIdRaw(env, mains[0]),
                 main,
                 evalEnv,
                 false,

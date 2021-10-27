@@ -95,7 +95,7 @@ export const ShowError = ({
         console.log(err.expected, err.found, err.location, err.name);
         return (
             <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
-                Syntax error at {showLocation(err.location) + '\n'}
+                Syntax error at {showLocation(err.location as any) + '\n'}
                 {lines[err.location.start.line - 1] + '\n'}
                 {white(err.location.start.column - 1) + '^\n'}
                 {lines

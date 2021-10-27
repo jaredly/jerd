@@ -20,7 +20,7 @@ import Library from '../Library';
 import { Cell, Content } from '../State';
 import { Pin } from './Pin';
 import { QuickMenu } from './QuickMenu';
-import { idName } from '@jerd/language/src/typing/env';
+import { idName, termForId } from '@jerd/language/src/typing/env';
 import { Id } from '@jerd/language/src/typing/types';
 import { defaultPlugins } from '../defaultPlugins';
 import { makeReducer } from './makeReducer';
@@ -157,7 +157,7 @@ export const Workspace = ({ state, setState }: Props) => {
         (id: Id) => {
             let results: { [key: string]: any };
             try {
-                const term = state.termForId(env, id);
+                const term = termForId(state.env, id);
                 if (!term) {
                     throw new Error(`No term ${idName(id)}`);
                 }

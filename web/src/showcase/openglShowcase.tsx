@@ -10,6 +10,7 @@ import { addLocationIndices } from '@jerd/language/src/typing/analyze';
 import {
     addToplevelToEnv,
     idName,
+    termForId,
     typeToplevelT,
 } from '@jerd/language/src/typing/env';
 import {

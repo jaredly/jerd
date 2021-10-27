@@ -10,7 +10,12 @@ import {
     typeToPretty,
     typeVblDeclsToPretty,
 } from '@jerd/language/src/printing/printTsLike';
-import { idName } from '@jerd/language/src/typing/env';
+import {
+    idName,
+    nameForId,
+    termForId,
+    typeForId,
+} from '@jerd/language/src/typing/env';
 import { Env } from '@jerd/language/src/typing/types';
 import { hashStyle } from './Cell';
 import { renderAttributedText } from './Render';
@@ -36,7 +41,7 @@ export const cellTitle = (
         case 'enum':
         case 'record': {
             const name = nameForId(env, idName(cell.content.id));
-            const type = typeForId(env, idName(cell.content.id));
+            const type = typeForId(env, cell.content.id);
             return (
                 <div
                     style={{

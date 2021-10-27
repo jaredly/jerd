@@ -195,7 +195,9 @@ const ShaderGLSLScene = <T,>({
     if (error != null) {
         let message = error.message;
         if (error instanceof LocatedError && error.loc) {
-            message = `${error.toString()} at ${showLocation(error.loc)}`;
+            message = `${error.toString()} at ${showLocation(
+                error.loc as any,
+            )}`;
         } else if (error instanceof TypeError) {
             message = error.toString();
         }

@@ -14,7 +14,11 @@ import {
     newWithGlobal,
 } from '@jerd/language/src/typing/types';
 import localForage from 'localforage';
-import { idFromName, idName } from '../../language/src/typing/env';
+import {
+    idFromName,
+    idName,
+    termForIdRaw,
+} from '../../language/src/typing/env';
 import { EvalEnv } from './State';
 
 import { initialEnvWithPlugins } from './initialEnvWithPlugins';
@@ -24,7 +28,7 @@ const saveKey = 'jd-repl-cache';
 export const stateToString = (state: State) => {
     const terms: { [key: string]: any } = {};
     Object.keys(state.evalEnv.terms).forEach((k) => {
-        if (allLiteral(state.env, state.termForIdRaw(env, k).is)) {
+        if (allLiteral(state.env, termForIdRaw(state.env, k).is)) {
             terms[k] = state.evalEnv.terms[k];
         }
     });

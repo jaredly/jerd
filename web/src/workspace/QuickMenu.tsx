@@ -2,7 +2,15 @@
 import { jsx } from '@emotion/react';
 import { printToAttributedText } from '@jerd/language/src/printing/printer';
 import { toplevelToPretty } from '@jerd/language/src/printing/printTsLike';
-import { idFromName, idName } from '@jerd/language/src/typing/env';
+import {
+    allTermIdsRaw,
+    idFromName,
+    idName,
+    nameForId,
+    termForId,
+    termForIdRaw,
+    typeForId,
+} from '@jerd/language/src/typing/env';
 import { Env, idsEqual, ToplevelT } from '@jerd/language/src/typing/types';
 // A cmd-p menu for pulling things up quickly
 // Behavior
@@ -82,7 +90,7 @@ const optionForTypes = (
 ): Option => {
     const ids = env.global.typeNames[name];
     const tops = ids.map((id): ToplevelT | undefined => {
-        const defn = typeForId(env, idName(id));
+        const defn = typeForId(env, id);
         if (defn.type === 'Record') {
             return {
                 type: 'RecordDef',

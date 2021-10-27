@@ -3,6 +3,7 @@ import { Env } from '@jerd/language/src/typing/types';
 import { Trace } from '../Cell/Editor';
 import { hashStyle } from '../Cell/Cell';
 import { Vec4 } from './OpenGL';
+import { nameForId } from '@jerd/language/src/typing/env';
 
 export const ShowTrace = ({
     trace: { color, traces },

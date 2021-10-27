@@ -1,4 +1,9 @@
-import { hashObject, idFromName, idName } from '@jerd/language/src/typing/env';
+import {
+    hashObject,
+    idFromName,
+    idName,
+    termForId,
+} from '@jerd/language/src/typing/env';
 import { Cell, EvalEnv } from '../State';
 import { HistoryItem, State, Workspace } from '../State';
 import {

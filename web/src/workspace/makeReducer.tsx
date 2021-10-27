@@ -13,7 +13,7 @@ import {
 } from './Cells';
 import { onChangeCell } from './onChangeCell';
 import { runTerm } from '../eval';
-import { idName } from '@jerd/language/src/typing/env';
+import { idName, termForId } from '@jerd/language/src/typing/env';
 import { focusUp, focusDown } from './Workspace';
 
 export function makeReducer(
@@ -67,7 +67,7 @@ export function makeReducer(
                 const { id } = action;
                 let results: { [key: string]: any };
                 try {
-                    const term = state.termForId(env, id);
+                    const term = termForId(state.env, id);
                     if (!term) {
                         throw new Error(`No term ${idName(id)}`);
                     }

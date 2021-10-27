@@ -3,7 +3,12 @@ import { jsx } from '@emotion/react';
 // Ok
 
 import * as React from 'react';
-import { idName, idFromName, hashObject } from '@jerd/language/src/typing/env';
+import {
+    idName,
+    idFromName,
+    hashObject,
+    nameForId,
+} from '@jerd/language/src/typing/env';
 import {
     Env,
     Id,
@@ -582,7 +587,7 @@ function renderSliders(
                 return (
                     <div key={hash} style={{ padding: 4 }}>
                         <h4>
-                            {termAndEnvWithSliders.nameForId(env, hash) ||
+                            {nameForId(termAndEnvWithSliders.env, hash) ||
                                 (hash === mainHash ? '' : '#' + hash)}
                         </h4>
                         <div style={{ display: 'flex', flexWrap: 'wrap' }}>

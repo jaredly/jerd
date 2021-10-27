@@ -12,7 +12,7 @@ import {
     RenderPluginT,
 } from '../State';
 
-import { idName } from '@jerd/language/src/typing/env';
+import { idName, nameForId, termForIdRaw } from '@jerd/language/src/typing/env';
 import { getTypeError } from '@jerd/language/src/typing/getTypeError';
 import { hashStyle } from '../Cell/Cell';
 

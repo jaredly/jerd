@@ -13,7 +13,12 @@ import {
     transformWithBindings,
     usedLocalVariables,
 } from '@jerd/language/src/typing/analyze';
-import { hashObject, idFromName, idName } from '@jerd/language/src/typing/env';
+import {
+    hashObject,
+    idFromName,
+    idName,
+    termForId,
+} from '@jerd/language/src/typing/env';
 import { transform } from '@jerd/language/src/typing/transform';
 import {
     Env,
@@ -21,6 +26,7 @@ import {
     Id,
     Lambda,
     Let,
+    nullLocation,
     Sequence,
     Symbol,
     Term,
@@ -452,7 +458,8 @@ export const bindKeys = (
                                 if (found != null) {
                                     if (
                                         t.type === 'var' &&
-                                        t.sym.unique === found.binding.unique
+                                        t.sym.unique ===
+                                            found.binding.sym.unique
                                     ) {
                                         // STOPSHIP: re-idx this, we really need to!
                                         return found.value;
@@ -464,7 +471,7 @@ export const bindKeys = (
                                         if (
                                             l.type === 'Let' &&
                                             (l.location.idx === idx ||
-                                                l.idLocation.idx === idx)
+                                                l.binding.location.idx === idx)
                                         ) {
                                             found = l;
                                             return false;
@@ -493,7 +500,7 @@ export const bindKeys = (
                     action: (newName: string) => {
                         const newTerm = transform(term, {
                             let: (l) => {
-                                if (l.idLocation.idx === idx) {
+                                if (l.binding.location.idx === idx) {
                                     return {
                                         ...l,
                                         binding: {
@@ -605,7 +612,7 @@ export const maxUnique = (term: Term) => {
     let max = 0;
     transform(term, {
         let: (t) => {
-            max = Math.max(t.binding.unique, max);
+            max = Math.max(t.binding.sym.unique, max);
             return null;
         },
         term: (term) => {
@@ -614,7 +621,7 @@ export const maxUnique = (term: Term) => {
             }
             if (term.type === 'lambda') {
                 term.args.forEach((arg) => {
-                    max = Math.max(max, arg.unique);
+                    max = Math.max(max, arg.sym.unique);
                 });
             }
             if (term.type === 'Switch') {
@@ -782,7 +789,7 @@ export const reUnique = (
         let: (l) => {
             return {
                 ...l,
-                binding: addSym(l.binding),
+                binding: addSym(l.binding.sym),
             };
         },
         term: (t) => {
@@ -795,7 +802,7 @@ export const reUnique = (
                 case 'lambda':
                     return {
                         ...t,
-                        args: t.args.map((arg) => getSym(arg, t.location)),
+                        args: t.args.map((arg) => getSym(arg.sym, t.location)),
                     };
             }
             // TODO: Handle; Switchhhhhh
@@ -826,14 +833,14 @@ export const inlineFunctionCall = (env: Env, term: Term, idx: number): Term => {
                     {
                         current: maxUnique(term) + 1,
                     },
-                    lambda.args,
+                    lambda.args.map((s) => s.sym),
                 );
                 if (t.args.length === 0) {
                     return body;
                 }
                 const args = lambda.args.map((arg) => ({
                     ...arg,
-                    unique: mapping[arg.unique],
+                    unique: mapping[arg.sym.unique],
                 }));
                 console.log(args, mapping);
                 return {
@@ -919,8 +926,10 @@ export const extractToVariable = (
         {
             type: 'Let',
             location: { ...(found as Term).location, idx: maxIdx++ },
-            idLocation: { ...(found as Term).location, idx: maxIdx++ },
-            binding: sym,
+            binding: {
+                sym,
+                location: { ...(found as Term).location, idx: maxIdx++ },
+            },
             value: found,
             is: (found as Term).is,
         },

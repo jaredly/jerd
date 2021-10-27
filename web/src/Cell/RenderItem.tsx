@@ -16,6 +16,10 @@ import {
     hashObject,
     idFromName,
     idName,
+    nameForId,
+    termForIdRaw,
+    typeForId,
+    typeForIdRaw,
 } from '@jerd/language/src/typing/env';
 import {
     Env,
@@ -460,7 +464,7 @@ const getTopLevel = (
             ];
         }
     }
-    const defn = typeForId(env, idRaw);
+    const defn = typeForIdRaw(env, idRaw);
     if (!defn) {
         return null;
     }

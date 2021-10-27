@@ -3,7 +3,7 @@
 import { allEnumAttributes } from '../../language/src/printing/glslPrinter';
 import { recordAttributeName } from '../../language/src/printing/typeScriptPrinterSimple';
 import { allRecordMembers } from '../../language/src/printing/typeScriptTypePrinter';
-import { addRecord, idName } from '../../language/src/typing/env';
+import { addRecord, idName, typeForId } from '../../language/src/typing/env';
 import {
     Env,
     idsEqual,
@@ -400,7 +400,7 @@ export const getStateLocations = (
             gl.uniform4f(ustate, state.x, state.y, state.z, state.w);
         };
     } else if (type.type === 'user') {
-        const constr = typeForId(env, idName(type.id));
+        const constr = typeForId(env, type.id);
         if (constr.type === 'Record') {
             const attrs = allRecordMembers(env, type.id).map((member) => {
                 const name = recordAttributeName(

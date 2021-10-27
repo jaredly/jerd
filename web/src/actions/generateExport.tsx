@@ -1,4 +1,12 @@
-import { idName, idFromName } from '@jerd/language/src/typing/env';
+import {
+    idName,
+    idFromName,
+    typeForId,
+    nameForId,
+    typeForIdRaw,
+    termForIdRaw,
+    termForId,
+} from '@jerd/language/src/typing/env';
 import {
     ToplevelT,
     ToplevelDefine,
@@ -42,7 +50,7 @@ export const generateExport = (
         depsInOrder.map((t) => t.term),
     ).map(
         (idRaw): ToplevelT => {
-            const defn = typeForId(env, idRaw);
+            const defn = typeForIdRaw(env, idRaw);
             const name = nameForId(env, idRaw);
             if (defn.type === 'Record') {
                 return {
