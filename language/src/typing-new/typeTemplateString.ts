@@ -38,6 +38,19 @@ export const asAs = (
         : null;
 };
 
+export const simpleTemplateString = (tpl: TemplateString) => {
+    let res = '';
+    let bad = false;
+    tpl.contents.forEach((item) => {
+        if (typeof item === 'string') {
+            res += item;
+        } else {
+            bad = true;
+        }
+    });
+    return bad ? null : res;
+};
+
 export const typeTemplateString = (
     ctx: Context,
     tpl: TemplateString,

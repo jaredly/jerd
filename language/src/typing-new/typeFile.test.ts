@@ -67,6 +67,22 @@ describe('typeFile', () => {
         );
     });
 
+    it(`ffi should work`, () => {
+        const ctx = newContext(`
+		type A {}
+		@ffi
+		type Vec2 { x: float, y: float }
+		`);
+        const { defn, meta } = ctx.library.types.defns[
+            idName(ctx.library.types.names['Vec2'][0])
+        ];
+        if (defn.type !== 'Record') {
+            throw new Error('not a record');
+        }
+        expect(defn.ffi).toBeTruthy();
+        expect(defn.unique).toEqual(0);
+    });
+
     it(`why isnt as working`, () => {
         const ctx = newContext();
         [ctx.library] = parseToplevels(

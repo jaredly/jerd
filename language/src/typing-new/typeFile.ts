@@ -23,12 +23,14 @@ import { resolveEffectId, resolveTypeId } from './resolve';
 import { typeEffVblDecl, typeTypeVblDecl } from './typeArrow';
 import { typeExpression } from './typeExpression';
 import { parseIdTextOrString } from './typeRecord';
+import { simpleTemplateString } from './typeTemplateString';
 import { typeType } from './typeType';
 
 export const typeToplevel = (
     ctx: Context,
     top: Toplevel,
     unique?: number,
+    ffi?: string,
 ): typed.ToplevelT => {
     switch (top.type) {
         case 'ToplevelExpression': {
@@ -146,6 +148,7 @@ export const typeToplevel = (
                 top.id.text,
                 top.location,
                 unique,
+                ffi,
             );
         }
         case 'EnumDef':
@@ -275,6 +278,22 @@ export const parseMetaFloat = (
     return parseFloat(arg.expr.contents);
 };
 
+export const parseMetaString = (
+    args?: Array<LabeledDecoratorArg>,
+): null | string => {
+    if (!args || args.length !== 1) {
+        return null;
+    }
+    const arg = args[0].arg;
+    if (arg.type !== 'DecExpr') {
+        return null;
+    }
+    if (arg.expr.type !== 'TemplateString') {
+        return null;
+    }
+    return simpleTemplateString(arg.expr);
+};
+
 export const parseMetaInt = (
     args?: Array<LabeledDecoratorArg>,
 ): null | number => {
@@ -302,6 +321,7 @@ export const typeFile = (
         file.tops.items.forEach((top) => {
             let meta: MetaData = { created: Date.now() };
             let unique: number | undefined;
+            let ffi: string | undefined;
             if (top.decorators) {
                 let left = top.decorators.filter((dec) => {
                     if (
@@ -309,6 +329,20 @@ export const typeFile = (
                         !lib.decorators.names[dec.id.text]
                     ) {
                         switch (dec.id.text) {
+                            case 'ffi': {
+                                if (top.top.type === 'StructDef') {
+                                    const name = parseMetaString(
+                                        dec.args?.items,
+                                    );
+                                    if (name != null) {
+                                        ffi = name;
+                                    } else {
+                                        ffi = top.top.id.text;
+                                    }
+                                    return false;
+                                }
+                                break;
+                            }
                             case 'basedOn': {
                                 const id = parseMetaId(lib, dec.args?.items);
                                 if (id) {
@@ -366,6 +400,7 @@ export const typeFile = (
                 },
                 top.top,
                 unique,
+                ffi,
             );
             if (ttop.type === 'Expression') {
                 expressions.push(ttop.term);
@@ -446,6 +481,7 @@ function typeStructDef(
     name: string,
     location: Location,
     unique?: number,
+    ffi?: string,
 ): typed.ToplevelRecord {
     const items =
         (decl.items?.items.filter(
@@ -483,11 +519,16 @@ function typeStructDef(
                 };
             })
             .filter(Boolean) as Array<typed.UserTypeReference>,
-        ffi: null,
+        ffi: ffi
+            ? {
+                  tag: ffi,
+                  names: items.map((item) => parseIdTextOrString(item.id)),
+              }
+            : null,
         items: items.map((item): typed.Type => typeType(inner, item.type)),
         location: location,
         typeVbls: typedVbls,
-        unique: unique != null ? unique : ctx.rng(),
+        unique: ffi ? 0 : unique != null ? unique : ctx.rng(),
     };
     return {
         type: 'RecordDef',
