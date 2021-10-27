@@ -55,16 +55,16 @@ import typeType, { newEnvWithTypeAndEffectVbls } from './typeType';
 
 export const typeForId = (env: Env, id: Id) => typeForIdRaw(env, idName(id));
 export const typeForIdRaw = (env: Env, raw: string) => {
-    if (env.global.idRemap[raw]) {
-        raw = idName(env.global.idRemap[raw]);
-    }
+    // if (env.global.idRemap[raw]) {
+    //     raw = idName(env.global.idRemap[raw]);
+    // }
     return env.global.types[raw];
 };
 export const termForId = (env: Env, id: Id) => termForIdRaw(env, idName(id));
 export const termForIdRaw = (env: Env, raw: string) => {
-    if (env.global.idRemap[raw]) {
-        raw = idName(env.global.idRemap[raw]);
-    }
+    // if (env.global.idRemap[raw]) {
+    //     raw = idName(env.global.idRemap[raw]);
+    // }
     return env.global.terms[raw];
 };
 export const nameForId = (env: Env, raw: string) => env.global.idNames[raw];
@@ -1275,38 +1275,37 @@ export const resolveIdentifier = (
                 is: env.local.self.ann,
             };
         }
+        if (env.global.idRemap[first]) {
+            first = idName(env.global.idRemap[first]);
+        }
 
         if (!termForIdRaw(env, first)) {
-            if (env.global.idRemap[first]) {
-                first = idName(env.global.idRemap[first]);
-            } else {
-                if (typeForIdRaw(env, first)) {
-                    const id = idFromName(first);
-                    const t = typeForId(env, id);
-                    if (
-                        t.type === 'Record' &&
-                        !hasRequiredItems(env.global, t)
-                    ) {
-                        return plainRecord(env.global, id, location);
-                    }
-                }
-
-                const starts = allTermIdsRaw(env).filter((k) =>
-                    k.startsWith(first),
-                );
-                if (starts.length) {
-                    first = starts[0];
-                } else {
-                    throw new Error(
-                        `Unknown hash ${hash} ${showLocation(location)}`,
-                    );
+            if (typeForIdRaw(env, first)) {
+                const id = idFromName(first);
+                const t = typeForId(env, id);
+                if (t.type === 'Record' && !hasRequiredItems(env.global, t)) {
+                    return plainRecord(env.global, id, location);
                 }
             }
+
+            const starts = allTermIdsRaw(env).filter((k) =>
+                k.startsWith(first),
+            );
+            if (starts.length) {
+                first = starts[0];
+            } else {
+                throw new Error(
+                    `Unknown hash ${hash} ${showLocation(location)}`,
+                );
+            }
         }
+        // if (env.global.idRemap[first]) {
+        //     first = idName(env.global.idRemap[first]);
+        // }
         const id = idFromName(first);
         const term = termForIdRaw(env, first);
         if (!term) {
-            console.log(id);
+            console.log(id, location);
         }
         return {
             type: 'ref',

@@ -133,6 +133,9 @@ export const typeAttribute = (
             )}`,
         );
     }
+    if (env.global.idRemap[idName(ref.id)]) {
+        ref.id = env.global.idRemap[idName(ref.id)];
+    }
 
     let t = typeForId(env, ref.id);
     if (t.type !== 'Record') {
