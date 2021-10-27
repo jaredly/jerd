@@ -5,13 +5,8 @@ import {
     EnumDef,
     File,
     LabeledDecoratorArg,
-    Location,
-    RecordDecl,
-    RecordItem,
-    RecordSpread,
     Toplevel,
     Type,
-    TypeVbls,
 } from '../parsing/parser-new';
 import { hashObject, idFromName } from '../typing/env';
 import { showLocation } from '../typing/typeExpr';
@@ -19,10 +14,10 @@ import * as typed from '../typing/types';
 import { Term } from '../typing/types';
 import { Context, MetaData } from './Context';
 import { addToplevel, Library } from './Library';
-import { resolveEffectId, resolveTypeId } from './resolve';
+import { resolveEffectId } from './resolve';
 import { typeEffVblDecl, typeTypeVblDecl } from './typeArrow';
 import { typeExpression } from './typeExpression';
-import { parseIdTextOrString } from './typeRecord';
+import { typeStructDef } from './typeStructDef';
 import { simpleTemplateString } from './typeTemplateString';
 import { typeType } from './typeType';
 
@@ -471,72 +466,5 @@ function typeDecoratorDef(
         id: idFromName(hashObject(defn)),
         location: top.location,
         name: top.id.text,
-    };
-}
-
-function typeStructDef(
-    ctx: Context,
-    decl: RecordDecl,
-    typeVbls: TypeVbls | null,
-    name: string,
-    location: Location,
-    unique?: number,
-    ffi?: string,
-): typed.ToplevelRecord {
-    const items =
-        (decl.items?.items.filter(
-            (item) => item.type !== 'RecordSpread',
-        ) as Array<RecordItem>) || [];
-    const typedVbls = typeVbls?.items.map((t) => typeTypeVblDecl(ctx, t)) || [];
-    const inner = {
-        ...ctx,
-        bindings: {
-            ...ctx.bindings,
-            types: typedVbls.concat(ctx.bindings.types),
-        },
-    };
-    const defn: typed.RecordDef = {
-        type: 'Record',
-        effectVbls: [],
-        extends: (
-            (decl.items?.items.filter(
-                (item) => item.type === 'RecordSpread',
-            ) as Array<RecordSpread>) || []
-        )
-            .map((item) => {
-                const resolved = resolveTypeId(inner, item.constr);
-                if (!resolved) {
-                    return null;
-                }
-                return {
-                    type: 'ref',
-                    ref: { type: 'user', id: resolved },
-                    typeVbls:
-                        item.typeVbls?.inner.items.map((t) =>
-                            typeType(inner, t),
-                        ) || [],
-                    location: item.location,
-                };
-            })
-            .filter(Boolean) as Array<typed.UserTypeReference>,
-        ffi: ffi
-            ? {
-                  tag: ffi,
-                  names: items.map((item) => parseIdTextOrString(item.id)),
-              }
-            : null,
-        items: items.map((item): typed.Type => typeType(inner, item.type)),
-        location: location,
-        typeVbls: typedVbls,
-        unique: ffi ? 0 : unique != null ? unique : ctx.rng(),
-        defaults: {},
-    };
-    return {
-        type: 'RecordDef',
-        attrNames: items.map((item) => parseIdTextOrString(item.id)),
-        def: defn,
-        id: idFromName(hashObject(defn)),
-        location: location,
-        name,
     };
 }

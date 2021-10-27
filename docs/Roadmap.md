@@ -19,7 +19,7 @@ Annd self needs to have an index. Right?
 - [ ] METADATA needs to live in TOPLEVELS.
 
 - [x] get prelude typing in the new system
-- [ ] take a step back, make sure the web is working ok
+- [x] take a step back, make sure the web is working ok
 - [ ] get all the examples working
 
 ## Syntax evolution

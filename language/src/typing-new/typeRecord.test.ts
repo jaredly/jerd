@@ -188,7 +188,7 @@ describe('typeRecord', () => {
         const res = parseExpression(ctx, `Hello{hello: 10.0}`);
         expect(ctx.warnings).toHaveLength(0);
         expect(res.is).toEqualType(preset.refType(id), ctx);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+        expect(termToString(ctx, res)).toEqual(
             `Hello#${idName(id)}{hello#${idName(id)}#0: 10.0, other#${idName(
                 id,
             )}#1: _, whats#${idName(id)}#2: _}`,
@@ -531,6 +531,26 @@ describe('typeRecord', () => {
         // expect(res).toNotHaveErrors(ctx);
         // res = parseExpression(ctx, `(m: Vec2) => Vec3{...m, z: 10.0}`);
         // expect(res).toNotHaveErrors(ctx);
+    });
+
+    it(`defaults!`, () => {
+        const ctx = newContext(`
+        type Whatsit = {
+            age: int = 10,
+            name: string,
+        }
+        `);
+
+        let res = parseExpression(ctx, `Whatsit{name: "hi"}`);
+        expect(res).toNotHaveErrors(ctx);
+        res = parseExpression(ctx, `Whatsit`);
+        expect(showTermErrors(ctx, res)).toMatchInlineSnapshot(
+            `[Hole] at 1:1-1:8`,
+        );
+        const whatsit = idName(ctx.library.types.names['Whatsit'][0]);
+        expect(termToString(ctx, res)).toEqual(
+            `Whatsit#${whatsit}{name#${whatsit}#1: _}`,
+        );
     });
 
     // This to test:

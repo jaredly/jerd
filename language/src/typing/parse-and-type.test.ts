@@ -180,7 +180,7 @@ describe('type descriptions', () => {
             @unique(0.5661807692527293) type Something#1b5de78a<A#:0, B#:1> = {
                 one: A#:0,
                 two: B#:1,
-                three: <C#:2, D#:3>(name: C#:2, age: D#:3) ={}> Tuple2#builtin<C#:2, D#:3>,
+                three: <C#:2, D#:3>(C#:2, D#:3) ={}> Tuple2#builtin<C#:2, D#:3>,
             }
         `);
     });
@@ -302,7 +302,7 @@ describe('expression types', () => {
                 int#builtin,
                 float#builtin,
             > ={}> (a#:0, b#:1);
-            const m#6261255c = (fn#:0: (one: int#builtin, two: float#builtin) ={}> string#builtin): int#builtin ={}> 10
+            const m#6261255c = (fn#:0: (int#builtin, float#builtin) ={}> string#builtin): int#builtin ={}> 10
         `));
 
     it(`blocks with just a const should ... have a void type?`, () =>
