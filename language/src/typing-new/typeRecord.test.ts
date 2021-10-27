@@ -352,21 +352,6 @@ describe('typeRecord', () => {
             )}#1: 2.0, x#${idName(vec3)}#0: 3.0}`,
         );
         expect(res).toNotHaveErrors(ctx);
-
-        //         res = parseExpression(
-        //             ctx,
-        //             `Vec3{...Vec2{x: 1.0, y: 4.0}, y: 2.0, z: 3.0}`,
-        //         );
-        //         expect(ctx.warnings).toHaveLength(0);
-        //         expect(res.is).toEqualType(preset.refType(vec3), ctx);
-        //         expect(res).toNotHaveErrors(ctx);
-        //         expect(termToString(ctx, res)).toEqual(
-        //             `Vec3#${idName(vec3)}{
-        //     ...Vec2#${idName(vec2)}{x#${idName(vec2)}#0: 1.0, y#${idName(vec2)}#1: 4.0},
-        //     y#${idName(vec2)}#1: 2.0,
-        //     z#${idName(vec3)}#0: 3.0,
-        // }`,
-        //         );
     });
 
     it('lets do a complicated record', () => {
@@ -519,7 +504,6 @@ describe('typeRecord', () => {
             z: float
         }
 
-
         // type Vec2 {x: float, y: float};
         // const v2 = Vec2{x: 1.0, y: 2.1};
         // type Vec3 {...Vec2, z: float};
@@ -527,10 +511,6 @@ describe('typeRecord', () => {
         @ffi
         const vec3 = (v: Vec2, z: float) => Vec3{...v, z: z}
         `);
-        // let res = parseExpression(ctx, `Vec3{...v2, z: 10.0}`);
-        // expect(res).toNotHaveErrors(ctx);
-        // res = parseExpression(ctx, `(m: Vec2) => Vec3{...m, z: 10.0}`);
-        // expect(res).toNotHaveErrors(ctx);
     });
 
     it(`defaults!`, () => {

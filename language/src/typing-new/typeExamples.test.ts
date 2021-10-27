@@ -58,7 +58,7 @@ describe('all the examples?', () => {
         if (skip.includes(name) || !name.endsWith('.jd')) {
             return;
         }
-        it.skip(`examples/${name}`, () => {
+        it(`examples/${name}`, () => {
             const text = fs.readFileSync(path.join(base, name), 'utf8');
             let exprs;
             [ctx.library, exprs] = typeFile(ctx, parseTyped(text));
