@@ -140,11 +140,9 @@ export const typeArrow = (
         );
     }
 
-    args.forEach((arg) => {
-        // NOTE: this means that the typeExpression will /modify/ the arg object here
-        // so we will know after the typeExpression wether inference worked.
-        ctx.bindings.values.unshift(arg);
-    });
+    // NOTE: this means that the typeExpression will /modify/ the arg object here
+    // so we will know after the typeExpression wether inference worked.
+    ctx.bindings.values = args.concat(ctx.bindings.values);
 
     // TODO: should I try to test all of the potential expecteds here?
     const body = typeExpression(

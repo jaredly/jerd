@@ -6,6 +6,9 @@ import {
     RecordLiteralSpread,
     String,
 } from '../parsing/parser-new';
+import { printToString } from '../printing/printer';
+import { typeToPretty } from '../printing/printTsLike';
+import { typeToString } from '../printing/typeScriptTypePrinter';
 import { isErrorTerm, transformTerm } from '../typing/auto-transform';
 import { idFromName, idName } from '../typing/env';
 import { void_ } from '../typing/preset';
@@ -28,6 +31,7 @@ import {
 import { Context, recordWithResolvedTypes, TypeBinding } from './Context';
 import { IdOrSym, parseAttrHash, parseIdOrSym, parseOpHash } from './hashes';
 import { Library, typeDef } from './Library';
+import { ctxToEnv } from './migrate';
 import { applyTypeVariablesToRecord } from './ops';
 import { termToString } from './test-utils';
 import { typeExpression, wrapExpected } from './typeExpression';

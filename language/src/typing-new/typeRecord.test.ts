@@ -496,6 +496,15 @@ describe('typeRecord', () => {
         expect(res.is).toEqualType(preset.refType(child), ctx);
     });
 
+    it(`spread covers subs`, () => {
+        const ctx = newContext(`
+        type Vec2 = { x: float, y: float }
+        type Vec3 = { ...Vec2, z: float }
+        `);
+        let res = parseExpression(ctx, `(m: Vec3) => Vec3{...m, z: 10.0}`);
+        expect(res).toNotHaveErrors(ctx);
+    });
+
     it(`spread`, () => {
         const ctx = newContext(`
         @ffi

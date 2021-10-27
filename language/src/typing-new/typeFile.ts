@@ -44,6 +44,7 @@ export const typeToplevel = (
             if (top.id.type !== 'Identifier') {
                 throw new Error('oops fancy pattern');
             }
+            let inner: Context = ctx;
             if (top.rec) {
                 if (top.expr.type !== 'Lambda') {
                     console.warn(`can't do recursive with a non-lambda`);
@@ -94,16 +95,14 @@ export const typeToplevel = (
                         typeVbls,
                     };
                 }
+                inner = {
+                    ...ctx,
+                    bindings: {
+                        ...ctx.bindings,
+                        self: { name: top.id.text, type: t! },
+                    },
+                };
             }
-            const inner: Context = top.rec
-                ? {
-                      ...ctx,
-                      bindings: {
-                          ...ctx.bindings,
-                          self: { name: top.id.text, type: t! },
-                      },
-                  }
-                : ctx;
             const term = typeExpression(inner, top.expr, t ? [t] : []);
             return {
                 type: 'Define',
