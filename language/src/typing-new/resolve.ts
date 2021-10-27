@@ -249,16 +249,18 @@ export const emptyRecord = (
         }
         return { type: 'Hole', is: item, location };
     });
-    getAllSubTypes(
+    const allSubTypes = getAllSubTypes(
         lib,
         defn.extends.map((m) => m.ref.id),
-    ).forEach((id) => {
+    );
+    const allDefaults = getAllDefaults(lib, defn, allSubTypes);
+    allSubTypes.forEach((id) => {
         const defn = lib.types.defns[idName(id)].defn as t.RecordDef;
         subTypes[idName(id)] = {
             covered: false,
             rows: defn.items.map((item, i) => {
                 const k = `${idName(id)}#${i}`;
-                if (defn.defaults && defn.defaults[k]) {
+                if (allDefaults[k]) {
                     return null;
                 }
                 return { type: 'Hole', is: item, location };
@@ -285,4 +287,40 @@ export const emptyRecord = (
         location,
         subTypes,
     };
+};
+
+export const getAllDefaults = (
+    lib: Library,
+    defn: t.RecordDef,
+    allSubTypes?: Array<t.Id>,
+) => {
+    const together = { ...defn.defaults };
+    if (!allSubTypes) {
+        allSubTypes = getAllSubTypes(
+            lib,
+            defn.extends.map((t) => t.ref.id),
+        );
+    }
+    allSubTypes.forEach((id) => {
+        const t = lib.types.defns[idName(id)].defn as t.RecordDef;
+        const inner = t.defaults;
+        if (inner) {
+            Object.keys(inner).forEach((k) => {
+                if (inner[k].id) {
+                    if (!together[k]) {
+                        together[k] = inner[k];
+                    }
+                } else {
+                    const key = `${idName(id)}#${inner[k].idx}`;
+                    if (!together[key]) {
+                        together[key] = {
+                            ...inner[k],
+                            id,
+                        };
+                    }
+                }
+            });
+        }
+    });
+    return together;
 };

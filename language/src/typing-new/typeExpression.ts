@@ -136,7 +136,7 @@ export const typeExpression = (
         case 'ArrayLiteral':
             return typeArrayLiteral(ctx, term, expected);
         case 'Trace':
-            console.warn(`IGNORING TRACE, I DONT LIKE IT`);
+            // console.warn(`IGNORING TRACE, I DONT LIKE IT`);
             return typeExpression(ctx, term.args.items[0], expected);
         case 'TupleLiteral':
             if (term.items.items.length === 1) {

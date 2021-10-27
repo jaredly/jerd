@@ -114,7 +114,7 @@ export function typeStructDef(
                             text: `Nooo matching thing for default sorry`,
                         });
                     });
-                    console.log(defaults);
+                    // console.log(defaults);
                 }
                 return type;
             })

@@ -23,7 +23,7 @@ export const defaultBuiltins = (): Builtins => {
         ops: {
             binary: {
                 '++': [same(string)],
-                '==': [...numeric, same(string)],
+                '==': [...numeric, same(string), same(bool)],
                 '+': [...numeric, same(string)],
                 '&&': [same(bool)],
                 '||': [same(bool)],

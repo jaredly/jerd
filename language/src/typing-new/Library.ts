@@ -234,24 +234,25 @@ export const addToplevel = (lib: Library, top: ToplevelT, meta: MetaData) => {
             },
         });
         console.log(
-            errors.terms
-                .map(
-                    (item) =>
-                        item.type +
-                        ': ' +
-                        printToString(termToPretty(env, item), 100) +
-                        '\ntype: ' +
-                        printToString(typeToPretty(env, item.is), 100) +
-                        '\n' +
-                        (item.type === 'TypeError'
-                            ? 'found: ' +
-                              printToString(
-                                  typeToPretty(env, item.inner.is),
-                                  100,
-                              )
-                            : ''),
-                )
-                .join('\n\n'),
+            'Term Errors:\n' +
+                errors.terms
+                    .map(
+                        (item) =>
+                            item.type +
+                            ': ' +
+                            printToString(termToPretty(env, item), 100) +
+                            '\ntype: ' +
+                            printToString(typeToPretty(env, item.is), 100) +
+                            '\n' +
+                            (item.type === 'TypeError'
+                                ? 'found: ' +
+                                  printToString(
+                                      typeToPretty(env, item.inner.is),
+                                      100,
+                                  )
+                                : ''),
+                    )
+                    .join('\n\n'),
         );
         console.log(errors.terms);
         console.log(errors.patterns);

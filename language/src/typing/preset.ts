@@ -181,6 +181,7 @@ export const recordDefn = (
     location,
     typeVbls,
     unique,
+    defaults: {},
 });
 
 export const recordLiteral = (
@@ -316,6 +317,7 @@ export function presetEnv(builtins: { [key: string]: Type }) {
         items: [pureFunction([T0], Y0)],
         location: builtinLocation,
         ffi: null,
+        defaults: {},
     };
     env.global.recordGroups['As'] = ['as'];
     env.global.idNames['As'] = 'As';
@@ -339,6 +341,7 @@ export function presetEnv(builtins: { [key: string]: Type }) {
         items: [],
         location: builtinLocation,
         ffi: null,
+        defaults: {},
     };
     env.global.types['Some'] = {
         unique: 0,
@@ -349,6 +352,7 @@ export function presetEnv(builtins: { [key: string]: Type }) {
         items: [T0],
         location: builtinLocation,
         ffi: null,
+        defaults: {},
     };
     env.global.recordGroups['Some'] = ['contents'];
     env.global.attributeNames['contents'] = [

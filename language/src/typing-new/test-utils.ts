@@ -242,6 +242,9 @@ export const customMatchers: jest.ExpectExtendMap = {
                 pass: false,
                 message: () => {
                     return (
+                        `Term: ` +
+                        termToString(ctx, value) +
+                        '\n\n' +
                         tracker.terms
                             .map(
                                 (t: ErrorTerm) =>

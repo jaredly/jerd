@@ -54,6 +54,13 @@ describe('typeAttribute', () => {
         expect(res).toNotHaveErrors(ctx);
     });
 
+    it(`tuples folks`, () => {
+        const ctx = newContext();
+        const res = parseExpression(ctx, `(1.1, 2.2).1`);
+        expect(res).toNotHaveErrors(ctx);
+        expect(res.is).toEqualType(preset.float, ctx);
+    });
+
     it(`type vbl`, () => {
         const ctx = newContext();
 

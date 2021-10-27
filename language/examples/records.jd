@@ -124,6 +124,8 @@ const double = <T,>(x: Array<T>) => concat<T>(x, x)
 // and they probably shouldn't be tbh.
 // I mean its fine though.
 
+type Some<T> = {contents: T};
+
 const gotit = Some<int>{_: 5}
 
 // {5}

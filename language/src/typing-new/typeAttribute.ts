@@ -1,6 +1,7 @@
 import { AttributeSuffix, BinOp, Expectation } from '../parsing/parser-new';
 import { idName } from '../typing/env';
 import { void_ } from '../typing/preset';
+import { showLocation } from '../typing/typeExpr';
 import {
     Id,
     idsEqual,
@@ -42,6 +43,9 @@ export const typeAttribute = (
             location: attribute.location,
             typeVbls: [],
         };
+        if (!ctx.library.types.defns[idName(hash.type)]) {
+            throw new Error('Nope' + showLocation(inner.location));
+        }
         const defn = ctx.library.types.defns[idName(hash.type)]
             .defn as RecordDef;
         const typed = typeExpression(ctx, inner, [is]);
@@ -64,7 +68,32 @@ export const typeAttribute = (
             };
         }
     }
+
+    // TODO: um
+    // need to be able to not specify the variables here again.
+    const typed = typeExpression(ctx, inner, []);
+
     const attrName = parseIdTextOrString(attribute.id.text);
+    const num = parseInt(attrName);
+    if ('' + num === attrName) {
+        if (
+            typed.is.type === 'ref' &&
+            typed.is.ref.type === 'builtin' &&
+            typed.is.ref.name.startsWith('Tuple')
+        ) {
+            const num = parseInt(attrName);
+            if ('' + num === attrName && num < typed.is.typeVbls.length) {
+                return {
+                    type: 'TupleAccess',
+                    idx: num,
+                    is: typed.is.typeVbls[num],
+                    location: attribute.location,
+                    target: typed,
+                };
+            }
+            // console.log(num, attrName);
+        }
+    }
     const options = ctx.library.types.constructors.names[attrName];
     if (!options) {
         // UM
@@ -76,9 +105,7 @@ export const typeAttribute = (
             location: attribute.location,
         };
     }
-    // TODO: um
-    // need to be able to not specify the variables here again.
-    const typed = typeExpression(ctx, inner, []);
+
     let ids: Array<{ id: Id; def: RecordDef }> = [];
     if (typed.is.type === 'var') {
         const s = typed.is.sym.unique;

@@ -4611,11 +4611,7 @@ export const transformRecordDef = <Ctx>(node: RecordDef, visitor: Visitor<Ctx>, 
         
 
                 
-        let updatedNode$defaults = undefined;
-        const updatedNode$defaults$current = node.defaults;
-        if (updatedNode$defaults$current != null) {
-            
-            let updatedNode$defaults$1$ = updatedNode$defaults$current;
+            let updatedNode$defaults = node.defaults;
             {
                 let changed2 = false;
                 
@@ -4625,32 +4621,29 @@ export const transformRecordDef = <Ctx>(node: RecordDef, visitor: Visitor<Ctx>, 
   idx: number;
   value: Term;
 }} = {};
-                Object.keys(updatedNode$defaults$current).forEach(key => {
+                Object.keys(node.defaults).forEach(key => {
                     
-            let updatedNode$defaults$1$$value = updatedNode$defaults$current[key];
+            let updatedNode$defaults$value = node.defaults[key];
             {
                 let changed3 = false;
                 
-                const updatedNode$defaults$1$$value$value = transformTerm(updatedNode$defaults$current[key].value, visitor, ctx);
-                changed3 = changed3 || updatedNode$defaults$1$$value$value !== updatedNode$defaults$current[key].value;
+                const updatedNode$defaults$value$value = transformTerm(node.defaults[key].value, visitor, ctx);
+                changed3 = changed3 || updatedNode$defaults$value$value !== node.defaults[key].value;
                 if (changed3) {
-                    updatedNode$defaults$1$$value =  {...updatedNode$defaults$1$$value, value: updatedNode$defaults$1$$value$value};
+                    updatedNode$defaults$value =  {...updatedNode$defaults$value, value: updatedNode$defaults$value$value};
                     changed2 = true;
                 }
             }
             
-                    spread[key] = updatedNode$defaults$1$$value
+                    spread[key] = updatedNode$defaults$value
                 })
                 
                 if (changed2) {
-                    updatedNode$defaults$1$ =  {...updatedNode$defaults$1$, ...spread};
+                    updatedNode$defaults =  {...updatedNode$defaults, ...spread};
                     changed1 = true;
                 }
             }
             
-            updatedNode$defaults = updatedNode$defaults$1$;
-        }
-        
                 if (changed1) {
                     updatedNode =  {...updatedNode, location: updatedNode$location, typeVbls: updatedNode$typeVbls, effectVbls: updatedNode$effectVbls, extends: updatedNode$extends, items: updatedNode$items, decorators: updatedNode$decorators, defaults: updatedNode$defaults};
                     changed0 = true;
