@@ -57,7 +57,7 @@ DecExpr = expr:Expression {return {type: 'Expr', expr, location: myLocation()}}
 
 // Toplevels
 
-Define = "const" __ rec:("rec" __)? id:Pattern ann:(_ ":" _ Type)? _ "=" _ expr:Expression {return {
+Define = ("const" / "let") __ rec:("rec" __)? id:Pattern ann:(_ ":" _ Type)? _ "=" _ expr:Expression {return {
     type: 'define', rec: !!rec, id, expr, ann: ann ? ann[3] : null, location: myLocation()}}
 
 Effect = "effect" __ id:Identifier _ "{" _ constrs:(EfConstr _ "," _)+ "}" {return {

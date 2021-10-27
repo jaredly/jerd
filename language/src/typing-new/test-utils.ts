@@ -50,7 +50,7 @@ import {
     Visitor,
 } from '../typing/auto-transform';
 import { showType } from '../typing/unify';
-import { typeToplevel } from './typeFile';
+import { typeFile, typeToplevel } from './typeFile';
 import { findErrors } from './typeRecord';
 import { patternIs } from '../typing/typePattern';
 
@@ -332,9 +332,9 @@ export const findTermTypeErrors = (term: Term | null | void) => {
 };
 
 export const namedDefns = <T>(): NamedDefns<T> => ({ defns: {}, names: {} });
-export const newContext = (): Context => {
+export const newContext = (initial?: string): Context => {
     let num = 0;
-    return {
+    const ctx: Context = {
         rng: () => num++,
         warnings: [],
         idRemap: {},
@@ -366,6 +366,10 @@ export const newContext = (): Context => {
             },
         },
     };
+    if (initial) {
+        [ctx.library] = typeFile(ctx, parseTyped(initial));
+    }
+    return ctx;
 };
 
 export const rawSnapshotSerializer: jest.SnapshotSerializerPlugin = {

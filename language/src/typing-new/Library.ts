@@ -1,6 +1,10 @@
 import { Location } from '../parsing/parser-new';
 import { printToString } from '../printing/printer';
-import { termToPretty, typeToPretty } from '../printing/printTsLike';
+import {
+    termToPretty,
+    toplevelToPretty,
+    typeToPretty,
+} from '../printing/printTsLike';
 import {
     isErrorPattern,
     isErrorTerm,
@@ -236,7 +240,7 @@ export const addToplevel = (lib: Library, top: ToplevelT, meta: MetaData) => {
                         item.type +
                         ': ' +
                         printToString(termToPretty(env, item), 100) +
-                        '\n' +
+                        '\ntype: ' +
                         printToString(typeToPretty(env, item.is), 100) +
                         '\n' +
                         (item.type === 'TypeError'
@@ -251,6 +255,7 @@ export const addToplevel = (lib: Library, top: ToplevelT, meta: MetaData) => {
         console.log(errors.terms);
         console.log(errors.patterns);
         console.log(top);
+        console.log(printToString(toplevelToPretty(env, top), 100));
         throw new Error(
             `Cannot add invalid toplevel to library ${showLocation(
                 top.location,

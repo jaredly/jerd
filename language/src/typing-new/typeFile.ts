@@ -18,8 +18,8 @@ import * as typed from '../typing/types';
 import { Term } from '../typing/types';
 import { Context, MetaData } from './Context';
 import { addToplevel, Library } from './Library';
-import { resolveTypeId } from './resolve';
-import { typeTypeVblDecl } from './typeArrow';
+import { resolveEffectId, resolveTypeId } from './resolve';
+import { typeEffVblDecl, typeTypeVblDecl } from './typeArrow';
 import { typeExpression } from './typeExpression';
 import { parseIdTextOrString } from './typeRecord';
 import { typeType } from './typeType';
@@ -40,21 +40,67 @@ export const typeToplevel = (
             };
         }
         case 'Define': {
-            const t = top.ann ? typeType(ctx, top.ann) : null;
+            let t = top.ann ? typeType(ctx, top.ann) : null;
             if (top.id.type !== 'Identifier') {
                 throw new Error('oops fancy pattern');
+            }
+            if (top.rec) {
+                if (top.expr.type !== 'Lambda') {
+                    console.warn(`can't do recursive with a non-lambda`);
+                } else if (!t) {
+                    const inner: Context = {
+                        ...ctx,
+                        bindings: {
+                            ...ctx.bindings,
+                        },
+                    };
+
+                    const effectVbls =
+                        top.expr.effvbls?.inner?.items.map((t, i) =>
+                            typeEffVblDecl(ctx, t, i),
+                        ) || [];
+                    inner.bindings.effects = effectVbls.concat(
+                        inner.bindings.effects,
+                    );
+                    const typeVbls =
+                        top.expr.typevbls?.items.map((t) =>
+                            typeTypeVblDecl(ctx, t),
+                        ) || [];
+                    inner.bindings.types = typeVbls.concat(
+                        inner.bindings.types,
+                    );
+
+                    const effects = top.expr.effects
+                        ? (top.expr.effects.effects?.items
+                              .map((id) => resolveEffectId(ctx, id))
+                              .filter(Boolean) as Array<typed.EffectRef>) || []
+                        : [];
+
+                    t = {
+                        type: 'lambda',
+                        args:
+                            top.expr.args?.items.map((t) =>
+                                t.type
+                                    ? typeType(inner, t.type)
+                                    : { type: 'THole', location: t.location },
+                            ) || [],
+                        effectVbls,
+                        effects,
+                        location: top.location,
+                        res: top.expr.rettype
+                            ? typeType(ctx, top.expr.rettype)
+                            : { type: 'THole', location: top.location },
+                        rest: null,
+                        typeVbls,
+                    };
+                }
             }
             const inner: Context = top.rec
                 ? {
                       ...ctx,
                       bindings: {
                           ...ctx.bindings,
-                          self: {
-                              name: top.id.text,
-                              type: t
-                                  ? t
-                                  : { type: 'THole', location: top.location },
-                          },
+                          self: { name: top.id.text, type: t! },
                       },
                   }
                 : ctx;
@@ -313,7 +359,11 @@ export const typeFile = (
                 }
             }
             const ttop = typeToplevel(
-                { ...ctx, library: lib },
+                {
+                    ...ctx,
+                    library: lib,
+                    bindings: { ...ctx.bindings, unique: { current: 0 } },
+                },
                 top.top,
                 unique,
             );

@@ -1,4 +1,4 @@
-import { Lambda, Location, TypeVbl } from '../parsing/parser-new';
+import { Identifier, Lambda, Location, TypeVbl } from '../parsing/parser-new';
 import {
     Type,
     Lambda as TLambda,
@@ -28,71 +28,58 @@ export const typeTypeVblDecl = (ctx: Context, decl: TypeVbl) => {
     return { sym, location: decl.id.location, subTypes };
 };
 
+export const typeEffVblDecl = (ctx: Context, id: Identifier, i: number) => {
+    if (i > 0) {
+        throw new Error(
+            'multiple effect variables we dont know what to do here folks?',
+        );
+    }
+    const sym = idToSym(ctx, id);
+    return { sym, location: id.location };
+};
+
 export const typeArrow = (
     ctx: Context,
     arrow: Lambda,
     expected: Array<Type>,
 ): Term => {
-    let changed = false;
+    // let changed = false;
     if (arrow.typevbls?.items.length) {
         const types = ctx.bindings.types.slice();
         arrow.typevbls.items.forEach((ok) => {
             types.push(typeTypeVblDecl(ctx, ok));
         });
     }
-    let values = ctx.bindings.values;
-    let types = ctx.bindings.types;
-    let effects = ctx.bindings.effects;
-    if (arrow.args?.items.length) {
-        values = values.slice();
-    }
-    if (arrow.typevbls?.items.length) {
-        types = types.slice();
-    }
-    if (arrow.effvbls?.inner?.items.length) {
-        effects = effects.slice();
-    }
-    if (
-        arrow.args?.items.length ||
-        arrow.typevbls?.items.length ||
-        arrow.effvbls?.inner?.items.length
-    ) {
-        ctx = { ...ctx, bindings: { ...ctx.bindings, types, values, effects } };
-    }
+    ctx = { ...ctx, bindings: { ...ctx.bindings } };
+    // let values = ctx.bindings.values;
+    // let types = ctx.bindings.types;
+    // let effects = ctx.bindings.effects;
+    // if (arrow.args?.items.length) {
+    //     values = values.slice();
+    // }
+    // if (arrow.typevbls?.items.length) {
+    //     types = types.slice();
+    // }
+    // if (arrow.effvbls?.inner?.items.length) {
+    //     effects = effects.slice();
+    // }
+    // if (
+    //     arrow.args?.items.length ||
+    //     arrow.typevbls?.items.length ||
+    //     arrow.effvbls?.inner?.items.length
+    // ) {
+    //     ctx = { ...ctx, bindings: { ...ctx.bindings, types, values, effects } };
+    // }
 
     const effectVbls =
-        arrow.effvbls?.inner?.items.map((id, i) => {
-            if (i > 0) {
-                throw new Error(
-                    'multiple effect variables we dont know what to do here folks?',
-                );
-            }
-            const sym = idToSym(ctx, id);
-            effects.push({
-                location: id.location,
-                sym,
-            });
-            return { sym, location: id.location };
-        }) || [];
+        arrow.effvbls?.inner?.items.map((id, i) =>
+            typeEffVblDecl(ctx, id, i),
+        ) || [];
+    ctx.bindings.effects = effectVbls.concat(ctx.bindings.effects);
 
     const typeVbls: Array<TypeVblDecl> =
-        arrow.typevbls?.items.map((item) => {
-            const sym = idToSym(ctx, item.id);
-            const subTypes =
-                (item.subTypes?.items
-                    .map((id) => resolveTypeId(ctx, id))
-                    .filter(Boolean) as Array<Id>) || [];
-            types.push({
-                sym,
-                location: item.location,
-                subTypes,
-            });
-            return {
-                sym,
-                location: item.location,
-                subTypes,
-            };
-        }) || [];
+        arrow.typevbls?.items.map((item) => typeTypeVblDecl(ctx, item)) || [];
+    ctx.bindings.types = typeVbls.concat(ctx.bindings.types);
 
     const boundEffects = arrow.effects
         ? (arrow.effects.effects?.items
@@ -156,7 +143,7 @@ export const typeArrow = (
     args.forEach((arg) => {
         // NOTE: this means that the typeExpression will /modify/ the arg object here
         // so we will know after the typeExpression wether inference worked.
-        values.unshift(arg);
+        ctx.bindings.values.unshift(arg);
     });
 
     // TODO: should I try to test all of the potential expecteds here?

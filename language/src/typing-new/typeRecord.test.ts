@@ -7,6 +7,7 @@ import {
     errorSerilaizer,
     newContext,
     parseExpression,
+    parseToplevels,
     rawSnapshotSerializer,
     showTermErrors,
     termToString,
@@ -156,19 +157,12 @@ describe('typeRecord', () => {
         const ctx = newContext();
 
         let id;
-        [ctx.library, id] = addRecord(
-            ctx.library,
-            preset.recordDefn([preset.int]),
-            'Hello',
-            ['hello'],
-        );
+        [ctx.library, [id]] = parseToplevels(ctx, `type Hello {hello: int}`);
 
         let id2;
-        [ctx.library, id2] = addRecord(
-            ctx.library,
-            preset.recordDefn([preset.string]),
-            'Hello',
-            ['hello'],
+        [ctx.library, [id2]] = parseToplevels(
+            ctx,
+            `type Hello {hello: string}`,
         );
 
         const res = parseExpression(ctx, `Hello{hello: 10}`);
@@ -500,6 +494,34 @@ describe('typeRecord', () => {
         );
         expect(res).toNotHaveErrors(ctx);
         expect(res.is).toEqualType(preset.refType(child), ctx);
+    });
+
+    it(`spread`, () => {
+        const ctx = newContext(`
+        @ffi
+        type Vec2 = {
+            x: float,
+            y: float
+        }
+
+        @ffi
+        type Vec3 = {
+            ...Vec2,
+            z: float
+        }
+
+
+        // type Vec2 {x: float, y: float};
+        // const v2 = Vec2{x: 1.0, y: 2.1};
+        // type Vec3 {...Vec2, z: float};
+
+        @ffi
+        const vec3 = (v: Vec2, z: float) => Vec3{...v, z: z}
+        `);
+        // let res = parseExpression(ctx, `Vec3{...v2, z: 10.0}`);
+        // expect(res).toNotHaveErrors(ctx);
+        // res = parseExpression(ctx, `(m: Vec2) => Vec3{...m, z: 10.0}`);
+        // expect(res).toNotHaveErrors(ctx);
     });
 
     // This to test:
