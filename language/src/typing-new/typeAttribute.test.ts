@@ -72,6 +72,18 @@ describe('typeAttribute', () => {
         );
     });
 
+    it(`missing`, () => {
+        const ctx = newContext(`
+		type Hello {
+			x: int
+		}
+		`);
+        const res = parseExpression(ctx, `missing().x`);
+        expect(termToString(ctx, res)).toMatchInlineSnapshot(
+            `INVALID_APPLICATION[NOTFOND(missing)<>()].x`,
+        );
+    });
+
     it(`vbl record`, () => {
         const ctx = newContext();
         ctx.builtins.ops.binary['+'] = [

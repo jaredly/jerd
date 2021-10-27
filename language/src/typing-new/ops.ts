@@ -121,7 +121,7 @@ import { precedence } from '../typing/terms/ops';
 import { parseOpHash } from './hashes';
 import { Context } from './Context';
 import { typeExpression } from './typeExpression';
-import { Library } from './Library';
+import { Library, typeDef } from './Library';
 import {
     ResolvedType,
     resolveType,
@@ -883,8 +883,9 @@ const optionForValue = (
     location: Location,
     target: t.Term,
 ): undefined | Option => {
-    const { defn: myDecl } = ctx.library.types.defns[idName(type.ref.id)];
-    if (myDecl.type !== 'Record') {
+    const myDecl = typeDef(ctx.library, type.ref);
+    // const { defn: myDecl } = ctx.library.types.defns[idName(type.ref.id)];
+    if (!myDecl || myDecl.type !== 'Record') {
         return;
     }
     if (myDecl.typeVbls.length) {

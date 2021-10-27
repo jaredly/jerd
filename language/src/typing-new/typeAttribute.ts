@@ -109,6 +109,7 @@ export const typeAttribute = (
         };
     } else {
         let id = typed.is.ref.id;
+        // console.log(inner.location);
         let defn = recordWithResolvedTypes(ctx, typed.is as UserTypeReference);
 
         ids = [{ id, def: defn }].concat(

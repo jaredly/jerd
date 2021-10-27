@@ -44,42 +44,27 @@ const ctxWithPrelude = () => {
 
 const skip = ['type-errors.jd'];
 describe('all the examples?', () => {
-    it(`should type the prelude`, () => {
-        const ctx: Context = ctxWithPrelude();
+    // it(`should type the prelude`, () => {
+    //     const ctx: Context = ctxWithPrelude();
+    // });
+
+    let ctx: Context;
+    beforeAll(() => {
+        ctx = ctxWithPrelude();
     });
 
-    // let ctx: Context;
-    // beforeAll(() => {
-    //     ctx = newContext();
-    //     ctx.builtins = defaultBuiltins();
-    //     [ctx.library] = typeFile(
-    //         ctx,
-    //         parseTyped(`
-    //     const as = intToString;
-    //     const as = intToFloat;
-    //     const as = floatToInt;
-    //     const as = floatToString;
-    //     type As<From, To> = {
-    //         as: (From) => To,
-    //     }
-
-    //         ${preludeRaw}
-    //     `),
-    //     );
-    // });
-
-    // const base = path.join(__dirname, '../../examples');
-    // fs.readdirSync(base).forEach((name) => {
-    //     if (skip.includes(name) || !name.endsWith('.jd')) {
-    //         return;
-    //     }
-    //     it(`examples/${name}`, () => {
-    //         const text = fs.readFileSync(path.join(base, name), 'utf8');
-    //         let exprs;
-    //         [ctx.library, exprs] = typeFile(ctx, parseTyped(text));
-    //         exprs.forEach((expr) => {
-    //             expect(expr).toNotHaveErrors(ctx);
-    //         });
-    //     });
-    // });
+    const base = path.join(__dirname, '../../examples');
+    fs.readdirSync(base).forEach((name) => {
+        if (skip.includes(name) || !name.endsWith('.jd')) {
+            return;
+        }
+        it(`examples/${name}`, () => {
+            const text = fs.readFileSync(path.join(base, name), 'utf8');
+            let exprs;
+            [ctx.library, exprs] = typeFile(ctx, parseTyped(text));
+            exprs.forEach((expr) => {
+                expect(expr).toNotHaveErrors(ctx);
+            });
+        });
+    });
 });
