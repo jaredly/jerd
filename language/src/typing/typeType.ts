@@ -23,6 +23,7 @@ import { showLocation } from './typeExpr';
 import {
     idFromName,
     idName,
+    parseIdHash,
     resolveEffect,
     symPrefix,
     typeForId,
@@ -117,7 +118,7 @@ const typeType = (
                 };
             }
             if (type.id.hash) {
-                let rawId = type.id.hash.slice(1);
+                let rawId = parseIdHash(env, type.id.hash);
                 if (rawId === 'builtin') {
                     if (env.global.builtinTypes[type.id.text] == null) {
                         throw new LocatedError(
@@ -133,20 +134,16 @@ const typeType = (
                     };
                 }
                 if (!typeForIdRaw(env, rawId)) {
-                    if (env.global.idRemap[rawId]) {
-                        rawId = idName(env.global.idRemap[rawId]);
+                    const starts = Object.keys(env.global.types).filter((k) =>
+                        k.startsWith(rawId),
+                    );
+                    if (starts.length) {
+                        rawId = starts[0];
                     } else {
-                        const starts = Object.keys(
-                            env.global.types,
-                        ).filter((k) => k.startsWith(rawId));
-                        if (starts.length) {
-                            rawId = starts[0];
-                        } else {
-                            throw new LocatedError(
-                                type.location,
-                                `Unknown explicit type ${rawId}`,
-                            );
-                        }
+                        throw new LocatedError(
+                            type.location,
+                            `Unknown explicit type ${rawId}`,
+                        );
                     }
                 }
                 return {
@@ -258,7 +255,7 @@ const typeType = (
             return {
                 type: 'lambda',
                 args: type.args.map((a) => typeType(typeInner, a.type)),
-                argNames: type.args.map((a) => a.id),
+                // argNames: type.args.map((a) => a.id),
                 typeVbls,
                 effectVbls,
                 location: type.location,

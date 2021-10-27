@@ -623,14 +623,8 @@ function processAttributeFolks(
         id = got.id;
     }
 
-    let rowsToMod =
-        // id == null && base.type === 'Concrete'
-        //     ? base.rows
-        subTypes[idName(id!)].rows;
-    const recordType =
-        // id == null && base.type === 'Concrete' ? (ctx.library.types.defns[idName(base.ref.id)].defn as RecordDef)
-        subTypeTypes[idName(id!)];
-    let v = typeExpression(ctx, row.value, [rowsToMod[i].type]);
+    const rowsToMod = subTypes[idName(id!)].rows;
+    const v = typeExpression(ctx, row.value, [rowsToMod[i].type]);
     if (rowsToMod[i].value != null) {
         return { ref: { type: 'user', id }, idx: i, value: v };
     }

@@ -3,6 +3,7 @@ import {
     allTermIdsRaw,
     idFromName,
     idName,
+    parseIdHash,
     symPrefix,
     termForIdRaw,
 } from '../env';
@@ -96,10 +97,7 @@ export const typeAs = (env: Env, target: Term, suffix: AsSuffix): Term => {
                 is: local.type,
             };
         } else {
-            let rawId = suffix.hash.slice(1);
-            if (env.global.idRemap[rawId]) {
-                rawId = idName(env.global.idRemap[rawId]);
-            }
+            const rawId = parseIdHash(env, suffix.hash);
             const t = termForIdRaw(env, rawId);
             if (!t) {
                 throw new LocatedError(
@@ -115,7 +113,7 @@ export const typeAs = (env: Env, target: Term, suffix: AsSuffix): Term => {
                 type: 'ref',
                 ref: {
                     type: 'user',
-                    id: idFromName(suffix.hash.slice(1)),
+                    id: idFromName(rawId),
                 },
                 is: t.is,
                 location: suffix.location,

@@ -474,7 +474,7 @@ export const allLiteral = (env: Env, type: Type): boolean => {
                     defn,
                     type.typeVbls,
                     null,
-                    type.ref.id.hash,
+                    idName(type.ref.id),
                 );
                 if (rec.extends.some((ref) => !allLiteral(env, ref))) {
                     return false;

@@ -1,5 +1,5 @@
 import { Decorator, Location, Type } from '../../parsing/parser';
-import { idFromName, idName } from '../env';
+import { idFromName, idName, parseIdHash } from '../env';
 import { LocatedError } from '../errors';
 import { getTypeError } from '../getTypeError';
 import typeExpr, { applyTypeVariablesToDecoratorDef } from '../typeExpr';
@@ -71,7 +71,7 @@ export const typeDecorators = (
         );
 
         if (dec.id.hash) {
-            const id = idFromName(dec.id.hash.slice(1));
+            const id = idFromName(parseIdHash(env, dec.id.hash));
             const decl = getDecorator(env, id, typeVbls);
             const err = checkDecorator(env, inner, args, decl, dec.location);
             if (err) {

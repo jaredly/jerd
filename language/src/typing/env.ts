@@ -55,16 +55,10 @@ import typeType, { newEnvWithTypeAndEffectVbls } from './typeType';
 
 export const typeForId = (env: Env, id: Id) => typeForIdRaw(env, idName(id));
 export const typeForIdRaw = (env: Env, raw: string) => {
-    // if (env.global.idRemap[raw]) {
-    //     raw = idName(env.global.idRemap[raw]);
-    // }
     return env.global.types[raw];
 };
 export const termForId = (env: Env, id: Id) => termForIdRaw(env, idName(id));
 export const termForIdRaw = (env: Env, raw: string) => {
-    // if (env.global.idRemap[raw]) {
-    //     raw = idName(env.global.idRemap[raw]);
-    // }
     return env.global.terms[raw];
 };
 export const nameForId = (env: Env, raw: string) => env.global.idNames[raw];
@@ -622,21 +616,24 @@ export const addEnum = (
 export const idFromName = (name: string) => ({ hash: name, size: 1, pos: 0 });
 export const idName = (id: Id) => id.hash + (id.pos !== 0 ? '_' + id.pos : '');
 
+export const parseIdHash = (env: Env, hash: string): string => {
+    if (hash.startsWith('#')) {
+        hash = hash.slice(1);
+    }
+    if (env.global.idRemap[hash]) {
+        return idName(env.global.idRemap[hash]);
+    }
+    return hash;
+};
+
 export const refName = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : idName(ref.id);
 
 export const resolveType = (env: Env, id: Identifier): Array<Id> => {
     if (id.hash != null) {
-        let rawId = id.hash.slice(1);
+        let rawId = parseIdHash(env, id.hash);
         if (!typeForIdRaw(env, rawId)) {
-            if (env.global.idRemap[rawId]) {
-                rawId = idName(env.global.idRemap[rawId]);
-            } else {
-                throw new LocatedError(
-                    id.location,
-                    `Unknown type hash ${rawId}`,
-                );
-            }
+            throw new LocatedError(id.location, `Unknown type hash ${rawId}`);
         }
         return [idFromName(rawId)];
     }
@@ -1275,9 +1272,7 @@ export const resolveIdentifier = (
                 is: env.local.self.ann,
             };
         }
-        if (env.global.idRemap[first]) {
-            first = idName(env.global.idRemap[first]);
-        }
+        first = parseIdHash(env, first);
 
         if (!termForIdRaw(env, first)) {
             if (typeForIdRaw(env, first)) {
@@ -1299,9 +1294,6 @@ export const resolveIdentifier = (
                 );
             }
         }
-        // if (env.global.idRemap[first]) {
-        //     first = idName(env.global.idRemap[first]);
-        // }
         const id = idFromName(first);
         const term = termForIdRaw(env, first);
         if (!term) {

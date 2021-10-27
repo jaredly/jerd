@@ -3,13 +3,13 @@ import { Handlers } from "./prelude.mjs";
 
 /**
 ```
-@ffi("Vec2") type Vec2#08f7c2ac = {
+@ffi("Vec2") type Vec2#78566d10 = {
     x: float#builtin,
     y: float#builtin,
 }
 ```
 */
-type t_08f7c2ac = {
+type t_78566d10 = {
   type: "Vec2";
   x: number;
   y: number;
@@ -17,17 +17,17 @@ type t_08f7c2ac = {
 
 /**
 ```
-@ffi("Arc") type Arc#443a6bbd = {
-    center: Vec2#08f7c2ac,
+@ffi("Arc") type Arc#7ab021e4 = {
+    center: Vec2#78566d10,
     startAngle: float#builtin,
     endAngle: float#builtin,
     counterClockwise: bool#builtin = false,
 }
 ```
 */
-type t_443a6bbd = {
+type t_7ab021e4 = {
   type: "Arc";
-  center: t_08f7c2ac;
+  center: t_78566d10;
   startAngle: number;
   endAngle: number;
   counterClockwise: boolean;
@@ -35,18 +35,18 @@ type t_443a6bbd = {
 
 /**
 ```
-@ffi("EllipsePath") type EllipsePath#163da40e = {
-    ...Arc#443a6bbd,
-    radius: Vec2#08f7c2ac,
+@ffi("EllipsePath") type EllipsePath#71924611 = {
+    ...Arc#7ab021e4,
+    radius: Vec2#78566d10,
     rotation: float#builtin,
 }
 ```
 */
-type t_163da40e = {
+type t_71924611 = {
   type: "EllipsePath";
-  radius: t_08f7c2ac;
+  radius: t_78566d10;
   rotation: number;
-  center: t_08f7c2ac;
+  center: t_78566d10;
   startAngle: number;
   endAngle: number;
   counterClockwise: boolean;
@@ -54,106 +54,106 @@ type t_163da40e = {
 
 /**
 ```
-@ffi("Rounded") type Rounded#b7a4f230 = {
-    c1: Vec2#08f7c2ac,
-    c2: Vec2#08f7c2ac,
+@ffi("Rounded") type Rounded#9a960e4c = {
+    c1: Vec2#78566d10,
+    c2: Vec2#78566d10,
     radius: float#builtin,
 }
 ```
 */
-type t_b7a4f230 = {
+type t_9a960e4c = {
   type: "Rounded";
-  c1: t_08f7c2ac;
-  c2: t_08f7c2ac;
+  c1: t_78566d10;
+  c2: t_78566d10;
   radius: number;
 };
 
 /**
 ```
-@ffi("Bezier") type Bezier#37a1f256 = {
-    c1: Vec2#08f7c2ac,
-    c2: Vec2#08f7c2ac,
-    c3: Vec2#08f7c2ac,
-    c4: Vec2#08f7c2ac,
-    end: Vec2#08f7c2ac,
+@ffi("Bezier") type Bezier#8a5a2244 = {
+    c1: Vec2#78566d10,
+    c2: Vec2#78566d10,
+    c3: Vec2#78566d10,
+    c4: Vec2#78566d10,
+    end: Vec2#78566d10,
 }
 ```
 */
-type t_37a1f256 = {
+type t_8a5a2244 = {
   type: "Bezier";
-  c1: t_08f7c2ac;
-  c2: t_08f7c2ac;
-  c3: t_08f7c2ac;
-  c4: t_08f7c2ac;
-  end: t_08f7c2ac;
+  c1: t_78566d10;
+  c2: t_78566d10;
+  c3: t_78566d10;
+  c4: t_78566d10;
+  end: t_78566d10;
 };
 
 /**
 ```
-@ffi("Quadratic") type Quadratic#5c0c4fd8 = {
-    control: Vec2#08f7c2ac,
-    end: Vec2#08f7c2ac,
+@ffi("Quadratic") type Quadratic#51345096 = {
+    control: Vec2#78566d10,
+    end: Vec2#78566d10,
 }
 ```
 */
-type t_5c0c4fd8 = {
+type t_51345096 = {
   type: "Quadratic";
-  control: t_08f7c2ac;
-  end: t_08f7c2ac;
+  control: t_78566d10;
+  end: t_78566d10;
 };
 
-/*enum PathPart#1bf9b3a6 {
-    Vec2#08f7c2ac,
-    Quadratic#5c0c4fd8,
-    Bezier#37a1f256,
-    Rounded#b7a4f230,
-    Arc#443a6bbd,
-    EllipsePath#163da40e,
+/*enum PathPart#32ecdb20 {
+    Vec2#78566d10,
+    Quadratic#51345096,
+    Bezier#8a5a2244,
+    Rounded#9a960e4c,
+    Arc#7ab021e4,
+    EllipsePath#71924611,
 }*/
-type t_1bf9b3a6 = t_08f7c2ac | t_5c0c4fd8 | t_37a1f256 | t_b7a4f230 | t_443a6bbd | t_163da40e;
+type t_32ecdb20 = t_78566d10 | t_51345096 | t_8a5a2244 | t_9a960e4c | t_7ab021e4 | t_71924611;
 
 /**
 ```
-@ffi("End") type End#830ad468 = {}
+@ffi("End") type End#9d8f7940 = {}
 ```
 */
-type t_830ad468 = {
+type t_9d8f7940 = {
   type: "End";
 };
 
 /**
 ```
-@ffi("Start") type Start#098d99e8 = {}
+@ffi("Start") type Start#6fcdc9d5 = {}
 ```
 */
-type t_098d99e8 = {
+type t_6fcdc9d5 = {
   type: "Start";
 };
 
 /**
 ```
-@ffi("Center") type Center#1189540a = {}
+@ffi("Center") type Center#37b17a3c = {}
 ```
 */
-type t_1189540a = {
+type t_37b17a3c = {
   type: "Center";
 };
 
 /**
 ```
-@ffi("Right") type Right#5cfc662e = {}
+@ffi("Right") type Right#11631a3e = {}
 ```
 */
-type t_5cfc662e = {
+type t_11631a3e = {
   type: "Right";
 };
 
 /**
 ```
-@ffi("Left") type Left#43051e9e = {}
+@ffi("Left") type Left#53a3ac86 = {}
 ```
 */
-type t_43051e9e = {
+type t_53a3ac86 = {
   type: "Left";
 };
 
@@ -177,210 +177,210 @@ type t_52033f94 = {
 
 /**
 ```
-@ffi("CSS") type CSS#742a31c2 = {
+@ffi("CSS") type CSS#064a2c2c = {
     value: string#builtin,
 }
 ```
 */
-type t_742a31c2 = {
+type t_064a2c2c = {
   type: "CSS";
   value: string;
 };
 
 /**
 ```
-@ffi("Square") type Square#155bb0ac = {}
+@ffi("Square") type Square#2d14c9e4 = {}
 ```
 */
-type t_155bb0ac = {
+type t_2d14c9e4 = {
   type: "Square";
 };
 
 /**
 ```
-@ffi("Round") type Round#51486760 = {}
+@ffi("Round") type Round#77f74444 = {}
 ```
 */
-type t_51486760 = {
+type t_77f74444 = {
   type: "Round";
 };
 
 /**
 ```
-@ffi("Butt") type Butt#1ac05bf8 = {}
+@ffi("Butt") type Butt#23492f54 = {}
 ```
 */
-type t_1ac05bf8 = {
+type t_23492f54 = {
   type: "Butt";
 };
 
 /**
 ```
-@ffi("Path") type Path#6d986b7c = {
-    start: Vec2#08f7c2ac,
+@ffi("Path") type Path#278bd75e = {
+    start: Vec2#78566d10,
     closed: bool#builtin = false,
-    parts: Array#builtin<PathPart#1bf9b3a6>,
+    parts: Array#builtin<PathPart#32ecdb20>,
 }
 ```
 */
-type t_6d986b7c = {
+type t_278bd75e = {
   type: "Path";
-  start: t_08f7c2ac;
+  start: t_78566d10;
   closed: boolean;
-  parts: Array<t_1bf9b3a6>;
+  parts: Array<t_32ecdb20>;
 };
 
 /**
 ```
-@ffi("Rect") type Rect#126fdf00 = {
-    pos: Vec2#08f7c2ac,
-    size: Vec2#08f7c2ac,
+@ffi("Rect") type Rect#d96b9044 = {
+    pos: Vec2#78566d10,
+    size: Vec2#78566d10,
     rotation: float#builtin = 0.0,
 }
 ```
 */
-type t_126fdf00 = {
+type t_d96b9044 = {
   type: "Rect";
-  pos: t_08f7c2ac;
-  size: t_08f7c2ac;
+  pos: t_78566d10;
+  size: t_78566d10;
   rotation: number;
 };
 
 /**
 ```
-@ffi("Polygon") type Polygon#cafe28b8 = {
-    points: Array#builtin<Vec2#08f7c2ac>,
+@ffi("Polygon") type Polygon#ca3bd320 = {
+    points: Array#builtin<Vec2#78566d10>,
     closed: bool#builtin = true,
 }
 ```
 */
-type t_cafe28b8 = {
+type t_ca3bd320 = {
   type: "Polygon";
-  points: Array<t_08f7c2ac>;
+  points: Array<t_78566d10>;
   closed: boolean;
 };
 
 /**
 ```
-@ffi("Line") type Line#565da092 = {
-    p1: Vec2#08f7c2ac,
-    p2: Vec2#08f7c2ac,
+@ffi("Line") type Line#2572b039 = {
+    p1: Vec2#78566d10,
+    p2: Vec2#78566d10,
 }
 ```
 */
-type t_565da092 = {
+type t_2572b039 = {
   type: "Line";
-  p1: t_08f7c2ac;
-  p2: t_08f7c2ac;
+  p1: t_78566d10;
+  p2: t_78566d10;
 };
 
 /**
 ```
-@ffi("Ellipse") type Ellipse#098fbabc = {
-    pos: Vec2#08f7c2ac,
-    radius: Vec2#08f7c2ac,
+@ffi("Ellipse") type Ellipse#73aa20a0 = {
+    pos: Vec2#78566d10,
+    radius: Vec2#78566d10,
     rotation: float#builtin = 0.0,
 }
 ```
 */
-type t_098fbabc = {
+type t_73aa20a0 = {
   type: "Ellipse";
-  pos: t_08f7c2ac;
-  radius: t_08f7c2ac;
+  pos: t_78566d10;
+  radius: t_78566d10;
   rotation: number;
 };
 
-/*enum TextAlign#eaefd106 {
-    Left#43051e9e,
-    Right#5cfc662e,
-    Center#1189540a,
-    Start#098d99e8,
-    End#830ad468,
+/*enum TextAlign#4b4337ca {
+    Left#53a3ac86,
+    Right#11631a3e,
+    Center#37b17a3c,
+    Start#6fcdc9d5,
+    End#9d8f7940,
 }*/
-type t_eaefd106 = t_43051e9e | t_5cfc662e | t_1189540a | t_098d99e8 | t_830ad468;
+type t_4b4337ca = t_53a3ac86 | t_11631a3e | t_37b17a3c | t_6fcdc9d5 | t_9d8f7940;
 
-/*enum Color#1fe34118 {
-    CSS#742a31c2,
+/*enum Color#dd7b99d4 {
+    CSS#064a2c2c,
     Rgba#52033f94,
 }*/
-type t_1fe34118 = t_742a31c2 | t_52033f94;
+type t_dd7b99d4 = t_064a2c2c | t_52033f94;
 
-/*enum LineCap#5e11f0b9 {
-    Butt#1ac05bf8,
-    Round#51486760,
-    Square#155bb0ac,
+/*enum LineCap#a2698308 {
+    Butt#23492f54,
+    Round#77f74444,
+    Square#2d14c9e4,
 }*/
-type t_5e11f0b9 = t_1ac05bf8 | t_51486760 | t_155bb0ac;
+type t_a2698308 = t_23492f54 | t_77f74444 | t_2d14c9e4;
 
-/*enum Geom#298247f2 {
-    Ellipse#098fbabc,
-    Line#565da092,
-    Polygon#cafe28b8,
-    Rect#126fdf00,
-    Path#6d986b7c,
+/*enum Geom#fa385f98 {
+    Ellipse#73aa20a0,
+    Line#2572b039,
+    Polygon#ca3bd320,
+    Rect#d96b9044,
+    Path#278bd75e,
 }*/
-type t_298247f2 = t_098fbabc | t_565da092 | t_cafe28b8 | t_126fdf00 | t_6d986b7c;
+type t_fa385f98 = t_73aa20a0 | t_2572b039 | t_ca3bd320 | t_d96b9044 | t_278bd75e;
 
 /**
 ```
-@ffi("Text") type Text#d86ebaa8 = {
+@ffi("Text") type Text#36ac6584 = {
     text: string#builtin,
-    color: Color#1fe34118,
-    pos: Vec2#08f7c2ac,
+    color: Color#dd7b99d4,
+    pos: Vec2#78566d10,
     stroke: float#builtin = 0.0,
     font: string#builtin = "",
-    textAlign: TextAlign#eaefd106 = TextAlign#eaefd106:Start#098d99e8,
+    textAlign: TextAlign#4b4337ca = TextAlign#4b4337ca:Start#6fcdc9d5,
 }
 ```
 */
-type t_d86ebaa8 = {
+type t_36ac6584 = {
   type: "Text";
   text: string;
-  color: t_1fe34118;
-  pos: t_08f7c2ac;
+  color: t_dd7b99d4;
+  pos: t_78566d10;
   stroke: number;
   font: string;
-  textAlign: t_eaefd106;
+  textAlign: t_4b4337ca;
 };
 
 /**
 ```
-@ffi("Stroke") type Stroke#522b6fec = {
-    geom: Geom#298247f2,
-    color: Color#1fe34118,
+@ffi("Stroke") type Stroke#17b6ae86 = {
+    geom: Geom#fa385f98,
+    color: Color#dd7b99d4,
     width: float#builtin = 1.0,
-    lineCaps: LineCap#5e11f0b9 = LineCap#5e11f0b9:Round#51486760,
+    lineCaps: LineCap#a2698308 = LineCap#a2698308:Round#77f74444,
 }
 ```
 */
-type t_522b6fec = {
+type t_17b6ae86 = {
   type: "Stroke";
-  geom: t_298247f2;
-  color: t_1fe34118;
+  geom: t_fa385f98;
+  color: t_dd7b99d4;
   width: number;
-  lineCaps: t_5e11f0b9;
+  lineCaps: t_a2698308;
 };
 
 /**
 ```
-@ffi("Fill") type Fill#70b1add0 = {
-    geom: Geom#298247f2,
-    color: Color#1fe34118,
+@ffi("Fill") type Fill#cee10304 = {
+    geom: Geom#fa385f98,
+    color: Color#dd7b99d4,
 }
 ```
 */
-type t_70b1add0 = {
+type t_cee10304 = {
   type: "Fill";
-  geom: t_298247f2;
-  color: t_1fe34118;
+  geom: t_fa385f98;
+  color: t_dd7b99d4;
 };
 
-/*enum Drawable#61499b8c {
-    Fill#70b1add0,
-    Stroke#522b6fec,
-    Text#d86ebaa8,
+/*enum Drawable#58028ffa {
+    Fill#cee10304,
+    Stroke#17b6ae86,
+    Text#36ac6584,
 }*/
-type t_61499b8c = t_70b1add0 | t_522b6fec | t_d86ebaa8;
+type t_58028ffa = t_cee10304 | t_17b6ae86 | t_36ac6584;
 
 /**
 ```
@@ -391,123 +391,126 @@ type t_61499b8c = t_70b1add0 | t_522b6fec | t_d86ebaa8;
 */
 type t_As<T, Y> = {
   type: "As";
-  hAs_0: (arg_0: T_10000) => T_10001;
+  hAs_0: (arg_0: T) => Y;
 };
 
 /**
 ```
-@unique(0) type AddSub#6ca64060<A#:0, B#:1, C#:2> = {
+@unique(0) type AddSub#70e0d6d0<A#:0, B#:1, C#:2> = {
     "+": (A#:0, B#:1) ={}> C#:2,
     "-": (A#:0, B#:1) ={}> C#:2,
 }
 ```
 */
-type t_6ca64060<A, B, C> = {
-  type: "6ca64060";
-  h6ca64060_0: (arg_0: T_0, arg_1: T_1) => T_2;
-  h6ca64060_1: (arg_0: T_0, arg_1: T_1) => T_2;
+type t_70e0d6d0<A, B, C> = {
+  type: "70e0d6d0";
+  h70e0d6d0_0: (arg_0: A, arg_1: B) => C;
+  h70e0d6d0_1: (arg_0: A, arg_1: B) => C;
 };
 
 /**
 ```
-@unique(1) type Mul#63513dcd<A#:0, B#:1, C#:2> = {
+@unique(1) type Mul#49fef1f5<A#:0, B#:1, C#:2> = {
     "*": (A#:0, B#:1) ={}> C#:2,
 }
 ```
 */
-type t_63513dcd<A, B, C> = {
-  type: "63513dcd";
-  h63513dcd_0: (arg_0: T_0, arg_1: T_1) => T_2;
+type t_49fef1f5<A, B, C> = {
+  type: "49fef1f5";
+  h49fef1f5_0: (arg_0: A, arg_1: B) => C;
 };
 
 /**
 ```
-const vec2#5531df03 = (x#:0: float#builtin, y#:1: float#builtin): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
-    x#08f7c2ac#0: x#:0,
-    y#08f7c2ac#1: y#:1,
+const vec2#3ac18ce8 = (x#:0: float#builtin, y#:1: float#builtin): Vec2#78566d10 ={}> Vec2#78566d10{
+    x#78566d10#0: x#:0,
+    y#78566d10#1: y#:1,
 }
-(x#:0: float, y#:1: float): Vec2#🍱🐶💣 => Vec2#🍱🐶💣{TODO SPREADs}{x: x#:0, y: y#:1}
+(x#:0: float, y#:1: float): Vec2#🧑‍🔧🏄‍♀️🕤😃 => Vec2#🧑‍🔧🏄‍♀️🕤😃{TODO SPREADs}{
+    x: x#:0,
+    y: y#:1,
+}
 ```
 */
-export const hash_5531df03: (arg_0: number, arg_1: number) => t_08f7c2ac = (x: number, y: number) => ({
+export const hash_3ac18ce8: (arg_0: number, arg_1: number) => t_78566d10 = (x: number, y: number) => ({
   type: "Vec2",
   x: x,
   y: y
-} as t_08f7c2ac);
+} as t_78566d10);
 
 /**
 ```
-const thetaPos2#3d82c362 = (theta#:0: float#builtin): Vec2#08f7c2ac ={}> vec2#5531df03(
+const thetaPos2#6a70223c = (theta#:0: float#builtin): Vec2#78566d10 ={}> vec2#3ac18ce8(
     x: cos#builtin(theta#:0),
     y: sin#builtin(theta#:0),
 )
-(theta#:0: float): Vec2#🍱🐶💣 => vec2#🏦💖🦹😃(cos(theta#:0), sin(theta#:0))
+(theta#:0: float): Vec2#🧑‍🔧🏄‍♀️🕤😃 => vec2#🙅‍♀️👻🌈(cos(theta#:0), sin(theta#:0))
 ```
 */
-export const hash_3d82c362: (arg_0: number) => t_08f7c2ac = (theta: number) => hash_5531df03(cos(theta), sin(theta));
+export const hash_6a70223c: (arg_0: number) => t_78566d10 = (theta: number) => hash_3ac18ce8(cos(theta), sin(theta));
 
 /**
 ```
-const Vec2float#a302b9d4 = Mul#63513dcd<Vec2#08f7c2ac, float#builtin, Vec2#08f7c2ac>{
-    "*"#63513dcd#0: (v#:0: Vec2#08f7c2ac, scale#:1: float#builtin): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
-        x#08f7c2ac#0: v#:0.x#08f7c2ac#0 *#builtin scale#:1,
-        y#08f7c2ac#1: v#:0.y#08f7c2ac#1 *#builtin scale#:1,
+const Vec2float#4adf81cc = Mul#49fef1f5<Vec2#78566d10, float#builtin, Vec2#78566d10>{
+    "*"#49fef1f5#0: (v#:0: Vec2#78566d10, scale#:1: float#builtin): Vec2#78566d10 ={}> Vec2#78566d10{
+        x#78566d10#0: v#:0.x#78566d10#0 *#builtin scale#:1,
+        y#78566d10#1: v#:0.y#78566d10#1 *#builtin scale#:1,
     },
 }
-Mul#👩‍❤️‍👩😱🦉😃{TODO SPREADs}{
-    h63513dcd_0: (v#:0: Vec2#🍱🐶💣, scale#:1: float): Vec2#🍱🐶💣 => Vec2#🍱🐶💣{TODO SPREADs}{
-        x: v#:0.#Vec2#🍱🐶💣#0 * scale#:1,
-        y: v#:0.#Vec2#🍱🐶💣#1 * scale#:1,
+Mul#🐺🎇🤟😃{TODO SPREADs}{
+    h49fef1f5_0: (v#:0: Vec2#🧑‍🔧🏄‍♀️🕤😃, scale#:1: float): Vec2#🧑‍🔧🏄‍♀️🕤😃 => Vec2#🧑‍🔧🏄‍♀️🕤😃{TODO SPREADs}{
+        x: v#:0.#Vec2#🧑‍🔧🏄‍♀️🕤😃#0 * scale#:1,
+        y: v#:0.#Vec2#🧑‍🔧🏄‍♀️🕤😃#1 * scale#:1,
     },
 }
 ```
 */
-export const hash_a302b9d4: t_63513dcd<t_08f7c2ac, number, t_08f7c2ac> = ({
-  type: "63513dcd",
-  h63513dcd_0: (v: t_08f7c2ac, scale: number) => ({
+export const hash_4adf81cc: t_49fef1f5<t_78566d10, number, t_78566d10> = ({
+  type: "49fef1f5",
+  h49fef1f5_0: (v: t_78566d10, scale: number) => ({
     type: "Vec2",
     x: v.x * scale,
     y: v.y * scale
-  } as t_08f7c2ac)
-} as t_63513dcd<t_08f7c2ac, number, t_08f7c2ac>);
+  } as t_78566d10)
+} as t_49fef1f5<t_78566d10, number, t_78566d10>);
 
 /**
 ```
-const AddSubVec2#f9ef2af4 = AddSub#6ca64060<Vec2#08f7c2ac, Vec2#08f7c2ac, Vec2#08f7c2ac>{
-    "+"#6ca64060#0: (one#:0: Vec2#08f7c2ac, two#:1: Vec2#08f7c2ac): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
-        x#08f7c2ac#0: one#:0.x#08f7c2ac#0 +#builtin two#:1.x#08f7c2ac#0,
-        y#08f7c2ac#1: one#:0.y#08f7c2ac#1 +#builtin two#:1.y#08f7c2ac#1,
+const AddSubVec2#482bc839 = AddSub#70e0d6d0<Vec2#78566d10, Vec2#78566d10, Vec2#78566d10>{
+    "+"#70e0d6d0#0: (one#:0: Vec2#78566d10, two#:1: Vec2#78566d10): Vec2#78566d10 ={}> Vec2#78566d10{
+        x#78566d10#0: one#:0.x#78566d10#0 +#builtin two#:1.x#78566d10#0,
+        y#78566d10#1: one#:0.y#78566d10#1 +#builtin two#:1.y#78566d10#1,
     },
-    "-"#6ca64060#1: (one#:2: Vec2#08f7c2ac, two#:3: Vec2#08f7c2ac): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
-        x#08f7c2ac#0: one#:2.x#08f7c2ac#0 -#builtin two#:3.x#08f7c2ac#0,
-        y#08f7c2ac#1: one#:2.y#08f7c2ac#1 -#builtin two#:3.y#08f7c2ac#1,
+    "-"#70e0d6d0#1: (one#:2: Vec2#78566d10, two#:3: Vec2#78566d10): Vec2#78566d10 ={}> Vec2#78566d10{
+        x#78566d10#0: one#:2.x#78566d10#0 -#builtin two#:3.x#78566d10#0,
+        y#78566d10#1: one#:2.y#78566d10#1 -#builtin two#:3.y#78566d10#1,
     },
 }
-AddSub#🤡🧗‍♂️🥧😃{TODO SPREADs}{
-    h6ca64060_0: (one#:0: Vec2#🍱🐶💣, two#:1: Vec2#🍱🐶💣): Vec2#🍱🐶💣 => Vec2#🍱🐶💣{TODO SPREADs}{
-        x: one#:0.#Vec2#🍱🐶💣#0 + two#:1.#Vec2#🍱🐶💣#0,
-        y: one#:0.#Vec2#🍱🐶💣#1 + two#:1.#Vec2#🍱🐶💣#1,
+AddSub#🍼🥵🗽😃{TODO SPREADs}{
+    h70e0d6d0_0: (one#:0: Vec2#🧑‍🔧🏄‍♀️🕤😃, two#:1: Vec2#🧑‍🔧🏄‍♀️🕤😃): Vec2#🧑‍🔧🏄‍♀️🕤😃 => Vec2#🧑‍🔧🏄‍♀️🕤😃{TODO SPREADs}{
+        x: one#:0.#Vec2#🧑‍🔧🏄‍♀️🕤😃#0 + two#:1.#Vec2#🧑‍🔧🏄‍♀️🕤😃#0,
+        y: one#:0.#Vec2#🧑‍🔧🏄‍♀️🕤😃#1 + two#:1.#Vec2#🧑‍🔧🏄‍♀️🕤😃#1,
     },
-    h6ca64060_1: (one#:2: Vec2#🍱🐶💣, two#:3: Vec2#🍱🐶💣): Vec2#🍱🐶💣 => Vec2#🍱🐶💣{TODO SPREADs}{
-        x: one#:2.#Vec2#🍱🐶💣#0 - two#:3.#Vec2#🍱🐶💣#0,
-        y: one#:2.#Vec2#🍱🐶💣#1 - two#:3.#Vec2#🍱🐶💣#1,
+    h70e0d6d0_1: (one#:2: Vec2#🧑‍🔧🏄‍♀️🕤😃, two#:3: Vec2#🧑‍🔧🏄‍♀️🕤😃): Vec2#🧑‍🔧🏄‍♀️🕤😃 => Vec2#🧑‍🔧🏄‍♀️🕤😃{TODO SPREADs}{
+        x: one#:2.#Vec2#🧑‍🔧🏄‍♀️🕤😃#0 - two#:3.#Vec2#🧑‍🔧🏄‍♀️🕤😃#0,
+        y: one#:2.#Vec2#🧑‍🔧🏄‍♀️🕤😃#1 - two#:3.#Vec2#🧑‍🔧🏄‍♀️🕤😃#1,
     },
 }
 ```
 */
-export const hash_f9ef2af4: t_6ca64060<t_08f7c2ac, t_08f7c2ac, t_08f7c2ac> = ({
-  type: "6ca64060",
-  h6ca64060_0: (one: t_08f7c2ac, two: t_08f7c2ac) => ({
+export const hash_482bc839: t_70e0d6d0<t_78566d10, t_78566d10, t_78566d10> = ({
+  type: "70e0d6d0",
+  h70e0d6d0_0: (one: t_78566d10, two: t_78566d10) => ({
     type: "Vec2",
     x: one.x + two.x,
     y: one.y + two.y
-  } as t_08f7c2ac),
-  h6ca64060_1: (one$2: t_08f7c2ac, two$3: t_08f7c2ac) => ({
+  } as t_78566d10),
+  h70e0d6d0_1: (one$2: t_78566d10, two$3: t_78566d10) => ({
     type: "Vec2",
     x: one$2.x - two$3.x,
     y: one$2.y - two$3.y
-  } as t_08f7c2ac)
-} as t_6ca64060<t_08f7c2ac, t_08f7c2ac, t_08f7c2ac>);
+  } as t_78566d10)
+} as t_70e0d6d0<t_78566d10, t_78566d10, t_78566d10>);
 
 /**
 ```
@@ -522,28 +525,28 @@ export const hash_6f186ad1: t_As<number, number> = ({
 
 /**
 ```
-const rec accurateSpiral#0e36e662 = (
+const rec accurateSpiral#722abb92 = (
     at#:0: int#builtin,
     by#:1: float#builtin,
     length#:2: float#builtin,
     theta#:3: float#builtin,
-    pos#:4: Vec2#08f7c2ac,
-    points#:5: Array#builtin<Vec2#08f7c2ac>,
+    pos#:4: Vec2#78566d10,
+    points#:5: Array#builtin<Vec2#78566d10>,
     max#:6: int#builtin,
-): Array#builtin<Vec2#08f7c2ac> ={}> {
+): Array#builtin<Vec2#78566d10> ={}> {
     if at#:0 >=#builtin max#:6 {
         points#:5;
     } else {
         const next#:7 = theta#:3 +#builtin by#:1 *#builtin at#:0 as#6f186ad1 float#builtin;
         const nextPos#:8 = pos#:4 
-            +#f9ef2af4#6ca64060#0 thetaPos2#3d82c362(theta#:3) *#a302b9d4#63513dcd#0 length#:2;
-        0e36e662#self(
+            +#482bc839#70e0d6d0#0 thetaPos2#6a70223c(theta#:3) *#4adf81cc#49fef1f5#0 length#:2;
+        722abb92#self(
             at#:0 +#builtin 1,
             by#:1,
             length#:2,
             next#:7,
             nextPos#:8,
-            <Vec2#08f7c2ac>[...points#:5, nextPos#:8],
+            <Vec2#78566d10>[...points#:5, nextPos#:8],
             max#:6,
         );
     };
@@ -553,15 +556,15 @@ const rec accurateSpiral#0e36e662 = (
     by#:1: float,
     length#:2: float,
     theta#:3: float,
-    pos#:4: Vec2#🍱🐶💣,
-    points#:5: Array<Vec2#🍱🐶💣>,
+    pos#:4: Vec2#🧑‍🔧🏄‍♀️🕤😃,
+    points#:5: Array<Vec2#🧑‍🔧🏄‍♀️🕤😃>,
     max#:6: int,
-): Array<Vec2#🍱🐶💣> => {
-    const points#:16: Array<Vec2#🍱🐶💣> = *arrayCopy*(points#:5);
+): Array<Vec2#🧑‍🔧🏄‍♀️🕤😃> => {
+    const points#:16: Array<Vec2#🧑‍🔧🏄‍♀️🕤😃> = *arrayCopy*(points#:5);
     for (; at#:0 < max#:6; at#:0 = at#:0 + 1) {
-        const nextPos#:8: Vec2#🍱🐶💣 = AddSubVec2#🏜️.#AddSub#🤡🧗‍♂️🥧😃#0(
+        const nextPos#:8: Vec2#🧑‍🔧🏄‍♀️🕤😃 = AddSubVec2#🤯🏕️💚😃.#AddSub#🍼🥵🗽😃#0(
             pos#:4,
-            Vec2float#👨‍👨‍👦.#Mul#👩‍❤️‍👩😱🦉😃#0(thetaPos2#🚁👐🏐(theta#:3), length#:2),
+            Vec2float#👨‍❤️‍👨🏒🤜😃.#Mul#🐺🎇🤟😃#0(thetaPos2#🦎🙂🥗😃(theta#:3), length#:2),
         );
         theta#:3 = theta#:3 + by#:1 * IntAsFloat#🥛🐰🗻😃.#As#😉#0(at#:0);
         pos#:4 = nextPos#:8;
@@ -572,11 +575,11 @@ const rec accurateSpiral#0e36e662 = (
 }
 ```
 */
-export const hash_0e36e662: (arg_0: number, arg_1: number, arg_2: number, arg_3: number, arg_4: t_08f7c2ac, arg_5: Array<t_08f7c2ac>, arg_6: number) => Array<t_08f7c2ac> = (at: number, by: number, length: number, theta$3: number, pos: t_08f7c2ac, points: Array<t_08f7c2ac>, max: number) => {
-  let points$16: Array<t_08f7c2ac> = points.slice();
+export const hash_722abb92: (arg_0: number, arg_1: number, arg_2: number, arg_3: number, arg_4: t_78566d10, arg_5: Array<t_78566d10>, arg_6: number) => Array<t_78566d10> = (at: number, by: number, length: number, theta$3: number, pos: t_78566d10, points: Array<t_78566d10>, max: number) => {
+  let points$16: Array<t_78566d10> = points.slice();
 
   for (; at < max; at = at + 1) {
-    let nextPos: t_08f7c2ac = hash_f9ef2af4.h6ca64060_0(pos, hash_a302b9d4.h63513dcd_0(hash_3d82c362(theta$3), length));
+    let nextPos: t_78566d10 = hash_482bc839.h70e0d6d0_0(pos, hash_4adf81cc.h49fef1f5_0(hash_6a70223c(theta$3), length));
     theta$3 = theta$3 + by * hash_6f186ad1.hAs_0(at);
     pos = nextPos;
     points$16.push(nextPos);
@@ -588,30 +591,30 @@ export const hash_0e36e662: (arg_0: number, arg_1: number, arg_2: number, arg_3:
 
 /**
 ```
-const vec2#12a84b0a = (x#:0: float#builtin): Vec2#08f7c2ac ={}> Vec2#08f7c2ac{
-    x#08f7c2ac#0: x#:0,
-    y#08f7c2ac#1: x#:0,
+const vec2#6d16482a = (x#:0: float#builtin): Vec2#78566d10 ={}> Vec2#78566d10{
+    x#78566d10#0: x#:0,
+    y#78566d10#1: x#:0,
 }
-(x#:0: float): Vec2#🍱🐶💣 => Vec2#🍱🐶💣{TODO SPREADs}{x: x#:0, y: x#:0}
+(x#:0: float): Vec2#🧑‍🔧🏄‍♀️🕤😃 => Vec2#🧑‍🔧🏄‍♀️🕤😃{TODO SPREADs}{x: x#:0, y: x#:0}
 ```
 */
-export const hash_12a84b0a: (arg_0: number) => t_08f7c2ac = (x: number) => ({
+export const hash_6d16482a: (arg_0: number) => t_78566d10 = (x: number) => ({
   type: "Vec2",
   x: x,
   y: x
-} as t_08f7c2ac);
+} as t_78566d10);
 
 /**
 ```
-const drawSpiralCustom#14e2b2e4 = (
+const drawSpiralCustom#2f797cda = (
     A#:0: int#builtin,
     B#:1: int#builtin,
     C#:2: int#builtin,
-    pos#:3: Vec2#08f7c2ac,
+    pos#:3: Vec2#78566d10,
     length#:4: float#builtin,
-): Drawable#61499b8c ={}> {
+): Drawable#58028ffa ={}> {
     const bottom#:5 = A#:0 *#builtin B#:1 +#builtin C#:2;
-    const result#:6 = accurateSpiral#0e36e662(
+    const result#:6 = accurateSpiral#722abb92(
         at: bottom#:5,
         by: A#:0 as#6f186ad1 float#builtin *#builtin PI#builtin 
             /#builtin bottom#:5 as#6f186ad1 float#builtin,
@@ -620,22 +623,22 @@ const drawSpiralCustom#14e2b2e4 = (
                 *#builtin A#:0 as#6f186ad1 float#builtin 
             *#builtin PI#builtin,
         pos#:3,
-        points: <Vec2#08f7c2ac>[],
+        points: <Vec2#78566d10>[],
         max: bottom#:5 *#builtin 3,
     );
-    Drawable#61499b8c:Stroke#522b6fec{
-        geom#522b6fec#0: Geom#298247f2:Polygon#cafe28b8{
-            points#cafe28b8#0: result#:6,
-            closed#cafe28b8#1: false,
+    Drawable#58028ffa:Stroke#17b6ae86{
+        geom#17b6ae86#0: Geom#fa385f98:Polygon#ca3bd320{
+            points#ca3bd320#0: result#:6,
+            closed#ca3bd320#1: false,
         },
-        color#522b6fec#1: Color#1fe34118:CSS#742a31c2{value#742a31c2#0: "red"},
+        color#17b6ae86#1: Color#dd7b99d4:CSS#064a2c2c{value#064a2c2c#0: "red"},
     };
 }
-(A#:0: int, B#:1: int, C#:2: int, pos#:3: Vec2#🍱🐶💣, length#:4: float): Drawable#🌓🌾🦏😃 => {
+(A#:0: int, B#:1: int, C#:2: int, pos#:3: Vec2#🧑‍🔧🏄‍♀️🕤😃, length#:4: float): Drawable#🧸👉🧑‍🦽😃 => {
     const bottom#:5: int = A#:0 * B#:1 + C#:2;
-    return Drawable#🌓🌾🦏😃:Stroke#🎿🥂🧑‍🎨😃{TODO SPREADs}{
-        geom: Geom#🎱👁️‍🗨️🍔:Polygon#🦾{TODO SPREADs}{
-            points: accurateSpiral#🌲🤾‍♀️🙎(
+    return Drawable#🧸👉🧑‍🦽😃:Stroke#🥦🚵👨‍🦯{TODO SPREADs}{
+        geom: Geom#🌝:Polygon#🎠{TODO SPREADs}{
+            points: accurateSpiral#🌙🍙🎢😃(
                 bottom#:5,
                 IntAsFloat#🥛🐰🗻😃.#As#😉#0(A#:0) * PI / IntAsFloat#🥛🐰🗻😃.#As#😉#0(bottom#:5),
                 length#:4,
@@ -648,31 +651,31 @@ const drawSpiralCustom#14e2b2e4 = (
             ),
             closed: false,
         },
-        color: Color#👩‍💼👨‍🦳🐆:CSS#🧑‍🤝‍🧑🍞🏍️😃{TODO SPREADs}{value: "red"},
+        color: Color#👨‍👨‍👦:CSS#😪🌰👽{TODO SPREADs}{value: "red"},
         width: 1,
-        lineCaps: LineCap#🦿💟👨‍👧‍👦😃:Round#🪂🐹👨‍🏭😃{TODO SPREADs}{},
+        lineCaps: LineCap#🏬:Round#😯👨‍👩‍👧‍👦🕡😃{TODO SPREADs}{},
     };
 }
 ```
 */
-export const hash_14e2b2e4: (arg_0: number, arg_1: number, arg_2: number, arg_3: t_08f7c2ac, arg_4: number) => t_61499b8c = (A: number, B: number, C: number, pos$3: t_08f7c2ac, length$4: number) => {
+export const hash_2f797cda: (arg_0: number, arg_1: number, arg_2: number, arg_3: t_78566d10, arg_4: number) => t_58028ffa = (A: number, B: number, C: number, pos$3: t_78566d10, length$4: number) => {
   let bottom: number = A * B + C;
   return ({
     type: "Stroke",
     geom: ({
       type: "Polygon",
-      points: hash_0e36e662(bottom, hash_6f186ad1.hAs_0(A) * PI / hash_6f186ad1.hAs_0(bottom), length$4, (hash_6f186ad1.hAs_0(bottom) + 1) / 2 * hash_6f186ad1.hAs_0(A) * PI, pos$3, [], bottom * 3),
+      points: hash_722abb92(bottom, hash_6f186ad1.hAs_0(A) * PI / hash_6f186ad1.hAs_0(bottom), length$4, (hash_6f186ad1.hAs_0(bottom) + 1) / 2 * hash_6f186ad1.hAs_0(A) * PI, pos$3, [], bottom * 3),
       closed: false
-    } as t_298247f2),
+    } as t_fa385f98),
     color: ({
       type: "CSS",
       value: "red"
-    } as t_1fe34118),
+    } as t_dd7b99d4),
     width: 1,
     lineCaps: ({
       type: "Round"
-    } as t_5e11f0b9)
-  } as t_61499b8c);
+    } as t_a2698308)
+  } as t_58028ffa);
 };
 
 /*
@@ -703,16 +706,16 @@ export const hash_14e2b2e4: (arg_0: number, arg_1: number, arg_2: number, arg_3:
     const orientation#:11 = rotation#:9 *#builtin 2 +#builtin configuration#:10;
     const A#:12 = C#:7 *#builtin orientation#:11 +#builtin W#:6 
         +#builtin s1p2#:1 *#builtin C#:7 *#builtin 8;
-    drawSpiralCustom#14e2b2e4(A#:12, B: s0p1#:0, C#:7, pos: vec2#12a84b0a(x: 0.0), length#:8);
+    drawSpiralCustom#2f797cda(A#:12, B: s0p1#:0, C#:7, pos: vec2#6d16482a(x: 0.0), length#:8);
 }
-((): Drawable#🌓🌾🦏😃 => {
+((): Drawable#🧸👉🧑‍🦽😃 => {
     const W#:6: int = 3 * 40 * 8 + 7;
     const C#:7: int = W#:6 * 1 * 8 + 40;
-    return drawSpiralCustom#🥄🤛🤶(
+    return drawSpiralCustom#🧑‍🦲🌼🏟️(
         C#:7 * 0 * 2 + 0 + W#:6 + 2 * C#:7 * 8,
         5,
         C#:7,
-        vec2#🏯🦒👩‍🚀(0),
+        vec2#😌🤺🥛😃(0),
         1,
     );
 })()
@@ -720,5 +723,5 @@ export const hash_14e2b2e4: (arg_0: number, arg_1: number, arg_2: number, arg_3:
 (() => {
   let W: number = 3 * 40 * 8 + 7;
   let C$7: number = W * 1 * 8 + 40;
-  return hash_14e2b2e4(C$7 * (0 * 2 + 0) + W + 2 * C$7 * 8, 5, C$7, hash_12a84b0a(0), 1);
+  return hash_2f797cda(C$7 * (0 * 2 + 0) + W + 2 * C$7 * 8, 5, C$7, hash_6d16482a(0), 1);
 })();

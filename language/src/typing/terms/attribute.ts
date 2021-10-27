@@ -4,6 +4,7 @@ import {
     idFromName,
     idName,
     nameForId,
+    parseIdHash,
     typeForId,
     typeForIdRaw,
 } from '../env';
@@ -81,7 +82,7 @@ export const typeAttribute = (
         ref = target.is.ref;
     } else if (target.is.type === 'ref' && target.is.ref.type === 'user') {
         const typeName = idName(target.is.ref.id);
-        const defn = typeForIdRaw(env, typeName);
+        const defn = typeForId(env, target.is.ref.id);
         // TODO TODO: allow attribute access on Enums, if all subtypes allow it
         if (defn.type !== 'Record') {
             throw new LocatedError(suffix.location, `Target is not a Record`);
@@ -133,9 +134,9 @@ export const typeAttribute = (
             )}`,
         );
     }
-    if (env.global.idRemap[idName(ref.id)]) {
-        ref.id = env.global.idRemap[idName(ref.id)];
-    }
+    // if (env.global.idRemap[idName(ref.id)]) {
+    //     ref.id = env.global.idRemap[idName(ref.id)];
+    // }
 
     let t = typeForId(env, ref.id);
     if (t.type !== 'Record') {
@@ -152,7 +153,7 @@ export const typeAttribute = (
             t,
             target.is.typeVbls,
             target.is.location,
-            ref.id.hash,
+            idName(ref.id),
         );
         refTypeVbls = target.is.typeVbls.length
             ? target.is.typeVbls
@@ -185,7 +186,8 @@ function resolveAttributeFromHash(
     target: Term,
     env: Env,
 ) {
-    const [id, num] = hash.slice(1).split('#');
+    let [id, num] = hash.slice(1).split('#');
+    id = parseIdHash(env, id);
     const ref: UserReference = { type: 'user', id: idFromName(id) };
     const idx = +num;
     if (target.is.type === 'ref') {

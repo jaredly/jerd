@@ -24,6 +24,7 @@ import {
     allTermIdsRaw,
     idFromName,
     idName,
+    parseIdHash,
     resolveIdentifier,
     termForIdRaw,
     typeForId,
@@ -70,7 +71,7 @@ export const findUnaryOp = (
                     t,
                     found.is.typeVbls,
                     found.is.location,
-                    id.hash,
+                    idName(id),
                 );
             }
             const tis = t.items[idx];
@@ -131,7 +132,7 @@ const findOp = (
                     t,
                     found.is.typeVbls,
                     found.is.location,
-                    id.hash,
+                    idName(id),
                 );
             }
             const tis = t.items[idx];
@@ -209,6 +210,8 @@ const typeNewOp = (
             return null;
         }
         let [baseHash, attrHash, idxRaw] = op.hash.slice(1).split('#');
+        baseHash = parseIdHash(env, baseHash);
+        attrHash = parseIdHash(env, attrHash);
         const idx = +idxRaw;
         if (isNaN(idx)) {
             throw new LocatedError(
@@ -230,9 +233,6 @@ const typeNewOp = (
         }
         if (target.is.type !== 'ref') {
             throw new LocatedError(op.location, `binop target is not a ref`);
-        }
-        if (env.global.idRemap[attrHash]) {
-            attrHash = idName(env.global.idRemap[attrHash]);
         }
         const id = idFromName(attrHash);
         let t = typeForId(env, id) as RecordDef;

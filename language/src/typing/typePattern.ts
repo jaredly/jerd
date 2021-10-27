@@ -267,7 +267,7 @@ const typePattern = (
                 t,
                 found.typeVbls,
                 pattern.location,
-                id.hash,
+                idName(id),
             );
 
             subTypeIds = getAllSubTypes(

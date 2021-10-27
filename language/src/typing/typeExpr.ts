@@ -29,6 +29,7 @@ import {
     idFromName,
     idName,
     makeLocal,
+    parseIdHash,
     resolveIdentifier,
     resolveType,
     termForIdRaw,
@@ -396,11 +397,12 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                     let id: Id | null;
                     // Ok, here's where we figure out the `As`
                     if (item.hash) {
-                        const t = termForIdRaw(env, item.hash.slice(1));
+                        const hash = parseIdHash(env, item.hash);
+                        const t = termForIdRaw(env, hash);
                         if (!t) {
                             throw new LocatedError(
                                 item.location,
-                                `Unknown term hash ${item.hash.slice(1)}`,
+                                `Unknown term hash ${hash}`,
                             );
                         }
                         const err = getTypeError(
@@ -412,7 +414,7 @@ const typeExpr = (env: Env, expr: Expression, expectedType?: Type): Term => {
                         if (err != null) {
                             throw err;
                         }
-                        id = idFromName(item.hash.slice(1));
+                        id = idFromName(hash);
                     } else {
                         if (typesEqual(contents.is, string)) {
                             id = null;
@@ -848,7 +850,7 @@ export const typeFitsEnum = (
     }
 
     const selfHash =
-        enumRef.ref.type === 'user' ? enumRef.ref.id.hash : undefined;
+        enumRef.ref.type === 'user' ? idName(enumRef.ref.id) : undefined;
     const allReferences = getEnumReferences(env, enumRef, recordType.location);
 
     if (t.type === 'Enum') {
@@ -920,7 +922,7 @@ export const getEnumSuperTypes = (
         env,
         enumDef,
         enumRef.typeVbls,
-        enumRef.ref.type === 'user' ? enumRef.ref.id.hash : undefined,
+        enumRef.ref.type === 'user' ? idName(enumRef.ref.id) : undefined,
         location,
     );
     if (!enumDef.extends.length) {
@@ -951,7 +953,7 @@ export const getEnumReferences = (
         env,
         enumDef,
         enumRef.typeVbls,
-        enumRef.ref.type === 'user' ? enumRef.ref.id.hash : undefined,
+        enumRef.ref.type === 'user' ? idName(enumRef.ref.id) : undefined,
         location,
     );
     if (!enumDef.extends.length) {
