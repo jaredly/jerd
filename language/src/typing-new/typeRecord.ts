@@ -247,7 +247,7 @@ export const typeConcreteRecord = (
             }
             let idx = null;
             const hash = row.id.hash
-                ? parseAttrHash(row.id.hash.slice(1))
+                ? parseAttrHash(ctx.idRemap, row.id.hash.slice(1))
                 : null;
             if (hash) {
                 // This belongs to a subType, ignore
@@ -355,7 +355,7 @@ export const typeRecord = (
     const options: Array<IdOrSym> = [];
 
     if (record.id.hash) {
-        const idOrSym = parseIdOrSym(record.id.hash.slice(1));
+        const idOrSym = parseIdOrSym(ctx.idRemap, record.id.hash.slice(1));
         if (idOrSym) {
             options.push(idOrSym);
         }
@@ -593,7 +593,9 @@ function processAttributeFolks(
             value: typeExpression(ctx, row.value, []),
         };
     }
-    const hash = row.id.hash ? parseAttrHash(row.id.hash.slice(1)) : null;
+    const hash = row.id.hash
+        ? parseAttrHash(ctx.idRemap, row.id.hash.slice(1))
+        : null;
     if (hash) {
         id = hash.type;
         i = hash.attr;

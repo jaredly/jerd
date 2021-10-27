@@ -103,6 +103,7 @@ type Person = {name: string, age: int};
 const personAsString = As<Person, string>{
     as: (person: Person) => "${person.name} (age ${person.age})"
 };
+const as = (person: Person) => "${person.name} (age ${person.age})";
 
 const me = Person{name: "Jerd", age: 13};
 

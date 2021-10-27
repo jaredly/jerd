@@ -45,7 +45,7 @@ export const typeTypeRef = (ctx: Context, type: TypeRef): t.Type => {
     }
 
     if (type.id.hash) {
-        const parsed = parseIdOrSym(type.id.hash.slice(1));
+        const parsed = parseIdOrSym(ctx.idRemap, type.id.hash.slice(1));
         const resolved = parsed && resolveType(ctx, parsed, type.location);
         if (resolved) {
             if (resolved.type === 'var') {

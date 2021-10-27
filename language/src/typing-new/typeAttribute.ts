@@ -29,7 +29,7 @@ export const typeAttribute = (
     expected: Array<Type>,
 ): Term => {
     const hash = attribute.id.hash
-        ? parseAttrHash(attribute.id.hash.slice(1))
+        ? parseAttrHash(ctx.idRemap, attribute.id.hash.slice(1))
         : null;
     // soooo
     // let's talk about the case
@@ -43,29 +43,33 @@ export const typeAttribute = (
             location: attribute.location,
             typeVbls: [],
         };
-        if (!ctx.library.types.defns[idName(hash.type)]) {
-            throw new Error('Nope' + showLocation(inner.location));
-        }
-        const defn = ctx.library.types.defns[idName(hash.type)]
-            .defn as RecordDef;
-        const typed = typeExpression(ctx, inner, [is]);
-        if (typed.type === 'TypeError') {
-            // OK So here, we want to
-            // let's try falling back to the attr name,
-            // to see if any of those options don't result in a
-            // typeerror
-        }
-        if (hash.attr < defn.items.length) {
-            return {
-                type: 'Attribute',
-                idLocation: attribute.id.location,
-                idx: hash.attr,
-                inferred: false,
-                is: defn.items[hash.attr],
+        if (ctx.library.types.defns[idName(hash.type)]) {
+            const defn = ctx.library.types.defns[idName(hash.type)]
+                .defn as RecordDef;
+            const typed = typeExpression(ctx, inner, [is]);
+            if (typed.type === 'TypeError') {
+                // OK So here, we want to
+                // let's try falling back to the attr name,
+                // to see if any of those options don't result in a
+                // typeerror
+            }
+            if (hash.attr < defn.items.length) {
+                return {
+                    type: 'Attribute',
+                    idLocation: attribute.id.location,
+                    idx: hash.attr,
+                    inferred: false,
+                    is: defn.items[hash.attr],
+                    location: attribute.location,
+                    ref: is.ref,
+                    target: typed,
+                };
+            }
+        } else {
+            ctx.warnings.push({
                 location: attribute.location,
-                ref: is.ref,
-                target: typed,
-            };
+                text: `Invalid hash:${attribute.id.hash}`,
+            });
         }
     }
 

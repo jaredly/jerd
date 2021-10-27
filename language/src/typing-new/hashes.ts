@@ -1,6 +1,7 @@
 import { idFromName } from '../typing/env';
 import { Id } from '../typing/types';
 
+export type IdRemap = { [k: string]: string };
 export type IdOrSym =
     | { type: 'sym'; unique: number }
     | {
@@ -8,15 +9,17 @@ export type IdOrSym =
           id: Id;
       };
 
+export const remap = (map: IdRemap, hash: string) => map[hash] || hash;
+
 // All functions expect the first '#' to be stripped off
-export const parseOpHash = (hash: string) => {
+export const parseOpHash = (map: IdRemap, hash: string) => {
     const idx = hash.indexOf('#');
     if (idx === -1) {
         return null;
     }
     return {
-        value: parseIdOrSym(hash.slice(0, idx)),
-        attr: parseAttrHash(hash.slice(idx + 1)),
+        value: parseIdOrSym(map, hash.slice(0, idx)),
+        attr: parseAttrHash(map, hash.slice(idx + 1)),
     };
 };
 
@@ -28,15 +31,15 @@ export const parseSym = (hash: string | null | undefined): number | null => {
     return null;
 };
 
-export const parseIdOrSym = (hash: string): IdOrSym | null => {
+export const parseIdOrSym = (map: IdRemap, hash: string): IdOrSym | null => {
     if (hash.startsWith(':')) {
         const num = +hash.slice(1);
         return isNaN(num) ? null : { type: 'sym', unique: num };
     }
-    return { type: 'id', id: idFromName(hash) };
+    return { type: 'id', id: idFromName(remap(map, hash)) };
 };
 
-export const parseAttrHash = (hash: string) => {
+export const parseAttrHash = (map: IdRemap, hash: string) => {
     const idx = hash.indexOf('#');
     if (idx === -1) {
         return null;
@@ -45,5 +48,5 @@ export const parseAttrHash = (hash: string) => {
     if (isNaN(attr)) {
         return null;
     }
-    return { type: idFromName(hash.slice(0, idx)), attr };
+    return { type: idFromName(remap(map, hash.slice(0, idx))), attr };
 };

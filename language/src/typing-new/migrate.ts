@@ -109,7 +109,7 @@ export const globalEnvToCtx = (env: GlobalEnv): Context => {
     };
     return {
         rng: env.rng,
-        idRemap: {},
+        idRemap: mapObj(env.idRemap, idName),
         bindings: emptyBindings(),
         builtins: {
             types: env.builtinTypes,
@@ -164,7 +164,7 @@ export const ctxToGlobalEnv = (ctx: Context): GlobalEnv => {
     processNamed(ctx.library.effects);
     processNamed(ctx.library.decorators);
     return {
-        idRemap: ctx.idRemap,
+        idRemap: mapObj(ctx.idRemap, (v) => idFromName(v)),
         attributeNames: ctx.library.types.constructors.names,
         builtinTypes: ctx.builtins.types,
         builtins: ctx.builtins.terms,

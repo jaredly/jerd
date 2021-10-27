@@ -19,7 +19,7 @@ export const resolveEffectId = (
     id: Identifier,
 ): t.EffectRef | null => {
     if (id.hash) {
-        const idOrSym = parseIdOrSym(id.hash);
+        const idOrSym = parseIdOrSym(ctx.idRemap, id.hash);
         if (idOrSym?.type === 'sym') {
             const unique = idOrSym.unique;
             const binding = ctx.bindings.effects.find(

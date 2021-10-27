@@ -287,7 +287,7 @@ export const resolveOpHash = (
     location: Location,
 ): null | t.Attribute => {
     const warn = (text: string) => ctx.warnings.push({ location, text });
-    const hash = parseOpHash(hashRaw.slice(1));
+    const hash = parseOpHash(ctx.idRemap, hashRaw.slice(1));
     if (hash == null) {
         warn(`Unable to parse hash "${hashRaw}"`);
         return null;

@@ -39,7 +39,7 @@ export const typeIdentifierMany = (ctx: Context, parsedId: Identifier) => {
                 });
             }
         } else {
-            const idOrSym = parseIdOrSym(parsedId.hash.slice(1));
+            const idOrSym = parseIdOrSym(ctx.idRemap, parsedId.hash.slice(1));
             if (idOrSym?.type === 'id') {
                 const term = ctx.library.terms.defns[idName(idOrSym.id)];
                 if (term != null) {
