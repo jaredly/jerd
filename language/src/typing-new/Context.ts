@@ -1,5 +1,6 @@
 import { Identifier, Location } from '../parsing/parser-new';
 import { idName } from '../typing/env';
+import { showLocation } from '../typing/typeExpr';
 import * as typed from '../typing/types';
 import { RecordDef } from '../typing/types';
 import { parseSym } from './hashes';
@@ -255,7 +256,11 @@ export const recordWithResolvedTypes = (
         // console.log(ctx.library.types.names);
         // console.log(ctx.builtins.terms);
         // console.log(ctx.builtins.types);
-        throw new Error(`Not a record ${JSON.stringify(ref.ref)}`);
+        throw new Error(
+            `Not a record ${JSON.stringify(ref.ref)} ${showLocation(
+                ref.location,
+            )}`,
+        );
     }
     return applyTypeVariablesToRecord(
         ctx,

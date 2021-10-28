@@ -22,6 +22,10 @@ import { Context } from './Context';
 import { preludeRaw } from '../printing/loadPrelude';
 import { errorTracker, errorVisitor } from './Library';
 import { transformToplevelT } from '../typing/auto-transform';
+import { showLocation } from '../typing/typeExpr';
+import { printToString } from '../printing/printer';
+import { toplevelToPretty } from '../printing/printTsLike';
+import { ctxToEnv } from './migrate';
 
 expect.extend(customMatchers);
 expect.addSnapshotSerializer(rawSnapshotSerializer);
@@ -90,11 +94,20 @@ describe('all the examples?', () => {
                 const res = typeToplevel(ctx, top.top);
                 const tracker = errorTracker();
                 transformToplevelT(res, errorVisitor(tracker), null);
-                expect(
+                const errs =
                     tracker.types.length +
-                        tracker.terms.length +
-                        tracker.patterns.length,
-                ).toBeGreaterThan(0);
+                    tracker.terms.length +
+                    tracker.patterns.length;
+                if (errs === 0) {
+                    expect('No errors?').toEqual(
+                        printToString(
+                            toplevelToPretty(ctxToEnv(ctx), res),
+                            100,
+                        ) +
+                            ' at ' +
+                            showLocation(top.location),
+                    );
+                }
             });
         });
     });

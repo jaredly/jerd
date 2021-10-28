@@ -161,25 +161,25 @@ switch y {
     None => true
 }
 
-const isAs = (y: Option<int>) =>
-// Type refinement please
-switch y {
-    Some as x => x.value == 2,
-    None => true
-}
+// const isAs = (y: Option<int>) =>
+// // Type refinement please
+// switch y {
+//     Some as x => x.value == 2,
+//     None => true
+// }
 
-isAs(y)
+// isAs(y)
 
-const check = (y1: OptionOrTwice<int>) => switch y1 {
-    Twice{two: 5} => false,
-    Twice => false,
-    Option as x => switch x {
-        Some => false,
-        None => true
-    },
-}
+// const check = (y1: OptionOrTwice<int>) => switch y1 {
+//     Twice{two: 5} => false,
+//     Twice => false,
+//     Option as x => switch x {
+//         Some => false,
+//         None => true
+//     },
+// }
 
-check(y1)
+// check(y1)
 
 /*
 
