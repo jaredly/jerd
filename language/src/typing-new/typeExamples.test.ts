@@ -72,8 +72,6 @@ describe('all the examples?', () => {
             const ctx = newContext();
             ctx.library = preludeCtx.library;
             ctx.builtins = preludeCtx.builtins;
-            // ctx.bindings.unique.current = 0;
-            // ctx.warnings = [];
             const text = fs.readFileSync(path.join(base, name), 'utf8');
             let exprs;
             const parsed = parseTyped(text);

@@ -1,6 +1,8 @@
 // Ok
 
 import {
+    DecoratedToplevel,
+    Decorator,
     DecoratorDef,
     EnumDef,
     File,
@@ -27,6 +29,8 @@ export const typeToplevel = (
     unique?: number,
     ffi?: string,
 ): typed.ToplevelT => {
+    // Isolate the 'unique'
+    ctx = { ...ctx, bindings: { ...ctx.bindings, unique: { current: 0 } } };
     switch (top.type) {
         case 'ToplevelExpression': {
             const term = typeExpression(ctx, top.expr, []);
@@ -314,100 +318,12 @@ export const typeFile = (
     let ids: Array<typed.Id> = [];
     if (file.tops) {
         file.tops.items.forEach((top) => {
-            let meta: MetaData = { created: Date.now() };
-            let unique: number | undefined;
-            let ffi: string | undefined;
-            if (top.decorators) {
-                let left = top.decorators.filter((dec) => {
-                    if (
-                        dec.id.hash === '#builtin' ||
-                        !lib.decorators.names[dec.id.text]
-                    ) {
-                        switch (dec.id.text) {
-                            case 'ffi': {
-                                if (top.top.type === 'StructDef') {
-                                    const name = parseMetaString(
-                                        dec.args?.items,
-                                    );
-                                    if (name != null) {
-                                        ffi = name;
-                                    } else {
-                                        ffi = top.top.id.text;
-                                    }
-                                    return false;
-                                }
-                                break;
-                            }
-                            case 'basedOn': {
-                                const id = parseMetaId(lib, dec.args?.items);
-                                if (id) {
-                                    meta.basedOn = id;
-                                    return false;
-                                }
-                                return true;
-                            }
-                            case 'supercedes':
-                                const id = parseMetaId(lib, dec.args?.items);
-                                if (id) {
-                                    meta.supercedes = id;
-                                    return false;
-                                }
-                                return true;
-                            case 'createdAt': {
-                                const at = parseMetaInt(dec.args?.items);
-                                if (at != null) {
-                                    meta.created = at;
-                                    return false;
-                                }
-                                return true;
-                            }
-                            case 'deprecated':
-                                const at = parseMetaInt(dec.args?.items);
-                                if (at != null) {
-                                    meta.deprecated = at;
-                                    return false;
-                                }
-                                return true;
-                            case 'unique':
-                                const u = parseMetaFloat(dec.args?.items);
-                                if (u != null) {
-                                    unique = u;
-                                    return false;
-                                }
-                                return true;
-                        }
-                    }
-                    return true;
-                });
-                if (left.length) {
-                    // console.warn(
-                    //     `Not handling non-builtin toplevel decorators at the moment. ${showLocation(
-                    //         top.location,
-                    //     )}`,
-                    // );
-                }
-            }
-            const ttop = typeToplevel(
-                {
-                    ...ctx,
-                    library: lib,
-                    bindings: { ...ctx.bindings, unique: { current: 0 } },
-                },
-                top.top,
-                unique,
-                ffi,
+            lib = typeDecoratedToplevel(
+                { ...ctx, library: lib },
+                top,
+                expressions,
+                ids,
             );
-            if (ttop.type === 'Expression') {
-                expressions.push(ttop.term);
-            } else {
-                let explicitId = explicitIdForTop(top.top);
-                let id;
-                [lib, id] = addToplevel(lib, ttop, meta);
-                ids.push(id);
-                if (explicitId && explicitId !== id.hash) {
-                    ctx.idRemap[explicitId] = id.hash;
-                }
-            }
         });
     }
     return [lib, expressions, ids];
@@ -446,6 +362,109 @@ export const typeMaybeConstantType = (ctx: Context, type: Type): typed.Type => {
     }
     return typeType(ctx, type);
 };
+
+export function typeDecoratedToplevel(
+    ctx: Context,
+    top: DecoratedToplevel,
+    expressions: typed.Term[],
+    ids: typed.Id[],
+) {
+    let { unique, ffi, meta, left } = processToplevelBuiltinDecorators(
+        top,
+        ctx.library,
+    );
+    if (left.length) {
+        // console.warn(
+        //     `Not handling non-builtin toplevel decorators at the moment. ${showLocation(
+        //         top.location,
+        //     )}`,
+        // );
+    }
+    const ttop = typeToplevel(ctx, top.top, unique, ffi);
+    if (ttop.type === 'Expression') {
+        expressions.push(ttop.term);
+        return ctx.library;
+    }
+    let explicitId = explicitIdForTop(top.top);
+    let [lib, id] = addToplevel(ctx.library, ttop, meta);
+    ids.push(id);
+    if (explicitId && explicitId !== id.hash) {
+        ctx.idRemap[explicitId] = id.hash;
+    }
+    return lib;
+}
+
+export function processToplevelBuiltinDecorators(
+    top: DecoratedToplevel,
+    lib: Library,
+) {
+    let meta: MetaData = { created: Date.now() };
+    let unique: number | undefined;
+    let ffi: string | undefined;
+    let left: Array<Decorator> = [];
+    if (top.decorators) {
+        left = top.decorators.filter((dec) => {
+            if (
+                dec.id.hash === '#builtin' ||
+                !lib.decorators.names[dec.id.text]
+            ) {
+                switch (dec.id.text) {
+                    case 'ffi': {
+                        if (top.top.type === 'StructDef') {
+                            const name = parseMetaString(dec.args?.items);
+                            if (name != null) {
+                                ffi = name;
+                            } else {
+                                ffi = top.top.id.text;
+                            }
+                            return false;
+                        }
+                        break;
+                    }
+                    case 'basedOn': {
+                        const id = parseMetaId(lib, dec.args?.items);
+                        if (id) {
+                            meta.basedOn = id;
+                            return false;
+                        }
+                        return true;
+                    }
+                    case 'supercedes':
+                        const id = parseMetaId(lib, dec.args?.items);
+                        if (id) {
+                            meta.supercedes = id;
+                            return false;
+                        }
+                        return true;
+                    case 'createdAt': {
+                        const at = parseMetaInt(dec.args?.items);
+                        if (at != null) {
+                            meta.created = at;
+                            return false;
+                        }
+                        return true;
+                    }
+                    case 'deprecated':
+                        const at = parseMetaInt(dec.args?.items);
+                        if (at != null) {
+                            meta.deprecated = at;
+                            return false;
+                        }
+                        return true;
+                    case 'unique':
+                        const u = parseMetaFloat(dec.args?.items);
+                        if (u != null) {
+                            unique = u;
+                            return false;
+                        }
+                        return true;
+                }
+            }
+            return true;
+        });
+    }
+    return { unique, ffi, meta, left };
+}
 
 function typeDecoratorDef(
     ctx: Context,
