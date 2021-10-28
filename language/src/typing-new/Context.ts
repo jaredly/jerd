@@ -5,6 +5,7 @@ import { RecordDef } from '../typing/types';
 import { parseSym } from './hashes';
 import { Library, typeDef } from './Library';
 import { applyTypeVariablesToRecord } from './ops';
+import { applyTypeVariablesToEnum } from './typeEnum';
 
 /*
 Ok, clean slate. How does this database work?
@@ -194,6 +195,54 @@ export type NamedDefns<Defn> = {
 // I dunno.
 // I guess it's fine to just check if the upgrades[] map has an entry for
 // the given thing.
+
+export const defnWithResolvedTypes = (
+    ctx: Context,
+    ref: typed.UserTypeReference,
+) => {
+    let defn = typeDef(ctx.library, ref.ref);
+    if (!defn) {
+        throw new Error(`Invalid ref!`);
+    }
+    if (defn.type === 'Enum') {
+        return applyTypeVariablesToEnum(
+            ctx,
+            defn,
+            ref.typeVbls,
+            ref.location as Location,
+        );
+    } else {
+        return applyTypeVariablesToRecord(
+            ctx,
+            defn,
+            ref.typeVbls,
+            ref.location as Location,
+            idName(ref.ref.id),
+        );
+    }
+};
+
+// export const enumWithResolvedTypes = (
+//     ctx: Context,
+//     ref: typed.UserTypeReference,
+// ) => {
+//     let defn = typeDef(ctx.library, ref.ref) as typed.EnumDef;
+//     if (!defn || defn.type !== 'Enum') {
+//         // console.log('NATES', ctx.library.types.names[idName(ref.ref.id)]);
+//         // console.log(ctx.library.terms.names);
+//         // console.log(ctx.library.types.names);
+//         // console.log(ctx.builtins.terms);
+//         // console.log(ctx.builtins.types);
+//         throw new Error(`Not a record ${JSON.stringify(ref.ref)}`);
+//     }
+//     return applyTypeVariablesToEnum(
+//         ctx,
+//         defn,
+//         ref.typeVbls,
+//         ref.location as Location,
+//         idName(ref.ref.id),
+//     );
+// };
 
 export const recordWithResolvedTypes = (
     ctx: Context,

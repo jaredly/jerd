@@ -48,14 +48,33 @@ describe('typeRecord', () => {
         );
 
         let res = parseExpression(ctx, `Both:Some<int>{_: 12}`);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `Both#12380f78<[type hole]>:Some#5749960c<int#builtin>{contents#5749960c#0: 12}`,
+        expect(termToString(ctx, res)).toEqual(
+            `Both#${idName(both)}<[type hole]>:Some#${idName(
+                some,
+            )}<int#builtin>{contents#${idName(some)}#0: 12}`,
         );
 
         res = parseExpression(ctx, `Both<int>:Some<int>{_: 12}`);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `Both#12380f78<int#builtin>:Some#5749960c<int#builtin>{contents#5749960c#0: 12}`,
+        expect(termToString(ctx, res)).toEqual(
+            `Both#${idName(both)}<int#builtin>:Some#${idName(
+                some,
+            )}<int#builtin>{contents#${idName(some)}#0: 12}`,
         );
+    });
+
+    it(`Enum inheritance, should be upgradeable`, () => {
+        const ctx = newContext(`
+		enum One {
+			Two{},
+		};
+		enum Three {...One, Four{} };
+		const one = One:Two;
+		`);
+
+        let res = parseExpression(ctx, `Three:one`);
+        expect(res).toNotHaveErrors(ctx);
+        res = parseExpression(ctx, `Three:Two`);
+        expect(res).toNotHaveErrors(ctx);
     });
 
     it(`let's try something simple`, () => {

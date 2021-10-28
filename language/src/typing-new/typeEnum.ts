@@ -16,6 +16,7 @@ import {
     mapTypeAndEffectVariablesInType,
 } from './ops';
 import { typeExpression } from './typeExpression';
+import { getAllSubTypes, getAllSubTypesWithVbls } from './typeRecord';
 import { typeType } from './typeType';
 
 export const typeEnum = (
@@ -62,9 +63,18 @@ export const typeEnum = (
     // TODO: allow these holes to be inferred!
     defn = applyTypeVariablesToEnum(ctx, defn, passVbls, term.location);
     // STOPSHIP: handle enum extends!!
+    const allPotentials: Array<UserTypeReference> = defn.items;
+    getAllSubTypesWithVbls(ctx, defn.extends).forEach(({ ref, defn }) => {
+        allPotentials.push(ref);
+        if (defn.type === 'Enum') {
+            allPotentials.push(...defn.items);
+        }
+    });
+    // const allPotentials = defn.extends.concat(defn.items);
+    // getAllSubTypes(ctx.library, defn.extends)
     return {
         type: 'Enum',
-        inner: typeExpression(ctx, term.expr, defn.items),
+        inner: typeExpression(ctx, term.expr, allPotentials),
         is: {
             type: 'ref',
             location: term.location,

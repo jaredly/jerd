@@ -27,8 +27,14 @@ import {
     ErrorTerm,
     typesEqual,
     idsEqual,
+    TypeDef,
 } from '../typing/types';
-import { Context, recordWithResolvedTypes, TypeBinding } from './Context';
+import {
+    Context,
+    defnWithResolvedTypes,
+    recordWithResolvedTypes,
+    TypeBinding,
+} from './Context';
 import { IdOrSym, parseAttrHash, parseIdOrSym, parseOpHash } from './hashes';
 import { Library, typeDef } from './Library';
 import { ctxToEnv } from './migrate';
@@ -46,11 +52,27 @@ export const getAllSubTypes = (
             [id].concat(
                 getAllSubTypes(
                     library,
-                    (library.types.defns[idName(id)]
-                        .defn as RecordDef).extends.map((t) => t.ref.id),
+                    library.types.defns[idName(id)].defn.extends.map(
+                        (t) => t.ref.id,
+                    ),
                 ),
             ),
         ),
+    );
+};
+
+export const getAllSubTypesWithVbls = (
+    ctx: Context,
+    extend: Array<UserTypeReference>,
+): Array<{ ref: UserTypeReference; defn: TypeDef }> => {
+    return ([] as Array<{ ref: UserTypeReference; defn: TypeDef }>).concat(
+        ...extend.map((ref) => {
+            const defn = defnWithResolvedTypes(ctx, ref);
+
+            return [{ ref, defn }].concat(
+                getAllSubTypesWithVbls(ctx, defn.extends),
+            );
+        }),
     );
 };
 
