@@ -196,6 +196,9 @@ const vecToString#743abd69 = As#As<Vec2#08f7c2ac, string#builtin>{
             +#builtin "," 
         +#builtin pos#:0.y#08f7c2ac#1 as#5f7b38a6 string#builtin,
 };
+const as = (pos#:0: Vec2#08f7c2ac): string#builtin ={}> 
+    pos#:0.x#08f7c2ac#0 as#5f7b38a6 string#builtin +#builtin "," +#builtin pos#:0.y#08f7c2ac#1 as#5f7b38a6 string#builtin
+
 
 const rec reduce#469be38c = <T#:0, R#:1>(
     items#:0: Array#builtin<T#:0>,
@@ -245,6 +248,7 @@ const Vec2float#db41487e = Mul#02cc25c4<Vec2#08f7c2ac, float#builtin, Vec2#08f7c
 };
 
 const IntAsFloat#6f186ad1 = As#As<int#builtin, float#builtin>{as#As#0: intToFloat#builtin};
+const as = intToFloat#builtin;
 
 const pointsToPath#0920c160 = (points#:0: Array#builtin<Vec2#08f7c2ac>, closed#:1: bool#builtin): string#builtin ={}> {
     switch points#:0 {
@@ -352,6 +356,12 @@ const lineCapString#4854f536 = As#As<LineCap#5e11f0b9, string#builtin>{
         Square#155bb0ac => "square",
     },
 };
+const as = (cap#:0: LineCap#5e11f0b9): string#builtin ={}> switch cap#:0 {
+        Butt#1ac05bf8 => "butt",
+        Round#51486760 => "round",
+        Square#155bb0ac => "square",
+};
+
 
 const colorString#1f9d2a34 = As#As<Color#1fe34118, string#builtin>{
     as#As#0: (color#:0: Color#1fe34118): string#builtin ={}> switch color#:0 {
@@ -367,6 +377,19 @@ const colorString#1f9d2a34 = As#As<Color#1fe34118, string#builtin>{
             +#builtin ")",
     },
 };
+const as = (color#:0: Color#1fe34118): string#builtin ={}> switch color#:0 {
+        CSS#742a31c2{value: value#:1} => value#:1,
+        Rgba#52033f94{r: r#:2, g: g#:3, b: b#:4, a: a#:5} => "rgba(" 
+                                        +#builtin r#:2 as#5f7b38a6 string#builtin 
+                                    +#builtin "," 
+                                +#builtin g#:3 as#5f7b38a6 string#builtin 
+                            +#builtin "," 
+                        +#builtin b#:4 as#5f7b38a6 string#builtin 
+                    +#builtin "," 
+                +#builtin a#:5 as#5f7b38a6 string#builtin 
+            +#builtin ")",
+    }
+
 
 const svg#bd13d7e0 = (pos#:0: Vec2#08f7c2ac, size#:1: Vec2#08f7c2ac, contents#:2: string#builtin): string#builtin ={}> "<svg width='" 
                                                         +#builtin size#:1.x#08f7c2ac#0 as#5f7b38a6 string#builtin 

@@ -192,7 +192,7 @@ const pythagorean = (m: int, n: int) ={DecideOrFail}> {
     const b = chooseInt(a + 1, n);
     const a2 = a * a;
     const b2 = b * b;
-    log("a " + a2 as string + " b " + b2 as string);
+    // log("a " + a2 as string + " b " + b2 as string);
     if isSquare(a2 + b2) {
         intToString(a) ++ ":" ++ intToString(b)
     } else {
