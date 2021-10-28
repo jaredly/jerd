@@ -27,7 +27,6 @@ identity<string>("5") ++ "4" == "54"
 // pemdas folks
 2 + 3 * 4 == 16 - 2
 
-@typeError("Found int#builtin, expected float#builtin")
 2.2 * 2 == 1.1
 
 2.2 * 2.0 == 4.4

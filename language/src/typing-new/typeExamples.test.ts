@@ -1,7 +1,11 @@
 import fs from 'fs';
 import path from 'path';
-import { parseTyped } from '../parsing/parser-new';
-import { typeFile } from './typeFile';
+import {
+    Decorated,
+    DecoratedToplevel,
+    parseTyped,
+} from '../parsing/parser-new';
+import { typeFile, typeToplevel } from './typeFile';
 import {
     customMatchers,
     errorSerilaizer,
@@ -16,6 +20,8 @@ import {
 import { defaultBuiltins } from './builtins';
 import { Context } from './Context';
 import { preludeRaw } from '../printing/loadPrelude';
+import { errorTracker, errorVisitor } from './Library';
+import { transformToplevelT } from '../typing/auto-transform';
 
 expect.extend(customMatchers);
 expect.addSnapshotSerializer(rawSnapshotSerializer);
@@ -61,9 +67,34 @@ describe('all the examples?', () => {
         it(`examples/${name}`, () => {
             const text = fs.readFileSync(path.join(base, name), 'utf8');
             let exprs;
-            [ctx.library, exprs] = typeFile(ctx, parseTyped(text));
+            const parsed = parseTyped(text);
+            if (!parsed.tops) {
+                return; // nothing to type folks
+            }
+            let shouldFail: Array<DecoratedToplevel> = [];
+            parsed.tops!.items = parsed.tops!.items.filter((ok) => {
+                if (
+                    ok.decorators.length === 1 &&
+                    ok.decorators[0].id.text === 'typeError'
+                ) {
+                    shouldFail.push(ok);
+                    return false;
+                }
+                return true;
+            });
+            [ctx.library, exprs] = typeFile(ctx, parsed);
             exprs.forEach((expr) => {
                 expect(expr).toNotHaveErrors(ctx);
+            });
+            shouldFail.forEach((top) => {
+                const res = typeToplevel(ctx, top.top);
+                const tracker = errorTracker();
+                transformToplevelT(res, errorVisitor(tracker), null);
+                expect(
+                    tracker.types.length +
+                        tracker.terms.length +
+                        tracker.patterns.length,
+                ).toBeGreaterThan(0);
             });
         });
     });
