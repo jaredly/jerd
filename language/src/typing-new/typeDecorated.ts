@@ -154,7 +154,13 @@ const argWithFallback = (
     }
     return {
         type: 'Term',
-        term: { type: 'TypeError', inner: found.term, is: expected, location },
+        term: {
+            type: 'TypeError',
+            inner: found.term,
+            is: expected,
+            location,
+            otherOptions: [],
+        },
     };
 };
 

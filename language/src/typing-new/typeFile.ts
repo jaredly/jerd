@@ -318,12 +318,13 @@ export const typeFile = (
     let ids: Array<typed.Id> = [];
     if (file.tops) {
         file.tops.items.forEach((top) => {
-            lib = typeDecoratedToplevel(
-                { ...ctx, library: lib },
-                top,
-                expressions,
-                ids,
-            );
+            let res;
+            [lib, res] = typeDecoratedToplevel({ ...ctx, library: lib }, top);
+            if (res.type === 'expr') {
+                expressions.push(res.expr);
+            } else {
+                ids.push(res.id);
+            }
         });
     }
     return [lib, expressions, ids];
@@ -366,9 +367,7 @@ export const typeMaybeConstantType = (ctx: Context, type: Type): typed.Type => {
 export function typeDecoratedToplevel(
     ctx: Context,
     top: DecoratedToplevel,
-    expressions: typed.Term[],
-    ids: typed.Id[],
-) {
+): [Library, { type: 'id'; id: typed.Id } | { type: 'expr'; expr: Term }] {
     let { unique, ffi, meta, left } = processToplevelBuiltinDecorators(
         top,
         ctx.library,
@@ -382,16 +381,16 @@ export function typeDecoratedToplevel(
     }
     const ttop = typeToplevel(ctx, top.top, unique, ffi);
     if (ttop.type === 'Expression') {
-        expressions.push(ttop.term);
-        return ctx.library;
+        // expressions.push(ttop.term);
+        return [ctx.library, { type: 'expr', expr: ttop.term }];
     }
     let explicitId = explicitIdForTop(top.top);
     let [lib, id] = addToplevel(ctx.library, ttop, meta);
-    ids.push(id);
+    // ids.push(id);
     if (explicitId && explicitId !== id.hash) {
         ctx.idRemap[explicitId] = id.hash;
     }
-    return lib;
+    return [lib, { type: 'id', id }];
 }
 
 export function processToplevelBuiltinDecorators(

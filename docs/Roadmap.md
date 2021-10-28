@@ -20,7 +20,9 @@ Annd self needs to have an index. Right?
 
 - [x] get prelude typing in the new system
 - [x] take a step back, make sure the web is working ok
-- [ ] get all the examples working
+- [x] get all the examples typing
+- [ ] update other snapshots and whatnot
+- [ ] get them running in jest? that would be cool
 
 ## Syntax evolution
 

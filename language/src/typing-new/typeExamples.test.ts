@@ -5,7 +5,7 @@ import {
     DecoratedToplevel,
     parseTyped,
 } from '../parsing/parser-new';
-import { typeFile, typeToplevel } from './typeFile';
+import { typeDecoratedToplevel, typeFile, typeToplevel } from './typeFile';
 import {
     customMatchers,
     errorSerilaizer,
@@ -26,6 +26,7 @@ import { showLocation } from '../typing/typeExpr';
 import { printToString } from '../printing/printer';
 import { toplevelToPretty } from '../printing/printTsLike';
 import { ctxToEnv } from './migrate';
+import { Term } from '../typing/types';
 
 expect.extend(customMatchers);
 expect.addSnapshotSerializer(rawSnapshotSerializer);
@@ -73,44 +74,40 @@ describe('all the examples?', () => {
             ctx.library = preludeCtx.library;
             ctx.builtins = preludeCtx.builtins;
             const text = fs.readFileSync(path.join(base, name), 'utf8');
-            let exprs;
+            // let exprs;
             const parsed = parseTyped(text);
             if (!parsed.tops) {
                 return; // nothing to type folks
             }
-            let shouldFail: Array<DecoratedToplevel> = [];
-            parsed.tops!.items = parsed.tops!.items.filter((ok) => {
+
+            parsed.tops.items.forEach((top) => {
                 if (
-                    ok.decorators.length === 1 &&
-                    ok.decorators[0].id.text === 'typeError'
+                    top.decorators.length === 1 &&
+                    top.decorators[0].id.text === 'typeError'
                 ) {
-                    shouldFail.push(ok);
-                    return false;
-                }
-                return true;
-            });
-            [ctx.library, exprs] = typeFile(ctx, parsed);
-            // expect(ctx.warnings).toEqual([]);
-            exprs.forEach((expr) => {
-                expect(expr).toNotHaveErrors(ctx);
-            });
-            shouldFail.forEach((top) => {
-                const res = typeToplevel(ctx, top.top);
-                const tracker = errorTracker();
-                transformToplevelT(res, errorVisitor(tracker), null);
-                const errs =
-                    tracker.types.length +
-                    tracker.terms.length +
-                    tracker.patterns.length;
-                if (errs === 0) {
-                    expect('No errors?').toEqual(
-                        printToString(
-                            toplevelToPretty(ctxToEnv(ctx), res),
-                            100,
-                        ) +
-                            ' at ' +
-                            showLocation(top.location),
-                    );
+                    const res = typeToplevel(ctx, top.top);
+                    const tracker = errorTracker();
+                    transformToplevelT(res, errorVisitor(tracker), null);
+                    const errs =
+                        tracker.types.length +
+                        tracker.terms.length +
+                        tracker.patterns.length;
+                    if (errs === 0) {
+                        expect('No errors?').toEqual(
+                            printToString(
+                                toplevelToPretty(ctxToEnv(ctx), res),
+                                100,
+                            ) +
+                                ' at ' +
+                                showLocation(top.location),
+                        );
+                    }
+                } else {
+                    let res;
+                    [ctx.library, res] = typeDecoratedToplevel(ctx, top);
+                    if (res.type === 'expr') {
+                        expect(res.expr).toNotHaveErrors(ctx);
+                    }
                 }
             });
         });
