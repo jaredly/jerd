@@ -10,6 +10,7 @@ import {
     UserTypeReference,
 } from '../typing/types';
 import { Context } from './Context';
+import { parseIdHash } from './hashes';
 import {
     applyTypeVariablesToRecord,
     createTypeVblMapping,
@@ -26,7 +27,7 @@ export const typeEnum = (
 ): Term => {
     let id: Id | null = null;
     if (term.id.hash) {
-        const hash = idFromName(term.id.hash.slice(1));
+        const hash = parseIdHash(ctx.idRemap, term.id.hash.slice(1));
         const defn = ctx.library.types.defns[idName(hash)];
         if (defn && defn.defn.type === 'Enum') {
             id = hash;

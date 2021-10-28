@@ -400,13 +400,33 @@ export const typeFile = (
             if (ttop.type === 'Expression') {
                 expressions.push(ttop.term);
             } else {
+                let explicitId = explicitIdForTop(top.top);
                 let id;
                 [lib, id] = addToplevel(lib, ttop, meta);
                 ids.push(id);
+                if (explicitId && explicitId !== id.hash) {
+                    ctx.idRemap[explicitId] = id.hash;
+                }
             }
         });
     }
     return [lib, expressions, ids];
+};
+
+export const explicitIdForTop = (top: Toplevel) => {
+    switch (top.type) {
+        case 'StructDef':
+        case 'EnumDef':
+        case 'DecoratorDef':
+        case 'Effect':
+            return top.id.hash?.slice(1);
+        case 'Define':
+            if (top.id.type === 'Identifier') {
+                return top.id.hash?.slice(1);
+            }
+        case 'ToplevelExpression':
+            return undefined;
+    }
 };
 
 export const typeMaybeConstantType = (ctx: Context, type: Type): typed.Type => {

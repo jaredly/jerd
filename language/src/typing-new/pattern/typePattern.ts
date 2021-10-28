@@ -86,6 +86,27 @@ export const typePattern = (
             if (term.text === '_' && term.hash == null) {
                 return { type: 'Ignore', location: term.location };
             }
+            // TODO TODO: Handle the hash folks
+            if (
+                ctx.library.types.names[term.text] ||
+                (term.hash && !term.hash.startsWith('#:'))
+            ) {
+                return typeRecordPattern(
+                    ctx,
+                    {
+                        type: 'RecordPattern',
+                        id: term,
+                        items: {
+                            type: 'RecordPatternCommas',
+                            items: [],
+                            location: term.location,
+                        },
+                        location: term.location,
+                    },
+                    bindings,
+                    expected,
+                );
+            }
             const sym = idToSym(ctx, term);
             bindings.push({ sym, type: expected, location: term.location });
             return {

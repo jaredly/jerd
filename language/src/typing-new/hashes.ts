@@ -11,6 +11,10 @@ export type IdOrSym =
 
 export const remap = (map: IdRemap, hash: string) => map[hash] || hash;
 
+export const parseIdHash = (map: IdRemap, hash: string) => {
+    return idFromName(remap(map, hash));
+};
+
 // All functions expect the first '#' to be stripped off
 export const parseOpHash = (map: IdRemap, hash: string) => {
     const idx = hash.indexOf('#');

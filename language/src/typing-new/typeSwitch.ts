@@ -10,6 +10,7 @@ import {
     or,
     Pattern as ExPattern,
 } from '../typing/terms/exhaustive';
+import { showLocation } from '../typing/typeExpr';
 import {
     ArrayPattern,
     Pattern,
@@ -70,18 +71,24 @@ export const typeSwitch = (
             };
         },
     );
-    if (
-        !casesAreExhaustive(
-            ctx,
-            input.is,
-            cases.map((kase) => kase.pattern),
-        )
-    ) {
-        cases.push({
-            body: { type: 'Hole', location: term.location, is: is! },
-            location: term.location,
-            pattern: { type: 'Ignore', location: term.location },
-        });
+    try {
+        if (
+            !casesAreExhaustive(
+                ctx,
+                input.is,
+                cases.map((kase) => kase.pattern),
+            )
+        ) {
+            cases.push({
+                body: { type: 'Hole', location: term.location, is: is! },
+                location: term.location,
+                pattern: { type: 'Ignore', location: term.location },
+            });
+        }
+    } catch (err) {
+        if (!(err instanceof ErrorPattern)) {
+            throw err;
+        }
     }
     return {
         type: 'Switch',
@@ -107,12 +114,15 @@ export const casesAreExhaustive = (
     cases.forEach((kase) => {
         matrix.push([patternToExPattern(ctx, t, groups, kase)]);
     });
+    // console.log(matrix);
 
     return isExhaustive(groups, matrix);
 };
 
-const groupIdForRef = (ref: Reference) =>
+export const groupIdForRef = (ref: Reference) =>
     ref.type === 'builtin' ? ref.name : idName(ref.id);
+
+class ErrorPattern extends Error {}
 
 export const patternToExPattern = (
     ctx: Context,
@@ -121,8 +131,9 @@ export const patternToExPattern = (
     pattern: Pattern,
 ): ExPattern => {
     if (isErrorPattern(pattern)) {
-        console.log(pattern);
-        throw new Error(`error pattern`);
+        throw new ErrorPattern(
+            `error pattern ${showLocation(pattern.location)}`,
+        );
     }
     switch (pattern.type) {
         case 'Alias':
@@ -275,7 +286,7 @@ const arrayToExPattern = (
     return constructor(groupId, groupId, [head, tail]);
 };
 
-const recordToExPattern = (
+export const recordToExPattern = (
     type: UserTypeReference,
     pattern: RecordPattern,
     groups: Groups,

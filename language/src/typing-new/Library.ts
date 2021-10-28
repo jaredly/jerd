@@ -165,6 +165,13 @@ export type Library = {
     decorators: NamedDefns<DecoratorDef>;
 };
 
+export const termsForName = (lib: Library, name: string) =>
+    lib.terms.names[name];
+export const typesForName = (lib: Library, name: string) =>
+    lib.types.names[name];
+export const constructorsForName = (lib: Library, name: string) =>
+    lib.types.constructors.names[name];
+
 export type ErrorTracker = {
     terms: Array<ErrorTerm>;
     types: Array<ErrorType>;
@@ -431,7 +438,7 @@ export const addRecord = (
 ): [Library, Id] => {
     const id = idFromName(hashObject(record));
     if (lib.types.defns[idName(id)] != null) {
-        console.warn(`Redefining record!`);
+        // console.warn(`Redefining record!`);
     }
     const names = {
         ...lib.types.constructors.names,

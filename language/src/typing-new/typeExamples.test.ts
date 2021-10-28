@@ -69,6 +69,8 @@ describe('all the examples?', () => {
             return;
         }
         it(`examples/${name}`, () => {
+            ctx.bindings.unique.current = 0;
+            ctx.warnings = [];
             const text = fs.readFileSync(path.join(base, name), 'utf8');
             let exprs;
             const parsed = parseTyped(text);
@@ -87,6 +89,7 @@ describe('all the examples?', () => {
                 return true;
             });
             [ctx.library, exprs] = typeFile(ctx, parsed);
+            expect(ctx.warnings).toEqual([]);
             exprs.forEach((expr) => {
                 expect(expr).toNotHaveErrors(ctx);
             });

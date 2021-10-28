@@ -44,7 +44,8 @@ const AddSubVec2#04f14e9c = AddSub#3d436b7e<Vec2#08f7c2ac, Vec2#08f7c2ac, Vec2#0
     },
 };
 
-const IntAsFloat#6f186ad1 = As#As<int#builtin, float#builtin>{as#As#0: intToFloat#builtin};
+const IntAsFloat = As#As<int#builtin, float#builtin>{as#As#0: intToFloat#builtin};
+const as = intToFloat#builtin;
 
 const rec accurateSpiral#ae2070ac = (
     at#:0: int#builtin,
@@ -58,7 +59,7 @@ const rec accurateSpiral#ae2070ac = (
     if at#:0 >=#builtin max#:6 {
         points#:5;
     } else {
-        const next#:7 = theta#:3 +#builtin by#:1 *#builtin at#:0 as#6f186ad1 float#builtin;
+        const next#:7 = theta#:3 +#builtin by#:1 *#builtin at#:0 as float#builtin;
         const nextPos#:8 = pos#:4 
             +#04f14e9c#3d436b7e#0 thetaPos2#b03288dc(theta#:3) *#db41487e#02cc25c4#0 length#:2;
         accurateSpiral#self(

@@ -62,9 +62,12 @@ export const typeIdentifierMany = (ctx: Context, parsedId: Identifier) => {
                     );
                 }
                 if (!term && !defn) {
+                    if (ctx.idRemap[idOrSym.id.hash]) {
+                        throw new Error(`not mapped ${idOrSym.id.hash}`);
+                    }
                     ctx.warnings.push({
                         location: parsedId.location,
-                        text: `Unable to resolve term hash ${parsedId.hash}`,
+                        text: `Unable to resolve term hash ${idOrSym.id.hash}`,
                     });
                 }
             } else if (idOrSym?.type === 'sym') {
