@@ -23,6 +23,7 @@ export const wrapExpected = (term: Term, expected: Array<Type>): Term => {
         // console.log(expected[0]);
         return {
             type: 'TypeError',
+            otherOptions: expected.slice(1),
             inner: term,
             is: expected[0],
             location: term.location,

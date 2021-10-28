@@ -55,6 +55,7 @@ export const typeEnum = (
             location: term.location,
         };
     }
+    // let defn = resolved
     let defn = ctx.library.types.defns[idName(id)].defn as EnumDef;
     const typeVbls =
         term.typeVbls?.inner.items.map((t) => typeType(ctx, t)) || [];
@@ -116,5 +117,17 @@ export const applyTypeVariablesToEnum = (
                 t,
             ) as UserTypeReference,
     );
-    return { ...enumDef, items, typeVbls: [] };
+    return {
+        ...enumDef,
+        items,
+        typeVbls: [],
+        extends: enumDef.extends.map(
+            (t) =>
+                mapTypeAndEffectVariablesInType(
+                    mapping!,
+                    {},
+                    t,
+                ) as UserTypeReference,
+        ),
+    };
 };

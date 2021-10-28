@@ -139,7 +139,12 @@ export const parseExpression = (
 export const showErrorTerm = (ctx: Context, t: ErrorTerm) => {
     switch (t.type) {
         case 'TypeError':
-            return `Expected ${typeToString(ctx, t.is)}, found ${typeToString(
+            return `Expected ${typeToString(
+                ctx,
+                t.is,
+            )} (or ${t.otherOptions
+                .map((t) => typeToString(ctx, t))
+                .join(', ')}), found ${typeToString(
                 ctx,
                 t.inner.is,
             )} : ${termToString(ctx, t.inner)}`;

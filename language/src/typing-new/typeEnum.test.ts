@@ -77,6 +77,44 @@ describe('typeRecord', () => {
         expect(res).toNotHaveErrors(ctx);
     });
 
+    it(`more complicated`, () => {
+        const ctx = newContext(`
+			type Some<T> = {
+				value: T
+			}
+			type None = {}
+			enum Option<T> {
+				Some<T>,
+				None
+			}
+			type Twice<T> = {
+				one: T,
+				two: T,
+			}
+
+			enum OptionOrTwice<T> {
+				...Option<T>,
+				Twice<T>
+			};
+
+			@ffi
+			enum Cards {
+				Hearts{},
+				Clubs{count: int},
+				None,
+			};
+
+			const card = Cards:Clubs{count: 10}
+
+			const x = Option<int>:Some<int>{_: 10}
+			const y = Option<int>:None
+			// Option<int> is a subtype of OptionOrTwice<int>, so this works
+		`);
+
+        let res = parseExpression(ctx, `OptionOrTwice<int>:y`);
+        expect(res).toNotHaveErrors(ctx);
+    });
+
     it(`let's try something simple`, () => {
         const ctx = newContext();
 
