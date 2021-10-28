@@ -144,7 +144,7 @@ describe('non-generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#:10#d28f8708#0 3`,
+            `2 /#:10#2eb566da#0 3`,
         );
     });
 
@@ -154,7 +154,7 @@ describe('non-generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#a7b87324#d28f8708#0 3`,
+            `2 /#27e42fc8#2eb566da#0 3`,
         );
     });
 
@@ -180,7 +180,7 @@ describe('non-generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#a7b87324#d28f8708#0 3`,
+            `2 /#27e42fc8#2eb566da#0 3`,
         );
     });
 
@@ -243,18 +243,18 @@ describe('non-generic examples', () => {
         expect(ctx.warnings).toHaveLength(0);
         expect(res).toNotHaveErrors(ctx);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#a7b87324#d28f8708#0 3`,
+            `2 /#27e42fc8#2eb566da#0 3`,
         );
         const res1 = parseExpression(ctx, `2.0 / 3.0`);
         expect(ctx.warnings).toHaveLength(0);
         expect(res1).toNotHaveErrors(ctx);
         expect(termToString(ctx, res1)).toMatchInlineSnapshot(
-            `2.0 /#2a551f71#69c30a31#0 3.0`,
+            `2.0 /#77553fe6#49a8cc1c#0 3.0`,
         );
         // Auto-convert the second one...
         const res3 = parseExpression(ctx, `2.0 / 3`);
         expect(termToString(ctx, res3)).toMatchInlineSnapshot(
-            `2.0 /#2a551f71#69c30a31#0 3.0`,
+            `2.0 /#77553fe6#49a8cc1c#0 3.0`,
         );
         expect(res3).toNotHaveErrors(ctx);
     });
@@ -298,7 +298,7 @@ describe('non-generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#1a321d3e#d28f8708#0 3`,
+            `2 /#2fd5cea5#2eb566da#0 3`,
         );
     });
 });
@@ -359,7 +359,7 @@ describe('failures', () => {
         const res = parseExpression(ctx, `2 / 3.0`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#a7b87324#d28f8708#0 3.0`,
+            `2 /#27e42fc8#2eb566da#0 3.0`,
         );
         expect({ ctx, errors: findErrors(res) }).toMatchInlineSnapshot(
             `3.0 at 1:5-1:8`,
@@ -371,7 +371,7 @@ describe('failures', () => {
         const res = parseExpression(ctx, `2.0 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2.0 /#a7b87324#d28f8708#0 3`,
+            `2.0 /#27e42fc8#2eb566da#0 3`,
         );
         expect(
             findErrors(res)
@@ -385,7 +385,7 @@ describe('failures', () => {
         const res = parseExpression(ctx, `2.0 / 3.0`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2.0 /#a7b87324#d28f8708#0 3.0`,
+            `2.0 /#27e42fc8#2eb566da#0 3.0`,
         );
         expect(
             findErrors(res)
@@ -442,7 +442,7 @@ describe('generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#35cbfb14#6e97893a#0 3`,
+            `2 /#1a6954f4#707a6130#0 3`,
         );
     });
 
@@ -458,7 +458,7 @@ describe('generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#35cbfb14#6e97893a#0 3`,
+            `2 /#1a6954f4#707a6130#0 3`,
         );
     });
 
@@ -534,7 +534,7 @@ describe('generic examples', () => {
         const res = parseExpression(ctx, `1.2 / 2.3 / 2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `1.2 /#96e39c78#627c3bcc#0 2.3 /#69881e54#627c3bcc#0 2 /#69881e54#627c3bcc#0 3`,
+            `1.2 /#4f977eae#30942094#0 2.3 /#0a46eadc#30942094#0 2 /#0a46eadc#30942094#0 3`,
         );
     });
 
@@ -575,7 +575,7 @@ describe('generic examples', () => {
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#06ca643e#eec7a598#0 3`,
+            `2 /#bcaa8c78#b41aee5c#0 3`,
         );
         // Explicit now
         const res2 = parseExpression(
@@ -584,7 +584,7 @@ describe('generic examples', () => {
         );
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res2)).toMatchInlineSnapshot(
-            `2 /#06ca643e#eec7a598#0 3`,
+            `2 /#bcaa8c78#b41aee5c#0 3`,
         );
     });
 
@@ -606,14 +606,10 @@ describe('generic examples', () => {
 
         const res = parseExpression(ctx, `2 / 3`);
         expect(ctx.warnings).toHaveLength(0);
-        expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#:10#d28f8708#0 3`,
-        );
-        const res2 = parseExpression(ctx, `2 /#:10#d28f8708#0 3`);
+        expect(termToString(ctx, res)).toEqual(`2 /#:10#${idName(slash)}#0 3`);
+        const res2 = parseExpression(ctx, `2 /#:10#${idName(slash)}#0 3`);
         expect(ctx.warnings).toHaveLength(0);
-        expect(termToString(ctx, res2)).toMatchInlineSnapshot(
-            `2 /#:10#d28f8708#0 3`,
-        );
+        expect(termToString(ctx, res2)).toEqual(`2 /#:10#${idName(slash)}#0 3`);
     });
 
     it('local type variable invalid', () => {
@@ -659,7 +655,7 @@ describe('explicit hashes', () => {
         );
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#a7b87324#d28f8708#0 3`,
+            `2 /#27e42fc8#2eb566da#0 3`,
         );
     });
 
@@ -673,7 +669,7 @@ describe('explicit hashes', () => {
             `1:2-1:27: Unable to resolve value for operator`,
         );
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#a7b87324#d28f8708#0 3`,
+            `2 /#27e42fc8#2eb566da#0 3`,
         );
     });
 
@@ -684,10 +680,10 @@ describe('explicit hashes', () => {
             `2 /#${idName(slashImpl)}#0${idName(slash)}#0 3`,
         );
         expect(ctx.warnings).toMatchInlineSnapshot(
-            `1:2-1:27: Attribute type 0d28f8708 doesn't exist`,
+            `1:2-1:27: Attribute type 02eb566da doesn't exist`,
         );
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#a7b87324#d28f8708#0 3`,
+            `2 /#27e42fc8#2eb566da#0 3`,
         );
     });
 
@@ -698,7 +694,7 @@ describe('explicit hashes', () => {
             `1:2-1:10: Unable to parse hash "#aaa"`,
         );
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#a7b87324#d28f8708#0 3`,
+            `2 /#27e42fc8#2eb566da#0 3`,
         );
     });
 
@@ -706,10 +702,10 @@ describe('explicit hashes', () => {
         const { ctx, slash, slashImpl } = simpleCtx();
         const res = parseExpression(ctx, `2 /#${idName(slashImpl)}#0 3`);
         expect(ctx.warnings).toMatchInlineSnapshot(
-            `1:2-1:17: Invalid hash "#a7b87324#0"`,
+            `1:2-1:17: Invalid hash "#27e42fc8#0"`,
         );
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#a7b87324#d28f8708#0 3`,
+            `2 /#27e42fc8#2eb566da#0 3`,
         );
     });
 
@@ -730,7 +726,7 @@ describe('explicit hashes', () => {
             `1:2-1:26: Attribute target is a int#builtin, not a user-defined toplevel type`,
         );
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#a7b87324#d28f8708#0 3`,
+            `2 /#27e42fc8#2eb566da#0 3`,
         );
     });
 
@@ -751,7 +747,7 @@ describe('explicit hashes', () => {
         const res = parseExpression(ctx, `2 /#:10#${idName(slash)}#0 3`);
         expect(ctx.warnings).toHaveLength(0);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `2 /#:10#d28f8708#0 3`,
+            `2 /#:10#2eb566da#0 3`,
         );
     });
 });

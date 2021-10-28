@@ -146,7 +146,7 @@ describe('typeIdentifier', () => {
         const res = parseExpression(ctx, `what#abdefg`);
         expect(res).toNotHaveErrors(ctx);
         expect(ctx.warnings).toMatchInlineSnapshot(
-            `1:1-1:12: Unable to resolve term hash #abdefg`,
+            `1:1-1:12: Unable to resolve term hash abdefg`,
         );
         expect(termToString(ctx, res)).toEqual(`what#${idName(id)}`);
     });

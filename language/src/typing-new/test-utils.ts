@@ -146,7 +146,7 @@ export const showErrorTerm = (ctx: Context, t: ErrorTerm) => {
     switch (t.type) {
         case 'TypeError':
             return `Expected ${typeToString(ctx, t.is)}${
-                t.otherOptions.length
+                t.otherOptions && t.otherOptions.length
                     ? ' (or ' +
                       t.otherOptions
                           .map((t) => typeToString(ctx, t))

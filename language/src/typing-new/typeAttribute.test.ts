@@ -75,7 +75,7 @@ describe('typeAttribute', () => {
         let res = parseExpression(ctx, `<T: Hello>(m: T) => m.hello`);
         expect(res).toNotHaveErrors(ctx);
         expect(termToString(ctx, res)).toMatchInlineSnapshot(
-            `<T#:2: Hello#688af3e6>(m#:3: T#:2): int#builtin ={}> m#:3.hello#688af3e6#0`,
+            `<T#:2: Hello#16dc417a>(m#:3: T#:2): int#builtin ={}> m#:3.hello#16dc417a#0`,
         );
     });
 

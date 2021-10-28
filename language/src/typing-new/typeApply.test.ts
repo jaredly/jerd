@@ -217,7 +217,7 @@ describe('typeApply', () => {
             expect(termToString(ctx, res)).toEqual(`\
 hello#${idName(id)}<int#builtin>(
     x: <(int#builtin, float#builtin) ={}> int#builtin>[
-        (a#:4: int#builtin, b#:5: float#builtin): int#builtin ={}> a#:4,
+        (a#:1: int#builtin, b#:2: float#builtin): int#builtin ={}> a#:1,
     ],
 )`);
         });

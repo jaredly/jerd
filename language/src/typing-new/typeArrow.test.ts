@@ -72,13 +72,13 @@ describe('typeArrow', () => {
         ]);
         // TODO use the effects and stuff, once I have raise and suffixes implemented.
         expect(termToString(ctx, res)).toMatchInlineSnapshot(`
-            <T#:3: Hi#688af3e6>{e#:2}(
-                a#:4: int#builtin,
-                b#:5: int#builtin,
-                c#:6: (arg: T#:3) ={}> int#builtin,
-                arg#:7: T#:3,
-            ): int#builtin ={What#20bf83b4, e#:2}> a#:4 +#builtin b#:5
-        `);
+<T#:3: Hi#16dc417a>{e#:2}(
+    a#:4: int#builtin,
+    b#:5: int#builtin,
+    c#:6: (arg: T#:3) ={}> int#builtin,
+    arg#:7: T#:3,
+): int#builtin ={What#20bf83b4, e#:2}> a#:4 +#builtin b#:5
+`);
     });
 
     it('should track effect usages', () => {

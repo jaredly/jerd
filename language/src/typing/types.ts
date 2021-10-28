@@ -779,7 +779,7 @@ export type Unary = {
 export type TypeError = {
     type: 'TypeError';
     is: Type; // this is the type that was needed
-    otherOptions: Array<Type>;
+    otherOptions?: Array<Type>;
     inner: Term; // this has the type that was found
     location: Location;
     message?: string;
