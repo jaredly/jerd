@@ -22,7 +22,13 @@ import {
 import * as preset from '../typing/preset';
 import { GroupedOp, reGroupOps } from './ops';
 import { ctxToEnv } from './migrate';
-import { Context, NamedDefns } from './Context';
+import {
+    Context,
+    emptyBindings,
+    emptyBuiltins,
+    emptyLibrary,
+    NamedDefns,
+} from './Context';
 import { typeExpression } from './typeExpression';
 import {
     addRecord,
@@ -339,40 +345,15 @@ export const findTermTypeErrors = (term: Term | null | void) => {
     return errors;
 };
 
-export const namedDefns = <T>(): NamedDefns<T> => ({ defns: {}, names: {} });
 export const newContext = (initial?: string): Context => {
     let num = 0;
     const ctx: Context = {
         rng: () => num++,
         warnings: [],
         idRemap: {},
-        builtins: {
-            terms: {},
-            types: { int: 0, float: 0, string: 0, void: 0, bool: 0, Array: 1 },
-            decorators: {},
-            ops: { unary: {}, binary: {} },
-        },
-        bindings: {
-            unique: { current: 0 },
-            self: null,
-            types: [],
-            delayedTypes: [],
-            values: [],
-            effects: [],
-        },
-        library: {
-            terms: namedDefns(),
-            decorators: namedDefns(),
-            types: {
-                ...namedDefns(),
-                constructors: { names: {}, idToNames: {} },
-                superTypes: {},
-            },
-            effects: {
-                ...namedDefns(),
-                constructors: { names: {}, idToNames: {} },
-            },
-        },
+        builtins: emptyBuiltins(),
+        bindings: emptyBindings(),
+        library: emptyLibrary(),
     };
     if (initial) {
         [ctx.library] = typeFile(ctx, parseTyped(initial));

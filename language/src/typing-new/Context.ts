@@ -101,6 +101,32 @@ export const emptyBindings = (): Bindings => ({
     delayedTypes: [],
 });
 
+export function emptyBuiltins(): import('/Users/jared/clone/exploration/jerd/language/src/typing-new/Context').Builtins {
+    return {
+        terms: {},
+        types: { int: 0, float: 0, string: 0, void: 0, bool: 0, Array: 1 },
+        decorators: {},
+        ops: { unary: {}, binary: {} },
+    };
+}
+
+export const namedDefns = <T>(): NamedDefns<T> => ({ defns: {}, names: {} });
+export function emptyLibrary(): Library {
+    return {
+        terms: namedDefns(),
+        decorators: namedDefns(),
+        types: {
+            ...namedDefns(),
+            constructors: { names: {}, idToNames: {} },
+            superTypes: {},
+        },
+        effects: {
+            ...namedDefns(),
+            constructors: { names: {}, idToNames: {} },
+        },
+    };
+}
+
 export type TypeBinding = {
     location: Location;
     sym: typed.Symbol;

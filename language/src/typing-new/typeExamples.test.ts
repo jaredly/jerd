@@ -58,9 +58,9 @@ describe('all the examples?', () => {
     //     const ctx: Context = ctxWithPrelude();
     // });
 
-    let ctx: Context;
+    let preludeCtx: Context;
     beforeAll(() => {
-        ctx = ctxWithPrelude();
+        preludeCtx = ctxWithPrelude();
     });
 
     const base = path.join(__dirname, '../../examples');
@@ -69,8 +69,11 @@ describe('all the examples?', () => {
             return;
         }
         it(`examples/${name}`, () => {
-            ctx.bindings.unique.current = 0;
-            ctx.warnings = [];
+            const ctx = newContext();
+            ctx.library = preludeCtx.library;
+            ctx.builtins = preludeCtx.builtins;
+            // ctx.bindings.unique.current = 0;
+            // ctx.warnings = [];
             const text = fs.readFileSync(path.join(base, name), 'utf8');
             let exprs;
             const parsed = parseTyped(text);
